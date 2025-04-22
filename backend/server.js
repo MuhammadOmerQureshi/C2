@@ -1,5 +1,3 @@
-// backend/server.js
-
 // 1. Module imports & config
 const express = require('express');
 const mongoose = require('mongoose');
