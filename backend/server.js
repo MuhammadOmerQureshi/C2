@@ -8,10 +8,10 @@ require('dotenv').config();
 
 // 2. Route imports
 const authRoutes       = require('./routes/authRoutes');
-const employerRoutes   = require('./routes/employerRoutes');
-const employeeRoutes   = require('./routes/employeeRoutes');
-const shiftRoutes      = require('./routes/shiftRoutes');
-const attendanceRoutes = require('./routes/attendanceRoutes');
+//const employerRoutes   = require('./routes/employerRoutes');
+//const employeeRoutes   = require('./routes/employeeRoutes');
+//const shiftRoutes      = require('./routes/shiftRoutes');
+//const attendanceRoutes = require('./routes/attendanceRoutes');
 
 // 3. App setup
 const app = express();
@@ -22,10 +22,10 @@ app.use(cors());          // enable CORS for all origins
 
 // Mount routers
 app.use('/api/auth',       authRoutes);
-app.use('/api/employers',  employerRoutes);
-app.use('/api/employees',  employeeRoutes);
-app.use('/api/shifts',     shiftRoutes);
-app.use('/api/attendance', attendanceRoutes);
+//app.use('/api/employers',  employerRoutes);
+//app.use('/api/employees',  employeeRoutes);
+//app.use('/api/shifts',     shiftRoutes);
+//app.use('/api/attendance', attendanceRoutes);
 
 // 4. Health-check & 404
 app.get('/', (req, res) => {
@@ -54,3 +54,6 @@ mongoose
     process.exit(1);
   });
 
+
+
+  
