@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 
+// Middleware to protect routes
 const protect = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1]; // Extract token from header
     if (!token) {
@@ -15,4 +16,14 @@ const protect = (req, res, next) => {
     }
 };
 
-module.exports = { protect };
+// Middleware to restrict access based on roles
+const authorize = (...roles) => {
+    return (req, res, next) => {
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ message: 'Forbidden: You do not have access to this resource' });
+        }
+        next();
+    };
+};
+
+module.exports = { protect, authorize };
