@@ -1,4 +1,3 @@
-// 1. Module imports & config
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -6,6 +5,12 @@ require('dotenv').config();
 
 // 2. Route imports
 const authRoutes       = require('./routes/authRoutes');
+
+//const employerRoutes   = require('./routes/employerRoutes');
+//const employeeRoutes   = require('./routes/employeeRoutes');
+//const shiftRoutes      = require('./routes/shiftRoutes');
+//const attendanceRoutes = require('./routes/attendanceRoutes');
+
 /*
 const employerRoutes   = require('./routes/employerRoutes');
 const employeeRoutes   = require('./routes/employeeRoutes');
@@ -21,7 +26,7 @@ app.use(express.json());  // parse JSON bodies
 app.use(cors());          // enable CORS for all origins
 
 // Mount routers
-app.use('/api/auth',       authRoutes);
+app.use('/api/auth',authRoutes);
 /*
 app.use('/api/employers',  employerRoutes);
 app.use('/api/employees',  employeeRoutes);
