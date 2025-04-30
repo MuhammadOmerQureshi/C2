@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Register a new user
 exports.registerUser = async (req, res) => {
     const { name, email, password, role } = req.body;
     try {
@@ -14,6 +15,7 @@ exports.registerUser = async (req, res) => {
     }
 };
 
+// Login a user
 exports.loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -34,6 +36,42 @@ exports.loginUser = async (req, res) => {
 
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
         res.status(200).json({ token });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get the authenticated user's details
+exports.getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password'); // Exclude password
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Update a user's status (Admin only)
+exports.updateUserStatus = async (req, res) => {
+    const { userId, status } = req.body;
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.status = status;
+        await user.save();
+        res.status(200).json({ message: `User status updated to ${status}` });
+     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get all users (Admin only)
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find().select('-password'); // Exclude passwords
+        res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

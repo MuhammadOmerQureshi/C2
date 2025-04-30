@@ -1,24 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser } = require('../controllers/authController');
-const { protect, authorize } = require('../middleware/authMiddleware'); // Import the middleware
+const { 
+    registerUser, 
+    loginUser, 
+    getMe, 
+    updateUserStatus, 
+    getAllUsers 
+} = require('../controllers/authController');
+const { protect, authorize } = require('../middleware/authMiddleware'); // Import middleware
 
-router.post('/register', registerUser); // Public route
-router.post('/login', loginUser);       // Public route
+// Public routes
+router.post('/register', registerUser); // Register a new user
+router.post('/login', loginUser);       // Login a user
 
-// Protected route for all authenticated users
-router.get('/profile', protect, (req, res) => {
-    res.status(200).json({ message: `Welcome, user ${req.user.id}` });
-});
+// Protected routes
+router.get('/me', protect, getMe); // Get authenticated user's details
 
-// Admin-only route
-router.get('/admin', protect, authorize('admin'), (req, res) => {
-    res.status(200).json({ message: 'Welcome, Admin!' });
-});
-
-// Employee-only route
-router.get('/employee', protect, authorize('employee'), (req, res) => {
-    res.status(200).json({ message: 'Welcome, Employee!' });
-});
+// Admin-only routes
+router.put('/status', protect, authorize('admin'), updateUserStatus); // Update user status
+router.get('/users', protect, authorize('admin'), getAllUsers);       // Get all users
 
 module.exports = router;
