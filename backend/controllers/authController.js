@@ -86,15 +86,27 @@ exports.updateUserProfile = async (req, res) => {
     }
 };
 
-// Get all users (Admin only)
+// Get all users (Admin only) with pagination
 exports.getAllUsers = async (req, res) => {
+    const { page = 1, limit = 10 } = req.query; // Default to page 1 and 10 users per page
     try {
-        const users = await User.find().select('-password'); // Exclude passwords
-        res.status(200).json(users);
+        const users = await User.find()
+            .select('-password') // Exclude passwords
+            .skip((page - 1) * limit) // Skip users for previous pages
+            .limit(parseInt(limit)); // Limit the number of users per page
+
+        const totalUsers = await User.countDocuments(); // Total number of users
+        res.status(200).json({
+            totalUsers,
+            totalPages: Math.ceil(totalUsers / limit),
+            currentPage: parseInt(page),
+            users,
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
+
 // Get a single user by ID (Admin only)
 exports.getUserById = async (req, res) => {
     try {
