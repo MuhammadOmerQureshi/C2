@@ -118,7 +118,7 @@ exports.updateUserStatus = [
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
-
+        // Extract userId and status from request body
         const { userId, status } = req.body;
         try {
             const user = await User.findById(userId);
@@ -244,3 +244,33 @@ exports.bulkDeleteUsers = [
         }
     }
 ];
+// Fetch audit logs (Admin only)
+exports.getAuditLogs = async (req, res) => {
+    const { page = 1, limit = 10, sortBy = 'timestamp', order = 'desc', action, performedBy, targetUser } = req.query;
+    try {
+        const sortOrder = order === 'desc' ? -1 : 1;
+        const filter = {};
+
+        // Add filters if provided
+        if (action) filter.action = action;
+        if (performedBy) filter.performedBy = performedBy;
+        if (targetUser) filter.targetUser = targetUser;
+
+        const logs = await AuditLog.find(filter)
+            .populate('performedBy', 'name email') // Populate admin details
+            .populate('targetUser', 'name email') // Populate target user details
+            .sort({ [sortBy]: sortOrder })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        const totalLogs = await AuditLog.countDocuments(filter);
+        res.status(200).json({
+            totalLogs,
+            totalPages: Math.ceil(totalLogs / limit),
+            currentPage: parseInt(page),
+            logs,
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

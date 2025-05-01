@@ -9,7 +9,9 @@ const {
     getAllUsers,
     updateUserProfile, 
     deleteUser,        
-    getUserById        
+    getUserById,
+    bulkUpdateUserStatus,
+    bulkDeleteUsers        
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
