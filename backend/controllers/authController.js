@@ -55,22 +55,33 @@ exports.getMe = async (req, res) => {
 
 // Get all users (Admin only) with pagination, sorting, and filtering
 exports.getAllUsers = async (req, res) => {
-    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status } = req.query; // Add role and status filters
+    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status, search, lastLoginFrom, lastLoginTo } = req.query;
     try {
-        const sortOrder = order === 'desc' ? -1 : 1; // Determine sort order
-        const filter = {}; // Initialize filter object
+        const sortOrder = order === 'desc' ? -1 : 1;
+        const filter = {};
 
         // Add filters if provided
         if (role) filter.role = role;
         if (status) filter.status = status;
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } }, // Case-insensitive search on name
+                { email: { $regex: search, $options: 'i' } } // Case-insensitive search on email
+            ];
+        }
+        if (lastLoginFrom || lastLoginTo) {
+            filter.lastLogin = {};
+            if (lastLoginFrom) filter.lastLogin.$gte = new Date(lastLoginFrom);
+            if (lastLoginTo) filter.lastLogin.$lte = new Date(lastLoginTo);
+        }
 
         const users = await User.find(filter)
-            .select('-password') // Exclude passwords
-            .sort({ [sortBy]: sortOrder }) // Apply sorting
-            .skip((page - 1) * limit) // Skip users for previous pages
-            .limit(parseInt(limit)); // Limit the number of users per page
+            .select('-password')
+            .sort({ [sortBy]: sortOrder })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
 
-        const totalUsers = await User.countDocuments(filter); // Total number of filtered users
+        const totalUsers = await User.countDocuments(filter);
         res.status(200).json({
             totalUsers,
             totalPages: Math.ceil(totalUsers / limit),
