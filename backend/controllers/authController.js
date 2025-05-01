@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { body, validationResult } = require('express-validator');
+const AuditLog = require('../models/AuditLog');
 
 // Register a new user
 exports.registerUser = async (req, res) => {
@@ -104,14 +105,14 @@ exports.getUserById = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 // Update a user's status (Admin only)
 exports.updateUserStatus = [
     // Validation rules
     body('status')
         .isIn(['active', 'inactive', 'suspended'])
         .withMessage('Status must be one of: active, inactive, suspended'),
-
-    // Controller logic
+        // Controller logic
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -125,12 +126,22 @@ exports.updateUserStatus = [
 
             user.status = status;
             await user.save();
+
+            // Log the action
+            await AuditLog.create({
+                action: 'updateStatus',
+                performedBy: req.user.id,
+                targetUser: userId,
+                details: { status },
+            });
+
             res.status(200).json({ message: `User status updated to ${status}` });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 ];
+
 // Update authenticated user's profile
 exports.updateUserProfile = [
     // Validation rules
