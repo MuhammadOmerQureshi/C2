@@ -86,18 +86,24 @@ exports.updateUserProfile = async (req, res) => {
     }
 };
 
-// Get all users (Admin only) with pagination and sorting
+// Get all users (Admin only) with pagination, sorting, and filtering
 exports.getAllUsers = async (req, res) => {
-    const { page = 1, limit = 10, sortBy = 'name', order = 'asc' } = req.query; // Default sorting by name in ascending order
+    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status } = req.query; // Add role and status filters
     try {
         const sortOrder = order === 'desc' ? -1 : 1; // Determine sort order
-        const users = await User.find()
+        const filter = {}; // Initialize filter object
+
+        // Add filters if provided
+        if (role) filter.role = role;
+        if (status) filter.status = status;
+
+        const users = await User.find(filter)
             .select('-password') // Exclude passwords
             .sort({ [sortBy]: sortOrder }) // Apply sorting
             .skip((page - 1) * limit) // Skip users for previous pages
             .limit(parseInt(limit)); // Limit the number of users per page
 
-        const totalUsers = await User.countDocuments(); // Total number of users
+        const totalUsers = await User.countDocuments(filter); // Total number of filtered users
         res.status(200).json({
             totalUsers,
             totalPages: Math.ceil(totalUsers / limit),
