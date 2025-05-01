@@ -54,9 +54,9 @@ exports.getMe = async (req, res) => {
     }
 };
 
-// Get all users (Admin only) with pagination, sorting, and filtering
+// Get all users (Admin only) with pagination, sorting, and granular filtering
 exports.getAllUsers = async (req, res) => {
-    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status, search, lastLoginFrom, lastLoginTo } = req.query;
+    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status, search, lastLoginFrom, lastLoginTo, department, phoneNumber } = req.query;
     try {
         const sortOrder = order === 'desc' ? -1 : 1;
         const filter = {};
@@ -64,24 +64,29 @@ exports.getAllUsers = async (req, res) => {
         // Add filters if provided
         if (role) filter.role = role;
         if (status) filter.status = status;
+        if (department) filter.department = department;
+        if (phoneNumber) filter.phoneNumber = phoneNumber;
         if (search) {
             filter.$or = [
                 { name: { $regex: search, $options: 'i' } }, // Case-insensitive search on name
-                { email: { $regex: search, $options: 'i' } } // Case-insensitive search on email
+                { email: { $regex: search, $options: 'i' } }, // Case-insensitive search on email
+                { phoneNumber: { $regex: search, $options: 'i' } } // Case-insensitive search on phone number
             ];
         }
+        // Filter by lastLogin date range
+        // Convert lastLoginFrom and lastLoginTo to Date objects
         if (lastLoginFrom || lastLoginTo) {
             filter.lastLogin = {};
             if (lastLoginFrom) filter.lastLogin.$gte = new Date(lastLoginFrom);
             if (lastLoginTo) filter.lastLogin.$lte = new Date(lastLoginTo);
         }
-
+        // Pagination and sorting
         const users = await User.find(filter)
             .select('-password')
             .sort({ [sortBy]: sortOrder })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
-
+        // Populate department field if needed
         const totalUsers = await User.countDocuments(filter);
         res.status(200).json({
             totalUsers,
