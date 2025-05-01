@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { body, validationResult } = require('express-validator');
 
-
 // Register a new user
 exports.registerUser = async (req, res) => {
     const { name, email, password, role } = req.body;
@@ -55,19 +54,32 @@ exports.getMe = async (req, res) => {
 };
 
 // Update a user's status (Admin only)
-exports.updateUserStatus = async (req, res) => {
-    const { userId, status } = req.body;
-    try {
-        const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ message: 'User not found' });
+exports.updateUserStatus = [
+    // Validation rules
+    body('status')
+        .isIn(['active', 'inactive', 'suspended'])
+        .withMessage('Status must be one of: active, inactive, suspended'),
 
-        user.status = status;
-        await user.save();
-        res.status(200).json({ message: `User status updated to ${status}` });
-     } catch (error) {
-        res.status(500).json({ error: error.message });
+    // Controller logic
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { userId, status } = req.body;
+        try {
+            const user = await User.findById(userId);
+            if (!user) return res.status(404).json({ message: 'User not found' });
+
+            user.status = status;
+            await user.save();
+            res.status(200).json({ message: `User status updated to ${status}` });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-};
+];
 // Update authenticated user's profile
 exports.updateUserProfile = [
     // Validation rules
