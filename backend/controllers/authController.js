@@ -53,6 +53,46 @@ exports.getMe = async (req, res) => {
     }
 };
 
+// Get all users (Admin only) with pagination, sorting, and filtering
+exports.getAllUsers = async (req, res) => {
+    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status } = req.query; // Add role and status filters
+    try {
+        const sortOrder = order === 'desc' ? -1 : 1; // Determine sort order
+        const filter = {}; // Initialize filter object
+
+        // Add filters if provided
+        if (role) filter.role = role;
+        if (status) filter.status = status;
+
+        const users = await User.find(filter)
+            .select('-password') // Exclude passwords
+            .sort({ [sortBy]: sortOrder }) // Apply sorting
+            .skip((page - 1) * limit) // Skip users for previous pages
+            .limit(parseInt(limit)); // Limit the number of users per page
+
+        const totalUsers = await User.countDocuments(filter); // Total number of filtered users
+        res.status(200).json({
+            totalUsers,
+            totalPages: Math.ceil(totalUsers / limit),
+            currentPage: parseInt(page),
+            users,
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get a single user by ID (Admin only)
+exports.getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password'); // Exclude password
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 // Update a user's status (Admin only)
 exports.updateUserStatus = [
     // Validation rules
@@ -114,46 +154,37 @@ exports.updateUserProfile = [
     }
 ];
 
-// Get all users (Admin only) with pagination, sorting, and filtering
-exports.getAllUsers = async (req, res) => {
-    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status } = req.query; // Add role and status filters
-    try {
-        const sortOrder = order === 'desc' ? -1 : 1; // Determine sort order
-        const filter = {}; // Initialize filter object
+// Update the status of multiple users (Admin only)
+exports.bulkUpdateUserStatus = [
+    // Validation rules
+    body('userIds').isArray({ min: 1 }).withMessage('User IDs must be an array with at least one ID'),
+    body('status')
+        .isIn(['active', 'inactive', 'suspended'])
+        .withMessage('Status must be one of: active, inactive, suspended'),
 
-        // Add filters if provided
-        if (role) filter.role = role;
-        if (status) filter.status = status;
+    // Controller logic
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-        const users = await User.find(filter)
-            .select('-password') // Exclude passwords
-            .sort({ [sortBy]: sortOrder }) // Apply sorting
-            .skip((page - 1) * limit) // Skip users for previous pages
-            .limit(parseInt(limit)); // Limit the number of users per page
+        const { userIds, status } = req.body;
+        try {
+            const result = await User.updateMany(
+                { _id: { $in: userIds } }, // Match users by IDs
+                { $set: { status } } // Update status
+            );
 
-        const totalUsers = await User.countDocuments(filter); // Total number of filtered users
-        res.status(200).json({
-            totalUsers,
-            totalPages: Math.ceil(totalUsers / limit),
-            currentPage: parseInt(page),
-            users,
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+            res.status(200).json({
+                message: `Status updated to '${status}' for ${result.nModified} users`,
+            });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-};
+];
 
-// Get a single user by ID (Admin only)
-exports.getUserById = async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id).select('-password'); // Exclude password
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
 // Delete a user (Admin only)
 exports.deleteUser = async (req, res) => {
     try {
