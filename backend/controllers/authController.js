@@ -218,3 +218,29 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+// Delete multiple users (Admin only)
+exports.bulkDeleteUsers = [
+    body('userIds').isArray({ min: 1 }).withMessage('User IDs must be an array with at least one ID'),
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { userIds } = req.body;
+        try {
+            const result = await User.deleteMany({ _id: { $in: userIds } });
+
+            // Log the action
+            await AuditLog.create({
+                action: 'bulkDelete',
+                performedBy: req.user.id,
+                details: { userIds },
+            });
+
+            res.status(200).json({ message: `${result.deletedCount} users deleted successfully` });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+];
