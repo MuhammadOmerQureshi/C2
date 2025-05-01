@@ -53,5 +53,7 @@ router.put('/status', protect, authorize('admin'), updateUserStatus);
 router.get('/users', protect, authorize('admin'), getAllUsers);
 router.get('/users/:id', protect, authorize('admin'), getUserById);
 router.delete('/users/:id', protect, authorize('admin'), deleteUser);
+router.put('/bulk-status', protect, authorize('admin'), bulkUpdateUserStatus); // Bulk status update
+router.delete('/bulk-delete', protect, authorize('admin'), bulkDeleteUsers);   // Bulk delete users
 
 module.exports = router;
