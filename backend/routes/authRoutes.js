@@ -9,7 +9,9 @@ const {
     getAllUsers,
     updateUserProfile, 
     deleteUser,        
-    getUserById        
+    getUserById,
+    bulkUpdateUserStatus,
+    bulkDeleteUsers        
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -57,3 +59,4 @@ router.put('/bulk-status', protect, authorize('admin'), bulkUpdateUserStatus); /
 router.delete('/bulk-delete', protect, authorize('admin'), bulkDeleteUsers);   // Bulk delete users
 
 module.exports = router;
+
