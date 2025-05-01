@@ -86,12 +86,14 @@ exports.updateUserProfile = async (req, res) => {
     }
 };
 
-// Get all users (Admin only) with pagination
+// Get all users (Admin only) with pagination and sorting
 exports.getAllUsers = async (req, res) => {
-    const { page = 1, limit = 10 } = req.query; // Default to page 1 and 10 users per page
+    const { page = 1, limit = 10, sortBy = 'name', order = 'asc' } = req.query; // Default sorting by name in ascending order
     try {
+        const sortOrder = order === 'desc' ? -1 : 1; // Determine sort order
         const users = await User.find()
             .select('-password') // Exclude passwords
+            .sort({ [sortBy]: sortOrder }) // Apply sorting
             .skip((page - 1) * limit) // Skip users for previous pages
             .limit(parseInt(limit)); // Limit the number of users per page
 
