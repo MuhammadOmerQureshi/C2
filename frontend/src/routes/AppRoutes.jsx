@@ -10,6 +10,8 @@ export default function AppRoutes() {
         <Route path="/"           element={<LoginPage />} />
         <Route path="/employer"   element={<EmployerDash />} />
         <Route path="/employee"   element={<EmployeeDash />} />
+        <Route path="/register" element={<RegisterPage />} />
+
         {/* future routes */}
       </Routes>
     </BrowserRouter>
