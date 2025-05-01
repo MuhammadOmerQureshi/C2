@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { body, validationResult } = require('express-validator');
+
 
 // Register a new user
 exports.registerUser = async (req, res) => {
@@ -67,24 +69,38 @@ exports.updateUserStatus = async (req, res) => {
     }
 };
 // Update authenticated user's profile
-exports.updateUserProfile = async (req, res) => {
-    const { name, email, phoneNumber, address } = req.body;
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
+exports.updateUserProfile = [
+    // Validation rules
+    body('email').optional().isEmail().withMessage('Valid email is required'),
+    body('phoneNumber').optional().isMobilePhone().withMessage('Valid phone number is required'),
+    body('name').optional().notEmpty().withMessage('Name cannot be empty'),
+    body('address').optional().notEmpty().withMessage('Address cannot be empty'),
 
-        // Update fields
-        if (name) user.name = name;
-        if (email) user.email = email;
-        if (phoneNumber) user.phoneNumber = phoneNumber;
-        if (address) user.address = address;
+    // Controller logic
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-        await user.save();
-        res.status(200).json({ message: 'Profile updated successfully', user });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        const { name, email, phoneNumber, address } = req.body;
+        try {
+            const user = await User.findById(req.user.id);
+            if (!user) return res.status(404).json({ message: 'User not found' });
+
+            // Update fields
+            if (name) user.name = name;
+            if (email) user.email = email;
+            if (phoneNumber) user.phoneNumber = phoneNumber;
+            if (address) user.address = address;
+
+            await user.save();
+            res.status(200).json({ message: 'Profile updated successfully', user });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-};
+];
 
 // Get all users (Admin only) with pagination, sorting, and filtering
 exports.getAllUsers = async (req, res) => {
