@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import api from '../api/axiosConfig';
+import api from "../api/axiosConfig.js";    // ← make sure this matches
 
-function RegisterPage() {
+export default function RegisterPage() {
   const [form, setForm] = useState({
     name: '', email: '', password: '', role: 'employee'
   });
   const onChange = e => setForm({ ...form, [e.target.name]: e.target.value });
   const onSubmit = async e => {
     e.preventDefault();
-    await api.post('/auth/register', form);
-    alert('Registered! Now log in.');
+    try {
+      await api.post('/auth/register', form);
+      alert('Registered! Now log in.');
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Registration failed');
+    }
   };
 
   return (
@@ -43,5 +48,5 @@ function RegisterPage() {
   );
 }
 
-export default RegisterPage;
+;
 
