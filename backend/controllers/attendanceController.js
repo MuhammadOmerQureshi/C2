@@ -1,5 +1,6 @@
 const Attendance = require('../models/Attendance');
 const { Parser } = require('json2csv');
+const PDFDocument = require('pdfkit');
 const sendEmail = require('../utils/emailService');
 
 
@@ -94,17 +95,40 @@ exports.getAttendance = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-// Export Attendance as CSV
+// Export Attendance as CSV & PDF
+// This function exports attendance records in CSV or PDF format based on the query parameter
 exports.exportAttendance = async (req, res) => {
+    const { format = 'csv' } = req.query;
+
     try {
         const attendanceRecords = await Attendance.find().populate('user', 'name email');
-        const fields = ['user.name', 'user.email', 'clockIn', 'clockOut', 'date', 'location'];
-        const json2csvParser = new Parser({ fields });
-        const csv = json2csvParser.parse(attendanceRecords);
 
-        res.header('Content-Type', 'text/csv');
-        res.attachment('attendance.csv');
-        res.send(csv);
+        if (format === 'csv') {
+            const fields = ['user.name', 'user.email', 'clockIn', 'clockOut', 'date', 'location'];
+            const json2csvParser = new Parser({ fields });
+            const csv = json2csvParser.parse(attendanceRecords);
+
+            res.header('Content-Type', 'text/csv');
+            res.attachment('attendance.csv');
+            res.send(csv);
+        } else if (format === 'pdf') {
+            const doc = new PDFDocument();
+            res.header('Content-Type', 'application/pdf');
+            res.attachment('attendance.pdf');
+
+            doc.pipe(res);
+            doc.fontSize(16).text('Attendance Records', { align: 'center' });
+            attendanceRecords.forEach((record) => {
+                doc
+                    .fontSize(12)
+                    .text(
+                        `Name: ${record.user.name}, Email: ${record.user.email}, Clock-In: ${record.clockIn}, Clock-Out: ${record.clockOut || 'N/A'}, Date: ${record.date}`
+                    );
+            });
+            doc.end();
+        } else {
+            res.status(400).json({ message: 'Invalid format' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
