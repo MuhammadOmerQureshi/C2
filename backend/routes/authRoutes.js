@@ -61,3 +61,4 @@ router.delete('/bulk-delete', protect, authorize('admin'), bulkDeleteUsers);   /
 router.get('/audit-logs', protect, authorize('admin'), getAuditLogs); // Fetch audit logs
 
 module.exports = router;
+
