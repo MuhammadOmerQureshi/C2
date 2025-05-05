@@ -17,7 +17,7 @@ exports.clockIn = async (req, res) => {
             user: userId,
             clockIn: new Date(),
             date: today,
-            location: req.ip, // Optional: Store IP address
+            location: req.ip, // Capture IP address
         });
 
         await attendance.save();
@@ -45,9 +45,31 @@ exports.clockOut = async (req, res) => {
 
         // Update the clock-out time
         attendance.clockOut = new Date();
+        attendance.location = req.ip; // Capture IP address during clock-out
         await attendance.save();
 
         res.status(200).json({ message: 'Clock-out successful', attendance });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+exports.getAttendance = async (req, res) => {
+    const { userId, startDate, endDate, department } = req.query;
+    try {
+        const filter = {};
+
+        if (userId) filter.user = userId;
+        if (startDate || endDate) {
+            filter.date = {};
+            if (startDate) filter.date.$gte = new Date(startDate);
+            if (endDate) filter.date.$lte = new Date(endDate);
+        }
+
+        const attendanceRecords = await Attendance.find(filter)
+            .populate('user', 'name email department') // Populate user details
+            .sort({ date: -1 });
+
+        res.status(200).json({ attendanceRecords });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
