@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Add this import
+import './LoginPage.css'; // Ensure the CSS file is linked
 
 export default function LoginPage() {
-  const [email, setEmail]     = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate(); // Initialize navigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -13,17 +16,29 @@ export default function LoginPage() {
         { email, password }
       );
       localStorage.setItem('token', res.data.token);
-      // TODO: redirect based on role
+
+      // Redirect based on role
+      if (res.data.role === 'employee') {
+        navigate('/employee-dashboard');
+      } else if (res.data.role === 'employer') {
+        navigate('/employer-dashboard');
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      <div className="logo-container">
+        <img src="logo.png" alt="Logo" className="logo" />
+        <h1 className="logo-text">
+          <span>CESIUM</span>CLOCK
+        </h1>
+      </div>
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow-md w-full max-w-sm"
+        className="bg-white p-6 rounded shadow-md w-full max-w-sm mt-6"
       >
         <h2 className="text-2xl mb-4">Login</h2>
         <label className="block mb-2">
@@ -31,7 +46,7 @@ export default function LoginPage() {
           <input
             type="email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full p-2 border rounded"
             required
           />
@@ -41,7 +56,7 @@ export default function LoginPage() {
           <input
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full p-2 border rounded"
             required
           />
