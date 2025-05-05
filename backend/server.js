@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+// import models for seeding
+const User = require('./models/User');
+const bcrypt = require('bcryptjs');
+
 // 2. Route imports
 const authRoutes = require('./routes/authRoutes');
 /*
@@ -38,32 +42,61 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Connect to MongoDB using Mongoose
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB')) // Log successful connection
-  .catch((error) => console.error('MongoDB connection error:', error)); // Log connection errors
-
-let server;
 // 5. Database connection & server start
 const PORT = process.env.PORT || 5000;
-server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// Function to handle graceful shutdown of the server and database connection
-function shutdown() {
-    console.log('Shutting down server...');
-    server.close(async () => { // Close the HTTP server
-      console.log('HTTP server closed.');
-      try {
-        await mongoose.connection.close(); // Close the MongoDB connection
-        console.log('MongoDB connection closed.');
-        process.exit(0); // Exit the process with success code
-      } catch (error) {
-        console.error('Error closing MongoDB connection:', error); // Log any errors during shutdown
-        process.exit(1); // Exit the process with error code
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(async () => {
+    console.log('Connected to MongoDB');
+
+    // --- Step 2: Seed hard-coded admin user if not exists ---
+    const adminEmail = 'admin@company.com';
+    const adminPassword = 'SuperSecret123';
+    try {
+      let admin = await User.findOne({ email: adminEmail });
+      if (!admin) {
+        const hashed = await bcrypt.hash(adminPassword, 10);
+        admin = await User.create({
+          firstName: 'Super',
+          lastName:  'Admin',
+          username:  'superadmin',
+          email:     adminEmail,
+          password:  hashed,
+          address:   '',
+          contactNo: '',
+          role:      'admin'
+        });
+        console.log(`Seeded admin user: ${adminEmail}`);
       }
-    });
-  }
+    } catch (err) {
+      console.error('Error seeding admin user:', err);
+    }
+
+    // start HTTP server after seeding
+    const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+    // graceful shutdown
+    function shutdown() {
+      console.log('Shutting down server...');
+      server.close(async () => {
+        console.log('HTTP server closed.');
+        try {
+          await mongoose.connection.close();
+          console.log('MongoDB connection closed.');
+          process.exit(0);
+        } catch (error) {
+          console.error('Error closing MongoDB connection:', error);
+          process.exit(1);
+        }
+      });
+    }
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+  })
+  .catch((error) => console.error('MongoDB connection error:', error));
+
+
   
-  // Handle termination signals (e.g., Ctrl+C or system termination)
-  process.on('SIGINT', shutdown); // Handle Ctrl+C
-  process.on('SIGTERM', shutdown); // Handle termination signals from the system
