@@ -109,3 +109,42 @@ exports.exportAttendance = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+// Fetch attendance records with filters, sorting, and pagination
+exports.getAttendanceDashboard = async (req, res) => {
+    const { page = 1, limit = 10, sortBy = 'date', order = 'desc', userId, startDate, endDate, department } = req.query;
+
+    try {
+        const sortOrder = order === 'desc' ? -1 : 1;
+        const filter = {};
+
+        // Add filters if provided
+        if (userId) filter.user = userId;
+        if (startDate || endDate) {
+            filter.date = {};
+            if (startDate) filter.date.$gte = new Date(startDate);
+            if (endDate) filter.date.$lte = new Date(endDate);
+        }
+        if (department) {
+            const usersInDepartment = await User.find({ department }).select('_id');
+            filter.user = { $in: usersInDepartment.map(user => user._id) };
+        }
+
+        // Fetch attendance records
+        const attendanceRecords = await Attendance.find(filter)
+            .populate('user', 'name email department') // Populate user details
+            .sort({ [sortBy]: sortOrder })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        const totalRecords = await Attendance.countDocuments(filter);
+
+        res.status(200).json({
+            totalRecords,
+            totalPages: Math.ceil(totalRecords / limit),
+            currentPage: parseInt(page),
+            attendanceRecords,
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
