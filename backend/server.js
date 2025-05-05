@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+require('./utils/scheduler'); // Import the scheduler for periodic tasks
 
 // 2. Route imports
 const authRoutes = require('./routes/authRoutes');

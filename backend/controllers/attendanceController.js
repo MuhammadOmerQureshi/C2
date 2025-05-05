@@ -1,5 +1,6 @@
 const Attendance = require('../models/Attendance');
 const { Parser } = require('json2csv');
+const sendEmail = require('../utils/emailService');
 
 
 // Clock-In Controller with Late Check-In Alert
@@ -27,8 +28,17 @@ exports.clockIn = async (req, res) => {
 
         await attendance.save();
 
+        // Send email notification if the user is late
+        if (isLate) {
+            const user = await User.findById(userId);
+            const emailSubject = 'Late Check-In Notification';
+            const emailBody = `Dear ${user.name},\n\nYou have checked in late at ${currentTime.toLocaleTimeString()}. Please ensure timely check-ins in the future.\n\nBest regards,\nAttendance System`;
+
+            await sendEmail(user.email, emailSubject, emailBody);
+        }
+
         const message = isLate
-            ? 'Clock-in successful, but you are late.'
+            ? 'Clock-in successful, but you are late. An email notification has been sent.'
             : 'Clock-in successful';
 
         res.status(201).json({ message, attendance });
