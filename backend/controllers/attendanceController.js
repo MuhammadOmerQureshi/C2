@@ -1,27 +1,37 @@
 const Attendance = require('../models/Attendance');
+const { Parser } = require('json2csv');
 
-// Clock-In Controller
+
+// Clock-In Controller with Late Check-In Alert
 exports.clockIn = async (req, res) => {
     try {
         const userId = req.user.id;
-        const today = new Date().setHours(0, 0, 0, 0); // Start of today
+        const today = new Date().setHours(0, 0, 0, 0);
 
-        // Check if the user has already clocked in today
         const existingRecord = await Attendance.findOne({ user: userId, date: today });
         if (existingRecord) {
             return res.status(400).json({ message: 'You have already clocked in today.' });
         }
 
-        // Create a new attendance record
+        const currentTime = new Date();
+        const lateThreshold = new Date().setHours(9, 0, 0, 0); // Example: 9:00 AM
+
+        const isLate = currentTime > lateThreshold;
+
         const attendance = new Attendance({
             user: userId,
-            clockIn: new Date(),
+            clockIn: currentTime,
             date: today,
-            location: req.ip, // Capture IP address
+            location: req.ip,
         });
 
         await attendance.save();
-        res.status(201).json({ message: 'Clock-in successful', attendance });
+
+        const message = isLate
+            ? 'Clock-in successful, but you are late.'
+            : 'Clock-in successful';
+
+        res.status(201).json({ message, attendance });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -70,6 +80,21 @@ exports.getAttendance = async (req, res) => {
             .sort({ date: -1 });
 
         res.status(200).json({ attendanceRecords });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+// Export Attendance as CSV
+exports.exportAttendance = async (req, res) => {
+    try {
+        const attendanceRecords = await Attendance.find().populate('user', 'name email');
+        const fields = ['user.name', 'user.email', 'clockIn', 'clockOut', 'date', 'location'];
+        const json2csvParser = new Parser({ fields });
+        const csv = json2csvParser.parse(attendanceRecords);
+
+        res.header('Content-Type', 'text/csv');
+        res.attachment('attendance.csv');
+        res.send(csv);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
