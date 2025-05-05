@@ -8,13 +8,13 @@ const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 
 // 2. Route imports
-const authRoutes = require('./routes/authRoutes');
-/*
+const authRoutes        = require('./routes/authRoutes');
+const adminRoutes       = require('./routes/adminRoutes');
 const employerRoutes   = require('./routes/employerRoutes');
 const employeeRoutes   = require('./routes/employeeRoutes');
 const shiftRoutes      = require('./routes/shiftRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
-*/
+
 
 // 3. App setup
 const app = express();
@@ -25,12 +25,12 @@ app.use(cors());          // enable CORS for all origins
 
 // Mount routers
 app.use('/api/auth', authRoutes);
-/*
+app.use('/api/admin', adminRoutes);
 app.use('/api/employers',  employerRoutes);
 app.use('/api/employees',  employeeRoutes);
 app.use('/api/shifts',     shiftRoutes);
 app.use('/api/attendance', attendanceRoutes);
-*/
+
 
 // 4. Health-check & 404
 app.get('/', (req, res) => {
@@ -99,4 +99,3 @@ mongoose.connect(process.env.MONGODB_URI, {
   .catch((error) => console.error('MongoDB connection error:', error));
 
 
-  

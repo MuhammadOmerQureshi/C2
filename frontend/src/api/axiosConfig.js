@@ -1,5 +1,6 @@
 // frontend/src/api/axiosConfig.js
-import axios from 'axios';
+
+import api from '../api/axiosConfig';
 
 // 1) Create and name your axios instance "api"
 const api = axios.create({
