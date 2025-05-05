@@ -15,6 +15,8 @@ const {
     getAuditLogs        
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
+const { clockIn, clockOut } = require('../controllers/attendanceController'); // Import the controllers
+
 
 // Middleware to handle validation errors
 const validate = (req, res, next) => {
@@ -59,6 +61,10 @@ router.delete('/users/:id', protect, authorize('admin'), deleteUser);
 router.put('/bulk-status', protect, authorize('admin'), bulkUpdateUserStatus); // Bulk status update
 router.delete('/bulk-delete', protect, authorize('admin'), bulkDeleteUsers);   // Bulk delete users
 router.get('/audit-logs', protect, authorize('admin'), getAuditLogs); // Fetch audit logs
+
+// Clock-In/Clock-Out routes
+router.post('/clock-in', protect, clockIn); // Clock-in route
+router.post('/clock-out', protect, clockOut); // Clock-out route
 
 module.exports = router;
 
