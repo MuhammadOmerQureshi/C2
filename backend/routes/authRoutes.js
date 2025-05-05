@@ -16,7 +16,7 @@ const {
             
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
-const { clockIn, clockOut, getAttendance, exportAttendance } = require('../controllers/attendanceController');
+const { clockIn, clockOut, getAttendance, exportAttendance, getAttendanceDashboard } = require('../controllers/attendanceController');
 
 // Middleware to handle validation errors
 const validate = (req, res, next) => {
@@ -63,6 +63,7 @@ router.delete('/bulk-delete', protect, authorize('admin'), bulkDeleteUsers);   /
 router.get('/audit-logs', protect, authorize('admin'), getAuditLogs); // Fetch audit logs
 router.get('/attendance', protect, authorize('admin', 'employer'), getAttendance); // Fetch attendance records
 router.get('/attendance/export', protect, authorize('admin'), exportAttendance); // Export attendance as CSV
+router.get('/attendance/dashboard', protect, authorize('admin', 'employer'), getAttendanceDashboard); // Dashboard API
 
 // Clock-In/Clock-Out routes
 router.post('/clock-in', protect, clockIn); // Clock-in route
