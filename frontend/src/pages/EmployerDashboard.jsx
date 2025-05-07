@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../utils/logout';
 
 export default function EmployerDashboard() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <h1 className="text-3xl font-bold mb-4">Employer Dashboard</h1>

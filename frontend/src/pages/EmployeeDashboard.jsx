@@ -1,10 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../utils/logout';
 import Clock from '../components/clock'; // Import the Clock component
 import Table from '../components/table'; // Import the Table component
 import '../styles/Home_screen_style.css'; // Import styles
 import '../styles/elements.css'; // Import additional styles
 
 export default function EmployeeDashboard() {
+  const navigate = useNavigate();
+
   // Handle table exit logic
   const handleTableExit = () => {
     console.log("Table exit button clicked");
@@ -14,6 +18,14 @@ export default function EmployeeDashboard() {
     <div className="min-h-screen bg-red-100 p-6">
       {/* Page Header */}
       <h1 className="text-3xl font-bold mb-4">Employee Dashboard</h1>
+
+      {/* Logout Button */}
+      <button
+        onClick={() => logout(navigate)}
+        className="mb-4 bg-red-500 text-white px-4 py-2 rounded"
+      >
+        Logout
+      </button>
 
       {/* Table Section */}
       <div className="bg-white p-4 rounded shadow mb-6">

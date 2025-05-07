@@ -1,41 +1,44 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Add this import
-import './LoginPage.css'; // Ensure the CSS file is linked
+import { useNavigate } from 'react-router-dom';
+import api from '../api/axiosConfig';
+import './LoginPage.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate(); // Initialize navigate
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-  // Directly navigate to a specific page without checking
-  navigate('/employee-dashboard'); // Change this to the desired page
-
-
-    
-/* 
-
+    setError('');
+    setLoading(true);
 
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/auth/login',
-        { email, password }
-      );
+      const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
 
-      // Redirect based on role
-      if (res.data.role === 'employee') {
-        navigate('/employee-dashboard');
-      } else if (res.data.role === 'employer') {
-        navigate('/employer-dashboard');
+      const me = await api.get('/auth/me');
+      switch (me.data.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'employer':
+          navigate('/employer');
+          break;
+        case 'employee':
+          navigate('/employee');
+          break;
+        default:
+          navigate('/');
       }
     } catch (err) {
-      console.error(err);
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
-      */
   };
 
   return (
@@ -51,6 +54,8 @@ export default function LoginPage() {
         className="bg-white p-6 rounded shadow-md w-full max-w-sm mt-6"
       >
         <h2 className="text-2xl mb-4">Login</h2>
+        {error && <div className="mb-2 text-red-600">{error}</div>}
+
         <label className="block mb-2">
           Email
           <input
@@ -61,21 +66,32 @@ export default function LoginPage() {
             required
           />
         </label>
+
         <label className="block mb-4">
           Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 border rounded pr-10"
+              required
+            />
+            <span
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-sm text-blue-600 cursor-pointer"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </span>
+          </div>
         </label>
+
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded"
+          className={`w-full text-white py-2 rounded ${loading ? 'bg-gray-400' : 'bg-blue-500'}`}
+          disabled={loading}
         >
-          Submit
+          {loading ? 'Logging in...' : 'Submit'}
         </button>
       </form>
     </div>
