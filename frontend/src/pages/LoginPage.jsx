@@ -18,13 +18,14 @@ export default function LoginPage() {
       localStorage.setItem('token', res.data.token);
 
       // Redirect based on role
-      if (res.data.role === 'employee') {
+      if (res.data.user.role === 'employee') {
         navigate('/employee-dashboard');
-      } else if (res.data.role === 'employer') {
+      } else if (res.data.user.role === 'employer') {
         navigate('/employer-dashboard');
       }
     } catch (err) {
       console.error(err);
+      alert(err.response?.data?.message || 'Login failed. Please try again.');
     }
   };
 

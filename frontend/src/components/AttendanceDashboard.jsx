@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Bar } from 'react-chartjs-2';
 
 const AttendanceDashboard = () => {
     const [attendanceData, setAttendanceData] = useState([]);
+    const [chartData, setChartData] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [filters, setFilters] = useState({});
@@ -26,6 +28,22 @@ const AttendanceDashboard = () => {
 
             setAttendanceData(response.data.attendanceRecords);
             setTotalPages(response.data.totalPages);
+
+            // Prepare data for the chart
+            const dates = response.data.attendanceRecords.map(record => new Date(record.date).toLocaleDateString());
+            const clockIns = response.data.attendanceRecords.map(record => (record.clockIn ? 1 : 0));
+            setChartData({
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Clock-Ins',
+                        data: clockIns,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                    },
+                ],
+            });
         } catch (error) {
             console.error('Error fetching attendance data:', error);
         }
@@ -61,6 +79,23 @@ const AttendanceDashboard = () => {
                 </label>
                 <button onClick={fetchAttendanceData}>Apply Filters</button>
             </div>
+
+            {/* Export Buttons */}
+            <div>
+                <button onClick={() => window.open('/api/auth/attendance/export?format=csv', '_blank')}>
+                    Export as CSV
+                </button>
+                <button onClick={() => window.open('/api/auth/attendance/export?format=pdf', '_blank')}>
+                    Export as PDF
+                </button>
+            </div>
+
+            {/* Bar Chart */}
+            <div>
+                <h2>Daily Attendance Trends</h2>
+                <Bar data={chartData} />
+            </div>
+
             <table>
                 <thead>
                     <tr>
