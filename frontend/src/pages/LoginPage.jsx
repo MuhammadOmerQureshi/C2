@@ -10,6 +10,15 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+  // Directly navigate to a specific page without checking
+  navigate('/employee-dashboard'); // Change this to the desired page
+
+
+    
+/* 
+
+
     try {
       const res = await axios.post(
         'http://localhost:5000/api/auth/login',
@@ -26,6 +35,7 @@ export default function LoginPage() {
     } catch (err) {
       console.error(err);
     }
+      */
   };
 
   return (
