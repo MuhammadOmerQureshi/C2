@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../utils/logout';
-
+import { AttendanceDashboard } from '../components/AttendanceDashboard';
 
 export default function EmployeeDashboard() {
+  const attendance = AttendanceDashboard();
   const navigate = useNavigate();
   return (
     <div className="p-6">
