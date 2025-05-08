@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
 
@@ -9,11 +9,8 @@ const AttendanceDashboard = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [filters, setFilters] = useState({});
 
-    useEffect(() => {
-        fetchAttendanceData();
-    }, [currentPage, filters]);
-
-    const fetchAttendanceData = async () => {
+    // Wrap fetchAttendanceData in useCallback to ensure a stable reference
+    const fetchAttendanceData = useCallback(async () => {
         try {
             const response = await axios.get('/api/auth/attendance/dashboard', {
                 params: {
@@ -47,7 +44,12 @@ const AttendanceDashboard = () => {
         } catch (error) {
             console.error('Error fetching attendance data:', error);
         }
-    };
+    }, [currentPage, filters]);
+
+    // Use fetchAttendanceData in useEffect
+    useEffect(() => {
+        fetchAttendanceData();
+    }, [fetchAttendanceData]);
 
     const handleFilterChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
