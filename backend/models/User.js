@@ -4,9 +4,14 @@ const { Schema } = mongoose;
 // User schema definition
 // This schema defines the structure of the User document in MongoDB
 const userSchema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  firstName:   { type: String, required: true },
+  lastName:    { type: String, required: true },
+  username:    { type: String, required: true, unique: true },
+  email:       { type: String, required: true, unique: true },
+  password:    { type: String, required: true },        // will store hashed
+  address:     { type: String },
+  contactNo:   { type: String },
+  employeeId:  { type: String, unique: true, sparse: true },
   role: { 
       type: String, 
       enum: ['admin', 'employer', 'employee'], 
@@ -24,6 +29,7 @@ const userSchema = new Schema({
   department: { type: String }, // New field for department
   phoneNumber: { type: String }, // Optional phone number
   lastLogin: { type: Date }, // Timestamp for the last login
+  address: { type: String }, // Optional address field
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

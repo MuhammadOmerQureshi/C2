@@ -6,10 +6,12 @@ import './LoginPage.css'; // Ensure the CSS file is linked
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate(); // Initialize navigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(''); // Reset error message
     try {
       const res = await axios.post(
         'http://localhost:5000/api/auth/login',
@@ -42,6 +44,7 @@ export default function LoginPage() {
         className="bg-white p-6 rounded shadow-md w-full max-w-sm mt-6"
       >
         <h2 className="text-2xl mb-4">Login</h2>
+        {error && <div className="mb-2 text-red-600">{error}</div>}
         <label className="block mb-2">
           Email
           <input

@@ -6,10 +6,10 @@ const AuditLog = require('../models/AuditLog');
 
 // Register a new user
 exports.registerUser = async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { firstName, lastName, userName, email, password, address, contactNo, role } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ name, email, password: hashedPassword, role });
+        const user = new User({ firstName, lastName, userName, email, password: hashedPassword, address, contactNo, role });
         await user.save();
         res.status(201).json({ message: 'User created successfully!' });
     } catch (error) {
