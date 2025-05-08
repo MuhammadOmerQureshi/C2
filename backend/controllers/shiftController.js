@@ -11,7 +11,7 @@ exports.createShift = async (req, res) => {
     if (!employee) return res.status(404).json({ message: 'Employee not found' });
 
     const shift = await Shift.create({
-      employeeId: employee._id,
+      employee: employee._id,
       date,
       startTime,
       endTime,
