@@ -13,7 +13,6 @@ const shiftRoutes      = require('./routes/shiftRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 */
 
-
 // 3. App setup
 const app = express();
 
