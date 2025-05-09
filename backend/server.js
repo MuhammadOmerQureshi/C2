@@ -21,7 +21,13 @@ const app = express();
 
 // Middleware
 app.use(express.json());  // parse JSON bodies
-app.use(cors());          // enable CORS for all origins
+
+// Update CORS configuration
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow requests from the frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  credentials: true // Allow cookies and credentials
+}));
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -45,13 +51,10 @@ app.use((req, res) => {
 // 5. Database connection & server start
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err))
   .then(async () => {
-    console.log('Connected to MongoDB');
-
     // --- Step 2: Seed hard-coded admin user if not exists ---
     const adminEmail = 'admin@company.com';
     const adminPassword = 'SuperSecret123';
@@ -95,7 +98,6 @@ mongoose.connect(process.env.MONGODB_URI, {
     }
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
-  })
-  .catch((error) => console.error('MongoDB connection error:', error));
+  });
 
 
