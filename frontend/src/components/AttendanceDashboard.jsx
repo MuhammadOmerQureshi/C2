@@ -1,5 +1,6 @@
+import api from '../api/axiosConfig';
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+
 import { Bar } from 'react-chartjs-2';
 
 const AttendanceDashboard = () => {
@@ -12,7 +13,7 @@ const AttendanceDashboard = () => {
     // Wrap fetchAttendanceData in useCallback to ensure a stable reference
     const fetchAttendanceData = useCallback(async () => {
         try {
-            const response = await axios.get('/api/auth/attendance/dashboard', {
+            const response = await api.get('/api/auth/attendance/dashboard', {
                 params: {
                     page: currentPage,
                     limit: 10,

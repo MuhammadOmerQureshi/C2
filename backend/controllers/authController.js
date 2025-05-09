@@ -48,7 +48,7 @@ exports.registerEmployer = async (req, res) => {
         res.status(201).json({ message: 'Employer created', employer: data });
     } catch (err) {
         console.error('registerEmployer error:', err);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error in Create Employer' });
     }
 };
 

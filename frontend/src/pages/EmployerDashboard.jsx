@@ -1,8 +1,8 @@
 
-
+import api from '../api/axiosConfig';
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../api/axiosConfig'
+
 import { logout } from '../utils/logout'
 import './EmployerDashboard.css'
 
@@ -66,6 +66,8 @@ export default function EmployerDashboard() {
     e.preventDefault()
     setError('')
     try {
+      console.log('📤 shiftForm about to POST:', shiftForm);
+
       await api.post('/shifts', shiftForm)
       setShiftForm({ employeeId: '', date: '', startTime: '', endTime: '', location: '' })
       fetchAll()
@@ -115,7 +117,7 @@ export default function EmployerDashboard() {
           <select value={shiftForm.employeeId} onChange={e => setShiftForm(f => ({ ...f, employeeId: e.target.value }))} required>
             <option value="">Select Employee</option>
             {employees.map(emp => (
-              <option key={emp._id} value={emp.employeeId}>
+              <option key={emp._id} value={emp._id}>
                 {emp.firstName} {emp.lastName} ({emp.employeeId})
               </option>
             ))}
