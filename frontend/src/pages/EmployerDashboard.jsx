@@ -88,13 +88,18 @@ export default function EmployerDashboard() {
   }
 
   return (
-    <div className="employer-dashboard">
-      <header className="dashboard-header">
-        <h1>Employer Dashboard</h1>
-        <button className="logout-btn" onClick={() => logout(navigate)}>
-          Logout
+    <div className="min-h-screen bg-gray-100 p-6">
+      <h1 className="text-3xl font-bold mb-4">Employer Dashboard</h1>
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-xl font-semibold mb-2">Manage Employees</h2>
+        {/* TODO: Add employee management features */}
+        <p>Employee management tools will be displayed here.</p>
+      </div>
+      <div className="mt-6">
+        <button className="bg-green-500 text-white py-2 px-4 rounded">
+          Add Employee
         </button>
-      </header>
+      </div>
 
       {error && <div className="error-message">{error}</div>}
 
@@ -207,29 +212,3 @@ export default function EmployerDashboard() {
     </div>
   )
 }
-
-
-
-
-// import React from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { logout } from '../utils/logout';
-
-// export default function EmployerDashboard() {
-//   const navigate = useNavigate();
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-3xl mb-4">Employer Dashboard</h1>
-//       <button
-//         onClick={() => logout(navigate)}
-//         className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
-//       >
-// +        Logout
-// +      </button>
-
-
-
-//       {/* TODO: list employees, shifts, add buttons */}
-//     </div>
-//   );
-// }
