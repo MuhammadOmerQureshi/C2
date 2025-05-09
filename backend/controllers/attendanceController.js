@@ -172,3 +172,16 @@ exports.getAttendanceDashboard = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.getAttendanceSummary = async (req, res) => {
+  try {
+    const attendanceRecords = await Attendance.find();
+    const summary = {
+      late: attendanceRecords.filter(record => record.isLate).length,
+      onTime: attendanceRecords.filter(record => !record.isLate).length,
+    };
+    res.status(200).json(summary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

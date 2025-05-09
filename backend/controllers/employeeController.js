@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+/*const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 // Create a new employee (employer only)
@@ -112,3 +112,4 @@ exports.deleteEmployee = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+*/

@@ -1,5 +1,6 @@
+import api from '../api/axiosConfig'; // Import your centralized Axios instance
+
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Add this import
 import './LoginPage.css'; // Ensure the CSS file is linked
 
@@ -13,17 +14,21 @@ export default function LoginPage() {
     e.preventDefault();
     setError(''); // Reset error message
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/auth/login',
-        { email, password }
-      );
+      const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
-
-      // Redirect based on role
-      if (res.data.user.role === 'employee') {
-        navigate('/employee-dashboard');
-      } else if (res.data.user.role === 'employer') {
-        navigate('/employer-dashboard');
+  
+      // Check if user exists in the response
+      if (res.data.user) {
+        // Redirect based on role
+        if (res.data.user.role === 'employee') {
+          navigate('/employee-dashboard');
+        } else if (res.data.user.role === 'employer') {
+          navigate('/employer-dashboard');
+        } else if (res.data.user.role === 'admin') {
+          navigate('/admin-dashboard');
+        }
+      } else {
+        throw new Error('User information is missing in the response.');
       }
     } catch (err) {
       console.error(err);

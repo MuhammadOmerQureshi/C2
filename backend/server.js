@@ -24,6 +24,8 @@ app.use(cors());          // enable CORS for all origins
 // Mount routers
 app.use('/api/auth', authRoutes);
 /*
+app.use('/api/users', authRoutes); // Assuming you want to keep this route for user-related actions
+app.use('/api/audit', authRoutes); // Assuming you want to keep this route for audit-related actions
 app.use('/api/employers',  employerRoutes);
 app.use('/api/employees',  employeeRoutes);
 app.use('/api/shifts',     shiftRoutes);

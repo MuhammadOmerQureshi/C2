@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Pie } from 'react-chartjs-2';
+import api from '../api/axiosConfig';
 
 const AttendanceDashboard = () => {
     const [attendanceData, setAttendanceData] = useState([]);
@@ -8,6 +9,7 @@ const AttendanceDashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [filters, setFilters] = useState({});
+    const [summary, setSummary] = useState({ late: 0, onTime: 0 });
 
     // Wrap fetchAttendanceData in useCallback to ensure a stable reference
     const fetchAttendanceData = useCallback(async () => {
@@ -51,12 +53,34 @@ const AttendanceDashboard = () => {
         fetchAttendanceData();
     }, [fetchAttendanceData]);
 
+    useEffect(() => {
+        const fetchSummary = async () => {
+            try {
+                const res = await api.get('/attendance/summary');
+                setSummary(res.data);
+            } catch (error) {
+                console.error('Error fetching summary:', error);
+            }
+        };
+        fetchSummary();
+    }, []);
+
     const handleFilterChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
     };
 
     const handlePageChange = (newPage) => {
         setCurrentPage(newPage);
+    };
+
+    const summaryData = {
+        labels: ['Late', 'On-Time'],
+        datasets: [
+            {
+                data: [summary.late, summary.onTime],
+                backgroundColor: ['#FF6384', '#36A2EB'],
+            },
+        ],
     };
 
     return (
@@ -96,6 +120,12 @@ const AttendanceDashboard = () => {
             <div>
                 <h2>Daily Attendance Trends</h2>
                 <Bar data={chartData} />
+            </div>
+
+            {/* Pie Chart */}
+            <div>
+                <h2>Attendance Summary</h2>
+                <Pie data={summaryData} />
             </div>
 
             <table>
