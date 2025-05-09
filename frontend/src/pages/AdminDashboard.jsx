@@ -24,7 +24,7 @@ export default function AdminDashboard() {
       const res = await api.get('/admin/users?role=employer');
       setEmployers(res.data.users || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch employers');
+      setError(err.response?.data?.message || 'Failed to fetch employers'); // Handle error
     }
     setLoading(false);
   };
