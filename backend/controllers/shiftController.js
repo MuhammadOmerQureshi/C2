@@ -4,10 +4,10 @@ const User = require('../models/User');
 // POST /api/shifts (employer)
 exports.createShift = async (req, res) => {
   try {
-    const { employeeId, date, startTime, endTime } = req.body;
+    const { employeeId, date, startTime, endTime, location } = req.body;
 
     // Check if employee exists
-    const employee = await User.findOne({ employeeId, role: 'employee' });
+    const employee = await User.findOne({ _id: employeeId, role: 'employee' });
     if (!employee) return res.status(404).json({ message: 'Employee not found' });
 
     const shift = await Shift.create({
@@ -15,9 +15,11 @@ exports.createShift = async (req, res) => {
       date,
       startTime,
       endTime,
+      location,
       status: 'scheduled',
       createdBy: req.user.id // employer's id
     });
+    
 
     res.status(201).json({ message: 'Shift created', shift });
   } catch (err) {
@@ -29,7 +31,7 @@ exports.createShift = async (req, res) => {
 exports.listShiftsForEmployer = async (req, res) => {
   try {
     // Optionally, filter by employer if you have such a field
-    const shifts = await Shift.find({ createdBy: req.user.id }).populate('employeeId', '-password');
+    const shifts = await Shift.find({ createdBy: req.user.id }).populate('employee', '-password');
     res.status(200).json(shifts);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -39,7 +41,7 @@ exports.listShiftsForEmployer = async (req, res) => {
 // GET /api/shifts/my/shifts (employee)
 exports.listMyShifts = async (req, res) => {
   try {
-    const shifts = await Shift.find({ employeeId: req.user.id }).sort({ date: 1 });
+    const shifts = await Shift.find({ employee: req.user.id }).sort({ date: 1 });
     res.status(200).json(shifts);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

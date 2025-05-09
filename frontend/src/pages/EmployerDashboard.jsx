@@ -1,8 +1,8 @@
 
-
+import api from '../api/axiosConfig';
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../api/axiosConfig'
+
 import { logout } from '../utils/logout'
 import './EmployerDashboard.css'
 
@@ -115,7 +115,7 @@ export default function EmployerDashboard() {
           <select value={shiftForm.employeeId} onChange={e => setShiftForm(f => ({ ...f, employeeId: e.target.value }))} required>
             <option value="">Select Employee</option>
             {employees.map(emp => (
-              <option key={emp._id} value={emp.employeeId}>
+              <option key={emp._id} value={emp._id}>
                 {emp.firstName} {emp.lastName} ({emp.employeeId})
               </option>
             ))}
@@ -180,10 +180,10 @@ export default function EmployerDashboard() {
               {shifts.map(shift => (
                 <tr key={shift._id}>
                   <td>
-                    {(() => {
-                      const emp = employees.find(e => e._id === (shift.employeeId || shift.employee));
-                      return emp ? `${emp.firstName} ${emp.lastName}` : shift.employeeId || shift.employee;
-                    })()}
+                     {(() => {
+                      const emp = employees.find(e => e._id === (shift.employee?._id || shift.employee));
+                      return emp ? `${emp.firstName} ${emp.lastName}` : (shift.employee?._id || shift.employee);
+                      })()}
                   </td>
                   <td>{new Date(shift.date).toLocaleDateString()}</td>
                   <td>{shift.startTime}</td>
