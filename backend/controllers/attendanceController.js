@@ -8,7 +8,7 @@ exports.clockIn = async (req, res) => {
     const userId = req.user.id;
 
     // Check if shift exists and belongs to this employee
-    const shift = await Shift.findOne({ _id: shiftId, employeeId: userId });
+    const shift = await Shift.findOne({ _id: shiftId, employee: userId });
     if (!shift) return res.status(404).json({ message: 'Shift not found' });
 
     // Prevent double clock-in
@@ -21,6 +21,7 @@ exports.clockIn = async (req, res) => {
       clockIn: new Date(),
       // Optionally: lat, lng, etc.
     });
+    
 
     res.status(201).json({ message: 'Clocked in', attendance });
   } catch (err) {
