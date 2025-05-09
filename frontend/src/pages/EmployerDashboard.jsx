@@ -187,10 +187,10 @@ export default function EmployerDashboard() {
               {shifts.map(shift => (
                 <tr key={shift._id}>
                   <td>
-                    {(() => {
-                      const emp = employees.find(e => e._id === (shift.employeeId || shift.employee));
-                      return emp ? `${emp.firstName} ${emp.lastName}` : shift.employeeId || shift.employee;
-                    })()}
+                     {(() => {
+                      const emp = employees.find(e => e._id === (shift.employee?._id || shift.employee));
+                      return emp ? `${emp.firstName} ${emp.lastName}` : (shift.employee?._id || shift.employee);
+                      })()}
                   </td>
                   <td>{new Date(shift.date).toLocaleDateString()}</td>
                   <td>{shift.startTime}</td>

@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 // import models for seeding
@@ -9,11 +10,15 @@ const bcrypt = require('bcryptjs');
 
 // 2. Route imports
 const authRoutes        = require('./routes/authRoutes');
-const adminRoutes       = require('./routes/adminRoutes');
-const employerRoutes   = require('./routes/employerRoutes');
-const employeeRoutes   = require('./routes/employeeRoutes');
 const shiftRoutes      = require('./routes/shiftRoutes');
-const attendanceRoutes = require('./routes/attendanceRoutes');
+const employeeRoutes   = require('./routes/employeeRoutes');
+const employerRoutes   = require('./routes/employerRoutes');
+const attendanceRoutes= require('./routes/attendanceRoutes');
+const adminRoutes       = require('./routes/adminRoutes');
+
+
+
+// const attendanceRoutes = require('./routes/attendanceRoutes');
 
 
 // 3. App setup
@@ -21,21 +26,24 @@ const app = express();
 
 // Middleware
 app.use(express.json());  // parse JSON bodies
-
-// Update CORS configuration
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow requests from the frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-  credentials: true // Allow cookies and credentials
+  origin: 'http://localhost:5173', // your frontend URL
+  credentials: true
 }));
+app.use(cookieParser());
 
 // Mount routers
 app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/employers',  employerRoutes);
-app.use('/api/employees',  employeeRoutes);
 app.use('/api/shifts',     shiftRoutes);
+app.use('/api/employees',  employeeRoutes);
+app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/admin', adminRoutes);
+
+
+
+
+
 
 
 // 4. Health-check & 404

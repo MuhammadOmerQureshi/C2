@@ -72,7 +72,15 @@ exports.loginUser = async (req, res) => {
         await user.save();
 
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        res.status(200).json({ token });
+
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // true in production, false in dev
+            sameSite: 'lax', // use 'lax' for local dev, 'none' for HTTPS
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        res.status(200).json({ message: 'Login successful' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -312,4 +320,3 @@ exports.bulkUpdateUserStatus = [
     }
   ];
 
-  

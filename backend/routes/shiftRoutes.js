@@ -1,4 +1,5 @@
 // routes/shiftRoutes.js
+
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { protect, authorize } = require('../middleware/authMiddleware');
@@ -12,34 +13,42 @@ const {
 
 const router = express.Router();
 
-// validation helper
-const validate = (req, res, next) => {              // middleware to validate request body
+// simple validation‐error middleware
+const validate = (req, res, next) => {
   const errs = validationResult(req);
   if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
   next();
 };
 
 /**
- * Employer routes (manage shifts)
+ * Employer routes — all require JWT + “employer” role
  */
-router.use(protect, authorize('employer'));
-
 router.post(
   '/',
+  protect,
+  authorize('employer'),
   [
     body('employeeId').notEmpty().withMessage('Employee ID is required'),           
     body('date').isISO8601().withMessage('Valid date is required'),
     body('startTime').notEmpty().withMessage('Start time is required'),
     body('endTime').notEmpty().withMessage('End time is required'),
+    body('location').notEmpty().withMessage('Location is required'),
   ],
   validate,
   createShift
 );
 
-router.get('/', listShiftsForEmployer);
+router.get(
+  '/',
+  protect,
+  authorize('employer'),
+  listShiftsForEmployer
+);
 
 router.put(
   '/:id',
+  protect,
+  authorize('employer'),
   [
     body('date').optional().isISO8601(),
     body('startTime').optional().notEmpty(),
@@ -50,12 +59,29 @@ router.put(
   updateShift
 );
 
-router.delete('/:id', deleteShift);
+router.delete(
+  '/:id',
+  protect,
+  authorize('employer'),
+  deleteShift
+);
 
 /**
- * Employee route (view own shifts)
- * Mounted here so we don’t need a separate router
+ * Employee route — view only your own shifts
  */
-router.get('/my/shifts', authorize('employee'), listMyShifts);
+router.get(
+  '/my',
+  protect,
+  authorize('employee'),
+  listMyShifts
+);
 
 module.exports = router;
+
+
+
+
+
+
+
+

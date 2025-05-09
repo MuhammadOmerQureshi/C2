@@ -22,8 +22,8 @@ export default function EmployeeDashboard() {
   async function fetchShifts() {
     setLoadingShifts(true);
     try {
-      const res = await api.get('/shifts/my/shifts');
-      setShifts(res.data);
+      const res = await api.get('/shifts/my')
+      setShifts(res.data)
     } catch (err) {
       setError('Failed to load shifts');
     }
@@ -88,5 +88,6 @@ export default function EmployeeDashboard() {
         error={error}
       />
     </div>
-  );
+  )
 }
+
