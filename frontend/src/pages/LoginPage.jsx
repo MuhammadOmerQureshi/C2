@@ -1,21 +1,29 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import api from '../api/axiosConfig';
 
 export default function LoginPage() {
-  const [email, setEmail]     = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/auth/login',
-        { email, password }
-      );
+      // Login request
+      const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
-      // TODO: redirect based on role
+
+      // Get user info to determine role
+      const me = await api.get('/auth/me');
+      if (me.data.role === 'admin') navigate('/admin');
+      else if (me.data.role === 'employer') navigate('/employer');
+      else if (me.data.role === 'employee') navigate('/employee');
+      else navigate('/');
     } catch (err) {
-      console.error(err);
+      setError(err.response?.data?.message || 'Login failed');
     }
   };
 
@@ -26,6 +34,7 @@ export default function LoginPage() {
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"
       >
         <h2 className="text-2xl mb-4">Login</h2>
+        {error && <div className="mb-2 text-red-600">{error}</div>}
         <label className="block mb-2">
           Email
           <input

@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 // Middleware to protect routes
 const protect = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1]; // Extract token from header
+    const token = req.cookies.jwt || (req.headers.authorization && req.headers.authorization.split(' ')[1]); // Extract token from cookies or header
     if (!token) {
         return res.status(401).json({ message: 'Not authorized, no token' });
     }
@@ -27,3 +27,7 @@ const authorize = (...roles) => {
 };
 
 module.exports = { protect, authorize };
+
+
+
+

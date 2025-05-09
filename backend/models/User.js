@@ -11,16 +11,8 @@ const userSchema = new Schema({
   contactNo:   { type: String },
   employeeId:  { type: String, unique: true, sparse: true },
 
-  role:      { 
-    type: String, 
-    enum: ['admin', 'employer', 'employee'], 
-    default: 'employee' 
-  },
-  status:    { 
-    type: String, 
-    enum: ['active', 'inactive', 'suspended'], 
-    default: 'active' 
-  },
+  role:      { type: String, enum: ['admin', 'employer', 'employee'], required: true }, 
+  status:    { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active'},
   lastLogin: { type: Date }, // Timestamp for the last login
   phoneNumber: { type: String }, // Optional phone number
   address: { type: String }, // Optional address

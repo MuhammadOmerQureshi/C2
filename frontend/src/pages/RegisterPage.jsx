@@ -1,11 +1,17 @@
+/*                      REMOVING REGISTRATION FOR PUBLIC USERS
+
+
+
 import React, { useState } from 'react';
 import api from "../api/axiosConfig.js";    // ← make sure this matches
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
-    name: '', email: '', password: '', role: 'employee'
+    firstName: '', lastName: '', email: '', password: '', role: 'employee'
   });
+
   const onChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+
   const onSubmit = async e => {
     e.preventDefault();
     try {
@@ -22,20 +28,51 @@ export default function RegisterPage() {
       <form onSubmit={onSubmit} className="bg-white p-6 rounded shadow-md w-full max-w-sm">
         <h2 className="text-2xl mb-4">Sign Up</h2>
         <label className="block mb-2">
-          Name
-          <input name="name" onChange={onChange} className="w-full p-2 border rounded" required />
+          First Name
+          <input
+            name="firstName"
+            onChange={onChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </label>
+        <label className="block mb-2">
+          Last Name
+          <input
+            name="lastName"
+            onChange={onChange}
+            className="w-full p-2 border rounded"
+            required
+          />
         </label>
         <label className="block mb-2">
           Email
-          <input name="email" type="email" onChange={onChange} className="w-full p-2 border rounded" required />
+          <input
+            name="email"
+            type="email"
+            onChange={onChange}
+            className="w-full p-2 border rounded"
+            required
+          />
         </label>
         <label className="block mb-2">
           Password
-          <input name="password" type="password" onChange={onChange} className="w-full p-2 border rounded" required />
+          <input
+            name="password"
+            type="password"
+            onChange={onChange}
+            className="w-full p-2 border rounded"
+            required
+          />
         </label>
         <label className="block mb-4">
           Role
-          <select name="role" onChange={onChange} className="w-full p-2 border rounded">
+          <select
+            name="role"
+            onChange={onChange}
+            className="w-full p-2 border rounded"
+            value={form.role}
+          >
             <option value="employee">Employee</option>
             <option value="employer">Employer</option>
           </select>
@@ -48,5 +85,5 @@ export default function RegisterPage() {
   );
 }
 
-;
+*/
 

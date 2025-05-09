@@ -1,0 +1,1 @@
+axios.get('/api/shifts/my')

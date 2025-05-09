@@ -2,7 +2,10 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage      from '../pages/LoginPage';
 import EmployerDash   from '../pages/EmployerDashboard';
 import EmployeeDash   from '../pages/EmployeeDashboard';
-import RegisterPage   from '../pages/RegisterPage';
+/*import RegisterPage   from '../pages/RegisterPage';*/
+import AdminDashboard from '../pages/AdminDashboard';
+// import RequireAuth from '../components/RequireAuth';   // for future use
+
 
 
 export default function AppRoutes() {
@@ -12,7 +15,8 @@ export default function AppRoutes() {
         <Route path="/"           element={<LoginPage />} />
         <Route path="/employer"   element={<EmployerDash />} />
         <Route path="/employee"   element={<EmployeeDash />} />
-        <Route path="/register"   element={<RegisterPage />} />
+        <Route path="/admin"      element={<AdminDashboard />}/>
+         
 
         {/* future routes */}
       </Routes>
