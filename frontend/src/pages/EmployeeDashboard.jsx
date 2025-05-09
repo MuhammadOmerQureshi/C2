@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axiosConfig'
@@ -22,7 +20,7 @@ export default function EmployeeDashboard() {
   async function fetchShifts() {
     setLoadingShifts(true)
     try {
-      const res = await api.get('/shifts/my/shifts')
+      const res = await api.get('/shifts/my')
       setShifts(res.data)
     } catch (err) {
       setError('Failed to load shifts')
@@ -151,32 +149,3 @@ export default function EmployeeDashboard() {
   )
 }
 
-
-
-
-
-
-// import React from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { logout } from '../utils/logout';
-// import { AttendanceDashboard } from '../components/AttendanceDashboard';
-
-// export default function EmployeeDashboard() {
-//   const attendance = AttendanceDashboard();
-//   const navigate = useNavigate();
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-3xl mb-4">Employee Dashboard</h1>
-//       <button
-//         onClick={() => logout(navigate)}
-//         className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
-//       >
-// +        Logout
-// +      </button>
-
-
-
-//       {/* TODO: show shift, clock-in/out button */}
-//     </div>
-//   );
-// }
