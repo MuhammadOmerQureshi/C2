@@ -1,3 +1,22 @@
+
+// import axios from 'axios';
+
+// const api = axios.create({
+//   baseURL: 'http://localhost:5000/api',
+// });
+
+// // automatically attach JWT if present
+// api.interceptors.request.use(config => {
+//   const token = localStorage.getItem('token');
+//   if (token) config.headers.Authorization = `Bearer ${token}`;
+//   return config;
+// }, error => Promise.reject(error));
+
+// export default api;
+
+
+
+
 import axios from 'axios';
 
 // 1) Create and name your axios instance "api"
@@ -16,3 +35,5 @@ api.interceptors.request.use(config => {
 
 // 3) Export "api" so other modules can import it
 export default api;
+
+

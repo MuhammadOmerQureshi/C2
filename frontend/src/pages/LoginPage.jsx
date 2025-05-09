@@ -1,7 +1,7 @@
+import api from '../api/axiosConfig';
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axiosConfig';
-import './LoginPage.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -89,8 +89,7 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className={`w-full text-white py-2 rounded ${loading ? 'bg-gray-400' : 'bg-blue-500'}`}
-          disabled={loading}
+          className="w-full bg-blue-500 text-white py-2 rounded" 
         >
           {loading ? 'Logging in...' : 'Submit'}
         </button>
@@ -98,3 +97,4 @@ export default function LoginPage() {
     </div>
   );
 }
+  

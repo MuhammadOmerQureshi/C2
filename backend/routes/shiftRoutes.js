@@ -13,7 +13,7 @@ const {
 const router = express.Router();
 
 // validation helper
-const validate = (req, res, next) => {
+const validate = (req, res, next) => {              // middleware to validate request body
   const errs = validationResult(req);
   if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
   next();
@@ -27,7 +27,7 @@ router.use(protect, authorize('employer'));
 router.post(
   '/',
   [
-    body('employeeId').notEmpty().withMessage('Employee ID is required'),
+    body('employeeId').notEmpty().withMessage('Employee ID is required'),           
     body('date').isISO8601().withMessage('Valid date is required'),
     body('startTime').notEmpty().withMessage('Start time is required'),
     body('endTime').notEmpty().withMessage('End time is required'),

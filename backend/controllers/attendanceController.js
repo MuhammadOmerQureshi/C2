@@ -24,7 +24,7 @@ exports.clockIn = async (req, res) => {
 
     res.status(201).json({ message: 'Clocked in', attendance });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error in clockIn' });
   }
 };
 
@@ -43,7 +43,7 @@ exports.clockOut = async (req, res) => {
 
     res.status(200).json({ message: 'Clocked out', attendance });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error in clockOut' });
   }
 };
 
@@ -56,6 +56,6 @@ exports.listMyAttendance = async (req, res) => {
       .sort({ clockIn: -1 });
     res.status(200).json(records);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error in listMyAttendance' });
   }
 };

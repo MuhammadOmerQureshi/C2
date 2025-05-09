@@ -1,89 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../api/axiosConfig';
-import { logout } from '../utils/logout';
-import './EmployeeDashboard.css'; // Keep HEAD's styling
-import '../styles/elements.css'; // Include newObada's additional styles if compatible
+import api from '../api/axiosConfig'
 
-// Placeholder for Table component (adapt based on your actual Table component)
-const Table = ({ data, onClockIn, onClockOut, loading, error }) => (
-  <div className="bg-white p-4 rounded shadow mb-6">
-    {error && <div className="text-red-600 mb-2">{error}</div>}
-    {loading ? (
-      <p>Loading…</p>
-    ) : data.length === 0 ? (
-      <p>No records found.</p>
-    ) : (
-      <table className="attendance-table w-full">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Clock In</th>
-            <th>Clock Out</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((r) => (
-            <tr key={r._id}>
-              <td>{new Date(r.date).toLocaleDateString()}</td>
-              <td>{r.clockIn ? new Date(r.clockIn).toLocaleTimeString() : '—'}</td>
-              <td>{r.clockOut ? new Date(r.clockOut).toLocaleTimeString() : '—'}</td>
-              <td>{r.status}</td>
-              <td>
-                {!r.clockOut && (
-                  <button
-                    onClick={() => onClockOut(r._id)}
-                    className="bg-blue-500 text-white py-1 px-2 rounded"
-                  >
-                    Clock Out
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
-  </div>
-);
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-// Placeholder for Clock component (adapt based on your actual Clock component)
-const ShiftList = ({ shifts, onClockIn, loading, error }) => (
-  <div className="bg-white p-4 rounded shadow mb-6">
-    <h2 className="text-xl font-semibold mb-2">Your Shifts</h2>
-    {error && <div className="text-red-600 mb-2">{error}</div>}
-    {loading ? (
-      <p>Loading shifts…</p>
-    ) : shifts.length === 0 ? (
-      <p>No shifts assigned.</p>
-    ) : (
-      <ul className="shift-list">
-        {shifts.map((s) => (
-          <li key={s._id} className="shift-item flex justify-between py-2">
-            <div>
-              <strong>{new Date(s.date).toLocaleDateString()}</strong>{' '}
-              {s.startTime}–{s.endTime}
-            </div>
-            <div>
-              {s.status === 'scheduled' ? (
-                <button
-                  onClick={() => onClockIn(s._id)}
-                  className="bg-blue-500 text-white py-1 px-2 rounded"
-                >
-                  Clock In
-                </button>
-              ) : (
-                <span>Status: {s.status}</span>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
+import { logout } from '../utils/logout'
+import './EmployeeDashboard.css'
 
 export default function EmployeeDashboard() {
   const [shifts, setShifts] = useState([]);
