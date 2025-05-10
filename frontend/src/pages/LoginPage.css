@@ -1,0 +1,65 @@
+body {
+  background-color: #0e1725; /* Dark background to match the logo */
+  animation: neon 1.5s ease-in-out infinite alternate; /* Neon flicker effect */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: sans-serif;
+  overflow: hidden;
+}
+
+.logo-container {
+  text-align: center;
+  position: relative;
+  
+}
+
+.logo {
+  width: 190px; /* Adjust size as needed */
+  height: 190px;
+  animation: orbit 10s linear infinite, spin 4s linear infinite; /* Orbital and horizontal flip animations */
+}
+
+@keyframes orbit {
+  0% {
+    transform: translateX(-50%) translateY(-50%) translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(-50%) translateY(-50%) translateX(50px) translateY(50px);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-50%) translateX(0) translateY(100px);
+  }
+  75% {
+    transform: translateX(-50%) translateY(-50%) translateX(-50px) translateY(50px);
+  }
+  100% {
+    transform: translateX(-50%) translateY(-50%) translateX(0) translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotateY(0deg); /* Start with no rotation */
+  }
+  to {
+    transform: rotateY(360deg); /* Complete a full horizontal rotation */
+  }
+}
+
+.logo-text {
+  color: white;
+  font-size: 4rem;
+  font-weight: bold;
+  margin-top: 150px; /* Adjust to position below the orbiting logo */
+}
+
+.logo-text span {
+  color: #00ffcc; /* Cyan color for 'CESIUM' */
+  text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc, 0 0 15px #00ffcc; /* Neon effect */
+  animation: neon 1.5s ease-in-out infinite alternate; /* Neon flicker effect */
+  
+
+}  
