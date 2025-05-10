@@ -1,10 +1,67 @@
-
 import api from '../api/axiosConfig';
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { logout } from '../utils/logout'
 import './EmployerDashboard.css'
+
+async function exportAttendanceExcel(empId) {
+  const token = localStorage.getItem('token'); 
+  try {
+    const res = await fetch(
+      `http://localhost:5173/api/attendance/export/excel?employeeId=${empId}`,
+     {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    if (!res.ok) {
+      alert('Export failed');
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'attendance.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Export failed');
+  }
+}
+
+async function exportAttendancePDF(empId) {
+  const token = localStorage.getItem('token'); // or wherever you store your JWT
+  try {
+    const res = await fetch(
+      `http://localhost:5173/api/attendance/export/pdf?employeeId=${empId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    if (!res.ok) {
+      alert('Export failed');
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'attendance.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Export failed');
+  }
+}
 
 export default function EmployerDashboard() {
   const [employees, setEmployees] = useState([])
@@ -150,6 +207,12 @@ export default function EmployerDashboard() {
                   <td>{emp.employeeId}</td>
                   <td>
                     <button className="delete-btn" onClick={() => handleDeleteEmployee(emp._id)}>Delete</button>
+                    <button onClick={() => exportAttendanceExcel(emp._id)}>
+                      Export Attendance (Excel)
+                    </button>
+                    <button onClick={() => exportAttendancePDF(emp._id)}>
+                      Export Attendance (PDF)
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -205,29 +268,3 @@ export default function EmployerDashboard() {
     </div>
   )
 }
-
-
-
-
-// import React from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { logout } from '../utils/logout';
-
-// export default function EmployerDashboard() {
-//   const navigate = useNavigate();
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-3xl mb-4">Employer Dashboard</h1>
-//       <button
-//         onClick={() => logout(navigate)}
-//         className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
-//       >
-// +        Logout
-// +      </button>
-
-
-
-//       {/* TODO: list employees, shifts, add buttons */}
-//     </div>
-//   );
-// }
