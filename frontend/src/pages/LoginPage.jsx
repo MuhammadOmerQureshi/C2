@@ -29,6 +29,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+       <div className="logo-container">
+        <img src="logo.png" alt="Logo" className="logo" />
+        <h1 className="logo-text">
+          <span>CESIUM</span>CLOCK
+        </h1>
+      </div>
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"
