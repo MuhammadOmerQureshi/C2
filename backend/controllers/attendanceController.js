@@ -8,7 +8,7 @@ const ALLOWED_IPS = ['194.47.28.53','127.0.0.1', '1.2.3.4']; // Replace/add your
 // POST /api/attendance/clock-in
 exports.clockIn = async (req, res) => {
   try {
-    const { shiftId, ip } = req.body;
+    const { shiftId, ip } = req.body;       // IP address of the employee
     const userId = req.user.id;
 
     // Find the shift for this employee
