@@ -25,6 +25,16 @@ exports.createShift = async (req, res) => {
   }
 };
 
+// GET /api/shifts (all shifts)
+exports.getShifts = async (req, res) => {
+  try {
+    const shifts = await Shift.find();
+    res.status(200).json(shifts);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch shifts' });
+  }
+};
+
 // GET /api/shifts (employer)
 exports.listShiftsForEmployer = async (req, res) => {
   try {
@@ -73,12 +83,3 @@ exports.deleteShift = async (req, res) => {
   }
 };
 
-// GET /api/shifts (all shifts)
-exports.getShifts = async (req, res) => {
-  try {
-    const shifts = await Shift.find();
-    res.status(200).json(shifts);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch shifts' });
-  }
-};

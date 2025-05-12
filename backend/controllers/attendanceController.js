@@ -1,187 +1,128 @@
 const Attendance = require('../models/Attendance');
-const { Parser } = require('json2csv');
-const PDFDocument = require('pdfkit');
-const sendEmail = require('../utils/emailService');
+const Shift = require('../models/Shift');
+const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit'); 
 
+const ALLOWED_IPS = ['194.47.28.53','127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
 
-// Clock-In Controller with Late Check-In Alert
+// POST /api/attendance/clock-in
 exports.clockIn = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const today = new Date().setHours(0, 0, 0, 0);
-
-        const existingRecord = await Attendance.findOne({ user: userId, date: today });
-        if (existingRecord) {
-            return res.status(400).json({ message: 'You have already clocked in today.' });
-        }
-
-        const currentTime = new Date();
-        const lateThreshold = new Date().setHours(9, 0, 0, 0); // Example: 9:00 AM
-
-        const isLate = currentTime > lateThreshold;
-
-        const attendance = new Attendance({
-            user: userId,
-            clockIn: currentTime,
-            date: today,
-            location: req.ip,
-        });
-
-        await attendance.save();
-
-        // Send email notification if the user is late
-        if (isLate) {
-            const user = await User.findById(userId);
-            const emailSubject = 'Late Check-In Notification';
-            const emailBody = `Dear ${user.name},\n\nYou have checked in late at ${currentTime.toLocaleTimeString()}. Please ensure timely check-ins in the future.\n\nBest regards,\nAttendance System`;
-
-            await sendEmail(user.email, emailSubject, emailBody);
-        }
-
-        const message = isLate
-            ? 'Clock-in successful, but you are late. An email notification has been sent.'
-            : 'Clock-in successful';
-
-        res.status(201).json({ message, attendance });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Clock-Out Controller
-exports.clockOut = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const today = new Date().setHours(0, 0, 0, 0); // Start of today
-
-        // Find the user's attendance record for today
-        const attendance = await Attendance.findOne({ user: userId, date: today });
-        if (!attendance) {
-            return res.status(400).json({ message: 'You have not clocked in today.' });
-        }
-
-        if (attendance.clockOut) {
-            return res.status(400).json({ message: 'You have already clocked out today.' });
-        }
-
-        // Update the clock-out time
-        attendance.clockOut = new Date();
-        attendance.location = req.ip; // Capture IP address during clock-out
-        await attendance.save();
-
-        res.status(200).json({ message: 'Clock-out successful', attendance });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-exports.getAttendance = async (req, res) => {
-    const { userId, startDate, endDate, department } = req.query;
-    try {
-        const filter = {};
-
-        if (userId) filter.user = userId;
-        if (startDate || endDate) {
-            filter.date = {};
-            if (startDate) filter.date.$gte = new Date(startDate);
-            if (endDate) filter.date.$lte = new Date(endDate);
-        }
-
-        const attendanceRecords = await Attendance.find(filter)
-            .populate('user', 'name email department') // Populate user details
-            .sort({ date: -1 });
-
-        res.status(200).json({ attendanceRecords });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-// Export Attendance as CSV & PDF
-// This function exports attendance records in CSV or PDF format based on the query parameter
-exports.exportAttendance = async (req, res) => {
-    const { format = 'csv' } = req.query;
-
-    try {
-        const attendanceRecords = await Attendance.find().populate('user', 'name email');
-
-        if (format === 'csv') {
-            const fields = ['user.name', 'user.email', 'clockIn', 'clockOut', 'date', 'location'];
-            const json2csvParser = new Parser({ fields });
-            const csv = json2csvParser.parse(attendanceRecords);
-
-            res.header('Content-Type', 'text/csv');
-            res.attachment('attendance.csv');
-            res.send(csv);
-        } else if (format === 'pdf') {
-            const doc = new PDFDocument();
-            res.header('Content-Type', 'application/pdf');
-            res.attachment('attendance.pdf');
-
-            doc.pipe(res);
-            doc.fontSize(16).text('Attendance Records', { align: 'center' });
-            attendanceRecords.forEach((record) => {
-                doc
-                    .fontSize(12)
-                    .text(
-                        `Name: ${record.user.name}, Email: ${record.user.email}, Clock-In: ${record.clockIn}, Clock-Out: ${record.clockOut || 'N/A'}, Date: ${record.date}`
-                    );
-            });
-            doc.end();
-        } else {
-            res.status(400).json({ message: 'Invalid format' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-// Fetch attendance records with filters, sorting, and pagination
-exports.getAttendanceDashboard = async (req, res) => {
-    const { page = 1, limit = 10, sortBy = 'date', order = 'desc', userId, startDate, endDate, department } = req.query;
-
-    try {
-        const sortOrder = order === 'desc' ? -1 : 1;
-        const filter = {};
-
-        // Add filters if provided
-        if (userId) filter.user = userId;
-        if (startDate || endDate) {
-            filter.date = {};
-            if (startDate) filter.date.$gte = new Date(startDate);
-            if (endDate) filter.date.$lte = new Date(endDate);
-        }
-        if (department) {
-            const usersInDepartment = await User.find({ department }).select('_id');
-            filter.user = { $in: usersInDepartment.map(user => user._id) };
-        }
-
-        // Fetch attendance records
-        const attendanceRecords = await Attendance.find(filter)
-            .populate('user', 'name email department') // Populate user details
-            .sort({ [sortBy]: sortOrder })
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
-
-        const totalRecords = await Attendance.countDocuments(filter);
-
-        res.status(200).json({
-            totalRecords,
-            totalPages: Math.ceil(totalRecords / limit),
-            currentPage: parseInt(page),
-            attendanceRecords,
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-exports.getAttendanceSummary = async (req, res) => {
   try {
-    const attendanceRecords = await Attendance.find();
-    const summary = {
-      late: attendanceRecords.filter(record => record.isLate).length,
-      onTime: attendanceRecords.filter(record => !record.isLate).length,
-    };
-    res.status(200).json(summary);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { shiftId, ip } = req.body;
+    const userId = req.user.id;
+
+    // Find the shift for this employee
+    const shift = await Shift.findOne({ _id: shiftId, employee: userId });
+    if (!shift) return res.status(404).json({ message: 'Shift not found' });
+
+    // Prevent double clock-in
+    const existing = await Attendance.findOne({ shift: shiftId, employee: userId, clockOut: null });
+    if (existing) return res.status(400).json({ message: 'Already clocked in for this shift' });
+
+    // Compare IP
+    const ipStatus = ALLOWED_IPS.includes(ip) ? 'allowed' : 'denied';
+    const message = ipStatus === 'allowed' ? 'Yahoo' : 'very sad';
+
+    // Save attendance
+    const attendance = await Attendance.create({
+      shift: shiftId,
+      employee: userId,
+      clockIn: new Date(),
+      ip,
+      ipStatus,
+    });
+
+    res.status(201).json({ message, attendance });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// POST /api/attendance/clock-out
+exports.clockOut = async (req, res) => {
+  try {
+    const { attendanceId } = req.body;
+    const userId = req.user.id;
+
+    const attendance = await Attendance.findOne({ _id: attendanceId, employee: userId });
+    if (!attendance) return res.status(404).json({ message: 'Attendance record not found' });
+    if (attendance.clockOut) return res.status(400).json({ message: 'Already clocked out' });
+
+    attendance.clockOut = new Date();
+    await attendance.save();
+
+    res.status(200).json({ message: 'Clocked out', attendance });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// GET /api/attendance/my-history
+exports.listMyAttendance = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const records = await Attendance.find({ employee: userId })
+      .populate('shift')
+      .sort({ clockIn: -1 });
+    res.status(200).json(records);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// GET /api/attendance/export-excel
+exports.exportAttendanceExcel = async (req, res) => {
+  try {
+    const { employeeId } = req.query;
+    const records = await Attendance.find({ employee: employeeId }).populate('shift');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Attendance');
+    worksheet.columns = [
+      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Clock In', key: 'clockIn', width: 15 },
+      { header: 'Clock Out', key: 'clockOut', width: 15 },
+      { header: 'Status', key: 'status', width: 10 },
+      { header: 'IP', key: 'ip', width: 18 },
+      { header: 'IP Status', key: 'ipStatus', width: 10 },
+    ];
+    records.forEach(r => {
+      worksheet.addRow({
+        date: r.shift ? r.shift.date.toISOString().slice(0,10) : '',
+        clockIn: r.clockIn ? r.clockIn.toLocaleTimeString() : '',
+        clockOut: r.clockOut ? r.clockOut.toLocaleTimeString() : '',
+        status: r.status,
+        ip: r.ip,
+        ipStatus: r.ipStatus,
+      });
+    });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=attendance.xlsx');
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    res.status(500).json({ message: 'Export failed' });
+  }
+};
+
+// GET /api/attendance/export-pdf
+exports.exportAttendancePDF = async (req, res) => {
+  try {
+    const { employeeId } = req.query;
+    const records = await Attendance.find({ employee: employeeId }).populate('shift');
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=attendance.pdf');
+    doc.pipe(res);
+    doc.fontSize(18).text('Attendance Sheet', { align: 'center' });
+    doc.moveDown();
+    records.forEach(r => {
+      doc.fontSize(12).text(
+        `Date: ${r.shift ? r.shift.date.toISOString().slice(0,10) : ''} | Clock In: ${r.clockIn ? r.clockIn.toLocaleTimeString() : ''} | Clock Out: ${r.clockOut ? r.clockOut.toLocaleTimeString() : ''} | Status: ${r.status} | IP: ${r.ip || ''} | IP Status: ${r.ipStatus || ''}`
+      );
+      doc.moveDown(0.5);
+    });
+    doc.end();
+  } catch (err) {
+    res.status(500).json({ message: 'Export failed' });
   }
 };

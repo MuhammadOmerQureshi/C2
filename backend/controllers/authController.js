@@ -1,19 +1,57 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const { body, validationResult } = require('express-validator');
-const AuditLog = require('../models/AuditLog');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto"); // Added for token generation
+const User = require("../models/User");
+const PasswordResetToken = require("../models/PasswordResetToken"); // Added PasswordResetToken model
+const { body, validationResult } = require("express-validator");
+const AuditLog = require("../models/AuditLog");
+const nodemailer = require('nodemailer');
 
-// Register a new user
-exports.registerUser = async (req, res) => {
-    const { firstName, lastName, userName, email, password, address, contactNo, role } = req.body;
+// Admin-only: create a new Employer account
+exports.registerEmployer = async (req, res) => {
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ firstName, lastName, userName, email, password: hashedPassword, address, contactNo, role });
-        await user.save();
-        res.status(201).json({ message: 'User created successfully!' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        const {
+            firstName,
+            lastName,
+            username,
+            email,
+            password,
+            address,
+            contactNo
+        } = req.body;
+
+        // Validate required fields
+        if (!firstName || !lastName || !username || !email || !password) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Prevent duplicates by email or username
+        const exists = await User.findOne({ $or: [{ email }, { username }] });
+        if (exists) {
+            return res.status(409).json({ message: "Email or username already in use" });
+        }
+
+        // Hash password
+        const hashed = await bcrypt.hash(password, 10);
+
+        // Create employer user
+        const employer = await User.create({
+            firstName,
+            lastName,
+            username,
+            email,
+            password: hashed,
+            address,
+            contactNo,
+            role: "employer"
+        });
+
+        // Omit password from response
+        const { password: _p, ...data } = employer.toObject();
+        res.status(201).json({ message: "Employer created", employer: data });
+    } catch (err) {
+        console.error("registerEmployer error:", err);
+        res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -22,71 +60,206 @@ exports.loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) return res.status(404).json({ message: "User not found" });
 
         // Check if the user is active
-        if (user.status !== 'active') {
-            return res.status(403).json({ message: 'Your account is not active. Please contact support.' });
+        if (user.status !== "active") {
+            return res.status(403).json({ message: "Your account is not active. Please contact support." });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
         // Update lastLogin field
         user.lastLogin = new Date();
         await user.save();
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        res.status(200).json({ token, user: { id: user._id, name: user.firstName + ' ' + user.lastName, email: user.email, role: user.role, address: user.address, contactNo: user.contactNo } });
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // true in production, false in dev
+            sameSite: "lax", // use "lax" for local dev, "none" for HTTPS
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        // Return the token in the response body as well
+        res.status(200).json({ message: "Login successful", token: token });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Get the authenticated user's details
+// Get the authenticated user"s details
 exports.getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password'); // Exclude password
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const user = await User.findById(req.user.id).select("-password");
+        if (!user) return res.status(404).json({ message: "User not found" });
         res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Get all users (Admin only) with pagination, sorting, and granular filtering
+// Forgot Password - Step 1: Request password reset
+exports.forgotPassword = [
+    body('email').isEmail().withMessage('Valid email is required'),
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { email } = req.body;
+        try {
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(200).json({ message: 'If your email is registered, you will receive a password reset link.' });
+            }
+
+            // Generate a reset token
+            const resetToken = crypto.randomBytes(32).toString('hex');
+            const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+            // Set token expiry (e.g., 1 hour)
+            const expiresAt = new Date(Date.now() + 3600000);
+
+            // Save the token to the database
+            await PasswordResetToken.create({
+                userId: user._id,
+                token: hashedToken,
+                expiresAt,
+            });
+
+            // Construct reset URL
+            const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+            // Create a test account with Ethereal
+            const testAccount = await nodemailer.createTestAccount();
+
+            // Configure Nodemailer transporter for Ethereal
+            const transporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                secure: false, // Use TLS
+                auth: {
+                    user: testAccount.user, // Ethereal username (e.g., a random email like "user@ethereal.email")
+                    pass: testAccount.pass, // Ethereal password (unmasked)
+                },
+                debug: true,
+                logger: true,
+            });
+
+            // Debug credentials
+            console.log('Ethereal User:', testAccount.user);
+            console.log('Ethereal Pass:', testAccount.pass);
+
+            // Define email options
+            const mailOptions = {
+                from: `"Your App Name" <${testAccount.user}>`, // Use Ethereal username
+                to: user.email,
+                subject: 'Password Reset Request',
+                text: `You requested a password reset. Please go to this link to reset your password: ${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.`,
+                html: `
+                    <h2>Password Reset Request</h2>
+                    <p>You requested a password reset. Click the link below to reset your password:</p>
+                    <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px;">Reset Password</a>
+                    <p>This link will expire in 1 hour.</p>
+                    <p>If you did not request this, please ignore this email.</p>
+                `,
+            };
+
+            // Send the email
+            const info = await transporter.sendMail(mailOptions);
+            console.log('Email sent:', info.messageId);
+            // Get the preview URL for the email
+            const previewUrl = nodemailer.getTestMessageUrl(info);
+            console.log('Preview URL:', previewUrl);
+
+            res.status(200).json({ message: 'If your email is registered, you will receive a password reset link.' });
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            res.status(500).json({ message: 'An error occurred. Please try again.' });
+        }
+    }
+];
+
+// Reset Password - Step 2: Set new password using token
+exports.resetPassword = [
+    body("token").notEmpty().withMessage("Token is required"),
+    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { token, password } = req.body;
+        try {
+            // Hash the received token to compare with the stored one
+            const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+            // Find the token in the database
+            const passwordResetDoc = await PasswordResetToken.findOne({
+                token: hashedToken,
+                expiresAt: { $gt: Date.now() }, // Check if token is not expired
+            });
+
+            if (!passwordResetDoc) {
+                return res.status(400).json({ message: "Invalid or expired password reset token." });
+            }
+
+            // Find the user associated with the token
+            const user = await User.findById(passwordResetDoc.userId);
+            if (!user) {
+                return res.status(400).json({ message: "User not found." });
+            }
+
+            // Hash the new password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Update user"s password
+            user.password = hashedPassword;
+            await user.save();
+
+            // Delete the used token from the database
+            await PasswordResetToken.findByIdAndDelete(passwordResetDoc._id);
+
+            res.status(200).json({ message: "Password has been reset successfully." });
+
+        } catch (error) {
+            console.error("Reset password error:", error);
+            res.status(500).json({ message: "An error occurred. Please try again later." });
+        }
+    }
+];
+// Get all users (Admin only) with pagination, sorting, and filtering
 exports.getAllUsers = async (req, res) => {
-    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status, search, lastLoginFrom, lastLoginTo, department, phoneNumber } = req.query;
+    const { page = 1, limit = 10, sortBy = "name", order = "asc", role, status, search, lastLoginFrom, lastLoginTo } = req.query;
     try {
-        const sortOrder = order === 'desc' ? -1 : 1;
+        const sortOrder = order === "desc" ? -1 : 1;
         const filter = {};
 
-        // Add filters if provided
         if (role) filter.role = role;
         if (status) filter.status = status;
-        if (department) filter.department = department;
-        if (phoneNumber) filter.phoneNumber = phoneNumber;
         if (search) {
             filter.$or = [
-                { name: { $regex: search, $options: 'i' } }, // Case-insensitive search on name
-                { email: { $regex: search, $options: 'i' } }, // Case-insensitive search on email
-                { phoneNumber: { $regex: search, $options: 'i' } } // Case-insensitive search on phone number
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } }
             ];
         }
-        // Filter by lastLogin date range
-        // Convert lastLoginFrom and lastLoginTo to Date objects
         if (lastLoginFrom || lastLoginTo) {
             filter.lastLogin = {};
             if (lastLoginFrom) filter.lastLogin.$gte = new Date(lastLoginFrom);
             if (lastLoginTo) filter.lastLogin.$lte = new Date(lastLoginTo);
         }
-        // Pagination and sorting
+
         const users = await User.find(filter)
-            .select('-password')
+            .select("-password")
             .sort({ [sortBy]: sortOrder })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
-        // Populate department field if needed
+
         const totalUsers = await User.countDocuments(filter);
         res.status(200).json({
             totalUsers,
@@ -102,8 +275,8 @@ exports.getAllUsers = async (req, res) => {
 // Get a single user by ID (Admin only)
 exports.getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('-password'); // Exclude password
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const user = await User.findById(req.params.id).select("-password");
+        if (!user) return res.status(404).json({ message: "User not found" });
 
         res.status(200).json(user);
     } catch (error) {
@@ -111,30 +284,27 @@ exports.getUserById = async (req, res) => {
     }
 };
 
-// Update a user's status (Admin only)
+// Update a user"s status (Admin only)
 exports.updateUserStatus = [
-    // Validation rules
-    body('status')
-        .isIn(['active', 'inactive', 'suspended'])
-        .withMessage('Status must be one of: active, inactive, suspended'),
-        // Controller logic
+    body("status")
+        .isIn(["active", "inactive", "suspended"])
+        .withMessage("Status must be one of: active, inactive, suspended"),
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
-        // Extract userId and status from request body
+
         const { userId, status } = req.body;
         try {
             const user = await User.findById(userId);
-            if (!user) return res.status(404).json({ message: 'User not found' });
+            if (!user) return res.status(404).json({ message: "User not found" });
 
             user.status = status;
             await user.save();
 
-            // Log the action
             await AuditLog.create({
-                action: 'updateStatus',
+                action: "updateStatus",
                 performedBy: req.user.id,
                 targetUser: userId,
                 details: { status },
@@ -147,15 +317,12 @@ exports.updateUserStatus = [
     }
 ];
 
-// Update authenticated user's profile
+// Update authenticated user"s profile
 exports.updateUserProfile = [
-    // Validation rules
-    body('email').optional().isEmail().withMessage('Valid email is required'),
-    body('phoneNumber').optional().isMobilePhone().withMessage('Valid phone number is required'),
-    body('name').optional().notEmpty().withMessage('Name cannot be empty'),
-    body('address').optional().notEmpty().withMessage('Address cannot be empty'),
-
-    // Controller logic
+    body("email").optional().isEmail().withMessage("Valid email is required"),
+    body("phoneNumber").optional().isMobilePhone().withMessage("Valid phone number is required"),
+    body("name").optional().notEmpty().withMessage("Name cannot be empty"),
+    body("address").optional().notEmpty().withMessage("Address cannot be empty"),
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -165,117 +332,113 @@ exports.updateUserProfile = [
         const { name, email, phoneNumber, address } = req.body;
         try {
             const user = await User.findById(req.user.id);
-            if (!user) return res.status(404).json({ message: 'User not found' });
+            if (!user) return res.status(404).json({ message: "User not found" });
 
-            // Update fields
             if (name) user.name = name;
             if (email) user.email = email;
             if (phoneNumber) user.phoneNumber = phoneNumber;
             if (address) user.address = address;
 
             await user.save();
-            res.status(200).json({ message: 'Profile updated successfully', user });
+            res.status(200).json({ message: "Profile updated successfully", user });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 ];
 
-// Update the status of multiple users (Admin only)
+// Bulk update user status (Admin only)
 exports.bulkUpdateUserStatus = [
-    // Validation rules
-    body('userIds').isArray({ min: 1 }).withMessage('User IDs must be an array with at least one ID'),
-    body('status')
-        .isIn(['active', 'inactive', 'suspended'])
-        .withMessage('Status must be one of: active, inactive, suspended'),
-
-    // Controller logic
+    body("userIds").isArray({ min: 1 }).withMessage("userIds must be a non-empty array"),
+    body("status")
+      .isIn(["active", "inactive", "suspended"])
+      .withMessage("Status must be one of: active, inactive, suspended"),
     async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+  
+      const { userIds, status } = req.body;
+      try {
+        const result = await User.updateMany(
+          { _id: { $in: userIds } },
+          { $set: { status } }
+        );
+  
+        // Log each status change
+        for (const userId of userIds) {
+          await AuditLog.create({
+            action: "bulkUpdateStatus",
+            performedBy: req.user.id,
+            targetUser: userId,
+            details: { status },
+          });
         }
-
-        const { userIds, status } = req.body;
-        try {
-            const result = await User.updateMany(
-                { _id: { $in: userIds } }, // Match users by IDs
-                { $set: { status } } // Update status
-            );
-
-            res.status(200).json({
-                message: `Status updated to '${status}' for ${result.nModified} users`,
-            });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
-];
-
-// Delete a user (Admin only)
-exports.deleteUser = async (req, res) => {
-    try {
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        res.status(200).json({ message: 'User deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-// Delete multiple users (Admin only)
-exports.bulkDeleteUsers = [
-    body('userIds').isArray({ min: 1 }).withMessage('User IDs must be an array with at least one ID'),
-    async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const { userIds } = req.body;
-        try {
-            const result = await User.deleteMany({ _id: { $in: userIds } });
-
-            // Log the action
-            await AuditLog.create({
-                action: 'bulkDelete',
-                performedBy: req.user.id,
-                details: { userIds },
-            });
-
-            res.status(200).json({ message: `${result.deletedCount} users deleted successfully` });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
-];
-// Fetch audit logs (Admin only)
-exports.getAuditLogs = async (req, res) => {
-    const { page = 1, limit = 10, sortBy = 'timestamp', order = 'desc', action, performedBy, targetUser } = req.query;
-    try {
-        const sortOrder = order === 'desc' ? -1 : 1;
-        const filter = {};
-
-        // Add filters if provided
-        if (action) filter.action = action;
-        if (performedBy) filter.performedBy = performedBy;
-        if (targetUser) filter.targetUser = targetUser;
-
-        const logs = await AuditLog.find(filter)
-            .populate('performedBy', 'name email') // Populate admin details
-            .populate('targetUser', 'name email') // Populate target user details
-            .sort({ [sortBy]: sortOrder })
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
-
-        const totalLogs = await AuditLog.countDocuments(filter);
+  
         res.status(200).json({
-            totalLogs,
-            totalPages: Math.ceil(totalLogs / limit),
-            currentPage: parseInt(page),
-            logs,
+          message: `Status updated to "${status}" for ${result.nModified || result.modifiedCount} users.`,
         });
-    } catch (error) {
+      } catch (error) {
         res.status(500).json({ error: error.message });
+      }
     }
-};
+  ];
+  exports.deleteUser = async (req, res) => {
+    try {
+      const userId = req.params.id;
+  
+      // Prevent self-deletion
+      if (req.user.id === userId) {
+        return res.status(400).json({ message: "You cannot delete your own account." });
+      }
+  
+      const user = await User.findByIdAndDelete(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+  
+      // Log the deletion
+      await AuditLog.create({
+        action: "deleteUser",
+        performedBy: req.user.id,
+        targetUser: userId,
+        details: {},
+      });
+  
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  // Bulk delete users (Admin only)
+  exports.bulkDeleteUsers = [
+    body("userIds").isArray({ min: 1 }).withMessage("userIds must be a non-empty array"),
+    async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+  
+      const { userIds } = req.body;
+      try {
+        const result = await User.deleteMany({ _id: { $in: userIds } });
+  
+        // Log each deletion
+        for (const userId of userIds) {
+          await AuditLog.create({
+            action: "bulkDelete",
+            performedBy: req.user.id,
+            targetUser: userId,
+            details: {},
+          });
+        }
+  
+        res.status(200).json({
+          message: `Deleted ${result.deletedCount} users.`,
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    }
+  ];
+
+
