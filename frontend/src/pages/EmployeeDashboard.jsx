@@ -54,13 +54,22 @@ export default function EmployeeDashboard() {
     }
   }
 
-  async function handleClockIn(shiftId) {
-    setError('')
+    async function handleClockIn(shiftId) {
+    setError('');
     try {
-      await api.post('/attendance/clock-in', { shiftId })
-      fetchHistory()
+      // Get public IP
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const { ip } = await ipRes.json();
+
+      // Send shiftId and ip to backend
+      const res = await api.post('/attendance/clock-in', { shiftId, ip });
+
+      // Show message from backend
+      alert(res.data.message);
+
+      fetchHistory();
     } catch (err) {
-      setError(err.response?.data?.message || 'Clock-in failed')
+      setError(err.response?.data?.message || 'Clock-in failed');
     }
   }
 

@@ -5,6 +5,66 @@ import { useNavigate } from 'react-router-dom'
 import { logout } from '../utils/logout'
 import './EmployerDashboard.css'
 
+async function exportAttendanceExcel(empId) {
+  const token = localStorage.getItem('token'); 
+  try {
+    const res = await fetch(
+      `http://localhost:5173/api/attendance/export/excel?employeeId=${empId}`,
+     {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    if (!res.ok) {
+      alert('Export failed');
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'attendance.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Error exporting Excel:', err);
+    alert('Export failed');
+  }
+}
+
+async function exportAttendancePDF(empId) {
+  const token = localStorage.getItem('token'); // or wherever you store your JWT
+  try {
+    const res = await fetch(
+      `http://localhost:5173/api/attendance/export/pdf?employeeId=${empId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    if (!res.ok) {
+      alert('Export failed');
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'attendance.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Error exporting PDF:', err);
+    alert('Export failed');
+  }
+}
+
 export default function EmployerDashboard() {
   const [employees, setEmployees] = useState([])
   const [shifts, setShifts] = useState([])
@@ -156,6 +216,12 @@ export default function EmployerDashboard() {
                   <td>{emp.employeeId}</td>
                   <td>
                     <button className="delete-btn" onClick={() => handleDeleteEmployee(emp._id)}>Delete</button>
+                    <button onClick={() => exportAttendanceExcel(emp._id)}>
+                      Export Attendance (Excel)
+                    </button>
+                    <button onClick={() => exportAttendancePDF(emp._id)}>
+                      Export Attendance (PDF)
+                    </button>
                   </td>
                 </tr>
               ))}
