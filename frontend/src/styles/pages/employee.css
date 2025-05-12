@@ -1,0 +1,29 @@
+/* — pages/employee.css — */
+
+.employee-dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 1rem;
+}
+
+.shifts-section,
+.attendance-section {
+  margin-top: 2rem;
+}
+
+.shift-list {
+  list-style: none;
+}
+.shift-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+.shift-actions button {
+  background: #3182ce;
+  color: #fff;
+}

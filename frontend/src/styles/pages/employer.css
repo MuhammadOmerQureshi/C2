@@ -1,0 +1,15 @@
+/* — pages/employer.css — */
+
+.employer-dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 1rem;
+}
+
+.employee-table-section,
+.shifts-section {
+  margin-top: 2rem;
+}
+
+/* use the generic <table> and button styles from components.css */

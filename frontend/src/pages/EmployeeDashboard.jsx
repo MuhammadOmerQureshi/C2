@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/axiosConfig'
 import { logout } from '../utils/logout'
 import SpinningLogo from '../components/SpinningLogo';
-import './EmployeeDashboard.css'
+import '../styles/pages/employer.css'
 
 export default function EmployeeDashboard() {
   const [shifts, setShifts] = useState([])

@@ -1,0 +1,31 @@
+/* — pages/login.css — */
+
+body.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0f1e;
+}
+.login-form {
+  background: var(--surface-alt);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 320px;
+}
+/* any neon/orbit keyframes from your old LoginPage.css */
+@keyframes neon {
+  0% {
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #fff, 0 0 40px #ff00ff,
+      0 0 80px #ff00ff, 0 0 90px #ff00ff, 0 0 100px #ff00ff, 0 0 150px #ff00ff;
+    color: #fff;
+    transform: scale(1);
+    filter: blur(2px);
+    opacity: 1;
+    background-color: transparent;
+    border-radius: inherit;
+    box-shadow: none;
+    transition: all ease-in-out 1s;
+
+  }
+
+}

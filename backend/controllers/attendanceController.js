@@ -3,7 +3,7 @@ const Shift = require('../models/Shift');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit'); 
 
-const ALLOWED_IPS = ['194.47.28.53','127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
+const ALLOWED_IPS = ['80.217.249.6','127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
 
 // POST /api/attendance/clock-in
 exports.clockIn = async (req, res) => {

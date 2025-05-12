@@ -1,21 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@tailwind screens;
-@tailwind typography;
-@tailwind forms;
-@tailwind aspect-ratio;
-@tailwind line-clamp;
-@tailwind typography;
-@tailwind container;
-@tailwind grid;
-@tailwind grid-cols;
-@tailwind grid-rows;    
-@tailwind gap;
-@tailwind flex;
-@tailwind flex-col;
-@tailwind flex-row;
-@tailwind flex-wrap;
+/* — index.css — */
+
+@import "./base.css";
+@import "./layout.css";
+@import "./components.css";
+@import "./pages/login.css";
+@import "./pages/employee.css";
+@import "./pages/employer.css";
+
+
+
+
+
+
+@import "./base.css";
+@import "./layout.css";
+@import "./components.css";
+@import "./pages/login.css";
+@import "./pages/employee.css";
+@import "./pages/employer.css";
 
 
 
@@ -45,10 +47,11 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  /* Remove display: flex and place-items: center */
+  /* Optionally, add: */
+  /* overflow-y: auto; */
 }
 
 h1 {
@@ -88,6 +91,13 @@ button:focus-visible {
   }
 }
 
+.dashboard-scroll {
+  
+  max-height: none;
+  overflow: visible;
+  
+}
+
 /* .live-clock {
   position: fixed;
   top: 1rem;
@@ -110,3 +120,4 @@ button:focus-visible {
   font-size: 1rem;
   letter-spacing: 0.05em;
 } */
+
