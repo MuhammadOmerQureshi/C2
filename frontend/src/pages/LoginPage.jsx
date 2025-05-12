@@ -1,7 +1,6 @@
 import api from '../api/axiosConfig'; // Import your centralized Axios instance
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Add this import
+import { useNavigate, Link } from 'react-router-dom'; // Add this import
 import './LoginPage.css'; // Ensure the CSS file is linked
 
 export default function LoginPage() {
@@ -14,49 +13,36 @@ export default function LoginPage() {
     e.preventDefault();
     setError(''); // Reset error message
     try {
-      const res = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-  
-      // Check if user exists in the response
-      if (res.data.user) {
-        // Redirect based on role
-        if (res.data.user.role === 'employee') {
-          navigate('/employee-dashboard');
-        } else if (res.data.user.role === 'employer') {
-          navigate('/employer-dashboard');
-        } else if (res.data.user.role === 'admin') {
-          navigate('/admin-dashboard');
-        }
-      } else {
-        throw new Error('User information is missing in the response.');
-      }
+      // Login request
+      const res = await api.post("/auth/login", { email, password });
+      localStorage.setItem("token", res.data.token);
+
+      // Get user info to determine role
+      const me = await api.get("/auth/me");
+      if (me.data.role === "admin") navigate("/admin");
+      else if (me.data.role === "employer") navigate("/employer");
+      else if (me.data.role === "employee") navigate("/employee");
+      else navigate("/");
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="logo-container">
-        <img src="logo.png" alt="Logo" className="logo" />
-        <h1 className="logo-text">
-          <span>CESIUM</span>CLOCK
-        </h1>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow-md w-full max-w-sm mt-6"
+        className="bg-white p-6 rounded shadow-md w-full max-w-sm"
       >
-        <h2 className="text-2xl mb-4">Login</h2>
-        {error && <div className="mb-2 text-red-600">{error}</div>}
+        <h2 className="text-2xl mb-4 text-center">Login</h2> {/* Added text-center for heading */}
+        {error && <div className="mb-2 text-red-600 text-center">{error}</div>} {/* Added text-center for error */}
         <label className="block mb-2">
           Email
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded mt-1" /* Added mt-1 for spacing */
             required
           />
         </label>
@@ -66,16 +52,21 @@ export default function LoginPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded mt-1" /* Added mt-1 for spacing */
             required
           />
         </label>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded mb-3" /* Added hover effect and mb-3 */
         >
-          Submit
+          Login {/* Changed from Submit to Login for clarity */}
         </button>
+        <div className="text-center">
+          <Link to="/forgot-password" className="text-sm text-blue-500 hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
       </form>
     </div>
   );
