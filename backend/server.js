@@ -1,17 +1,24 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
-require('./utils/scheduler'); // Import the scheduler for periodic tasks
+
+// import models for seeding
+const User = require('./models/User');
+const bcrypt = require('bcryptjs');
 
 // 2. Route imports
-const authRoutes = require('./routes/authRoutes');
-/*
-const employerRoutes   = require('./routes/employerRoutes');
-const employeeRoutes   = require('./routes/employeeRoutes');
+const authRoutes        = require('./routes/authRoutes');
 const shiftRoutes      = require('./routes/shiftRoutes');
-const attendanceRoutes = require('./routes/attendanceRoutes');
-*/
+const employeeRoutes   = require('./routes/employeeRoutes');
+const employerRoutes   = require('./routes/employerRoutes');
+const attendanceRoutes= require('./routes/attendanceRoutes');
+const adminRoutes       = require('./routes/adminRoutes');
+
+
+
+// const attendanceRoutes = require('./routes/attendanceRoutes');
 
 
 // 3. App setup
@@ -19,18 +26,19 @@ const app = express();
 
 // Middleware
 app.use(express.json());  // parse JSON bodies
-app.use(cors());          // enable CORS for all origins
+app.use(cors({
+  origin: 'http://localhost:5173', // your frontend URL
+  credentials: true
+}));
+app.use(cookieParser());
 
 // Mount routers
 app.use('/api/auth', authRoutes);
-/*
-app.use('/api/users', authRoutes); // Assuming you want to keep this route for user-related actions
-app.use('/api/audit', authRoutes); // Assuming you want to keep this route for audit-related actions
-app.use('/api/employers',  employerRoutes);
-app.use('/api/employees',  employeeRoutes);
 app.use('/api/shifts',     shiftRoutes);
+app.use('/api/employees',  employeeRoutes);
+app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
-*/
+app.use('/api/admin', adminRoutes);
 
 // 4. Health-check & 404
 app.get('/', (req, res) => {
@@ -42,32 +50,66 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Connect to MongoDB using Mongoose
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB')) // Log successful connection
-  .catch((error) => console.error('MongoDB connection error:', error)); // Log connection errors
-
-let server;
 // 5. Database connection & server start
 const PORT = process.env.PORT || 5000;
-server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// Function to handle graceful shutdown of the server and database connection
-function shutdown() {
-    console.log('Shutting down server...');
-    server.close(async () => { // Close the HTTP server
-      console.log('HTTP server closed.');
-      try {
-        await mongoose.connection.close(); // Close the MongoDB connection
-        console.log('MongoDB connection closed.');
-        process.exit(0); // Exit the process with success code
-      } catch (error) {
-        console.error('Error closing MongoDB connection:', error); // Log any errors during shutdown
-        process.exit(1); // Exit the process with error code
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(async () => {
+    console.log('Connected to MongoDB');
+
+    // --- Step 2: Seed hard-coded admin user if not exists ---
+    const adminEmail = 'admin@company.com';
+    const adminPassword = 'SuperSecret123';
+    try {
+      let admin = await User.findOne({ email: adminEmail });
+      if (!admin) {
+        const hashed = await bcrypt.hash(adminPassword, 10);
+        admin = await User.create({
+          firstName: 'Super',
+          lastName:  'Admin',
+          username:  'superadmin',
+          email:     adminEmail,
+          password:  hashed,
+          address:   '',
+          contactNo: '',
+          role:      'admin'
+        });
+        console.log(`Seeded admin user: ${adminEmail}`);
       }
-    });
-  }
-  
-  // Handle termination signals (e.g., Ctrl+C or system termination)
-  process.on('SIGINT', shutdown); // Handle Ctrl+C
-  process.on('SIGTERM', shutdown); // Handle termination signals from the system
+    } catch (err) {
+      console.error('Error seeding admin user:', err);
+    }
+    const rateLimit = require('express-rate-limit');
+const forgotPasswordLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 requests per IP
+});
+app.use('/api/auth/forgot-password', forgotPasswordLimiter);
+
+    // start HTTP server after seeding
+    const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+    // graceful shutdown
+    function shutdown() {
+      console.log('Shutting down server...');
+      server.close(async () => {
+        console.log('HTTP server closed.');
+        try {
+          await mongoose.connection.close();
+          console.log('MongoDB connection closed.');
+          process.exit(0);
+        } catch (error) {
+          console.error('Error closing MongoDB connection:', error);
+          process.exit(1);
+        }
+      });
+    }
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+  })
+  .catch((error) => console.error('MongoDB connection error:', error));
+
+
