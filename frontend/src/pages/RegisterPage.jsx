@@ -1,3 +1,4 @@
+/*
 import React, { useState } from 'react';
 import api from "../api/axiosConfig.js";    // ← make sure this matches
 
@@ -46,7 +47,5 @@ export default function RegisterPage() {
       </form>
     </div>
   );
-}
-
-;
-
+};
+*/
