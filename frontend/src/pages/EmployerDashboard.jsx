@@ -1,9 +1,8 @@
 import api from '../api/axiosConfig';
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-
-import { logout } from '../utils/logout'
-import '../styles/pages/employer.css'
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../utils/logout';
+import '../styles/pages/employer.css';
 import SpinningLogo from '../components/SpinningLogo';
 
 async function exportAttendanceExcel(empId) {
@@ -31,7 +30,7 @@ async function exportAttendanceExcel(empId) {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    alert('Export failed');
+    alert(err.response?.data?.message || 'Export failed');
   }
 }
 
@@ -60,7 +59,7 @@ async function exportAttendancePDF(empId) {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    alert('Export failed');
+    alert(err.response?.data?.message || 'Export failed');
   }
 }
 
@@ -92,7 +91,7 @@ export default function EmployerDashboard() {
       setEmployees(empRes.data)
       setShifts(shiftRes.data)
     } catch (err) {
-      setError('Failed to load data')
+      setError(err.response?.data?.message || 'Failed to load data')
     }
     setLoading(false)
   }
