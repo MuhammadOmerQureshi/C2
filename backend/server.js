@@ -16,10 +16,7 @@ const employerRoutes   = require('./routes/employerRoutes');
 const attendanceRoutes= require('./routes/attendanceRoutes');
 const adminRoutes       = require('./routes/adminRoutes');
 
-
-
 // const attendanceRoutes = require('./routes/attendanceRoutes');
-
 
 // 3. App setup
 const app = express();
@@ -39,12 +36,6 @@ app.use('/api/employees',  employeeRoutes);
 app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
-
-
-
-
-
-
 
 // 4. Health-check & 404
 app.get('/', (req, res) => {
