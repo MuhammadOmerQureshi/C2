@@ -50,10 +50,7 @@ app.use((req, res) => {
 // 5. Database connection & server start
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log('Connected to MongoDB');
 
@@ -102,5 +99,3 @@ mongoose.connect(process.env.MONGODB_URI, {
     process.on('SIGTERM', shutdown);
   })
   .catch((error) => console.error('MongoDB connection error:', error));
-
-

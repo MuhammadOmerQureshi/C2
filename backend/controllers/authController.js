@@ -156,7 +156,7 @@ exports.forgotPassword = [
 
             // Define email options
             const mailOptions = {
-                from: `"Your App Name" <${testAccount.user}>`, // Use Ethereal username
+                from: `"C2" <${testAccount.user}>`, // Use Ethereal username
                 to: user.email,
                 subject: 'Password Reset Request',
                 text: `You requested a password reset. Please go to this link to reset your password: ${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.`,
