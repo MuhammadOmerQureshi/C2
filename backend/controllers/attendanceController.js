@@ -1,14 +1,17 @@
 const Attendance = require('../models/Attendance');
 const Shift = require('../models/Shift');
 const ExcelJS = require('exceljs');
-const PDFDocument = require('pdfkit'); 
+const PDFDocument = require('pdfkit');
 
-const ALLOWED_IPS = ['80.217.249.6','127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
+// Import the broadcast function from server.js
+const { broadcastAttendanceUpdate } = require('../server');
+
+const ALLOWED_IPS = ['80.217.249.6', '127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
 
 // POST /api/attendance/clock-in
 exports.clockIn = async (req, res) => {
   try {
-    const { shiftId, ip } = req.body;       // IP address of the employee
+    const { shiftId, ip } = req.body; // IP address of the employee
     const userId = req.user.id;
 
     // Find the shift for this employee
@@ -32,6 +35,9 @@ exports.clockIn = async (req, res) => {
       ipStatus,
     });
 
+    // Broadcast the new attendance record
+    broadcastAttendanceUpdate(attendance);
+
     res.status(201).json({ message, attendance });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
@@ -50,6 +56,9 @@ exports.clockOut = async (req, res) => {
 
     attendance.clockOut = new Date();
     await attendance.save();
+
+    // Broadcast the updated attendance record
+    broadcastAttendanceUpdate(attendance);
 
     res.status(200).json({ message: 'Clocked out', attendance });
   } catch (err) {
@@ -85,9 +94,9 @@ exports.exportAttendanceExcel = async (req, res) => {
       { header: 'IP', key: 'ip', width: 18 },
       { header: 'IP Status', key: 'ipStatus', width: 10 },
     ];
-    records.forEach(r => {
+    records.forEach((r) => {
       worksheet.addRow({
-        date: r.shift ? r.shift.date.toISOString().slice(0,10) : '',
+        date: r.shift ? r.shift.date.toISOString().slice(0, 10) : '',
         clockIn: r.clockIn ? r.clockIn.toLocaleTimeString() : '',
         clockOut: r.clockOut ? r.clockOut.toLocaleTimeString() : '',
         status: r.status,
@@ -115,10 +124,16 @@ exports.exportAttendancePDF = async (req, res) => {
     doc.pipe(res);
     doc.fontSize(18).text('Attendance Sheet', { align: 'center' });
     doc.moveDown();
-    records.forEach(r => {
-      doc.fontSize(12).text(
-        `Date: ${r.shift ? r.shift.date.toISOString().slice(0,10) : ''} | Clock In: ${r.clockIn ? r.clockIn.toLocaleTimeString() : ''} | Clock Out: ${r.clockOut ? r.clockOut.toLocaleTimeString() : ''} | Status: ${r.status} | IP: ${r.ip || ''} | IP Status: ${r.ipStatus || ''}`
-      );
+    records.forEach((r) => {
+      doc
+        .fontSize(12)
+        .text(
+          `Date: ${r.shift ? r.shift.date.toISOString().slice(0, 10) : ''} | Clock In: ${
+            r.clockIn ? r.clockIn.toLocaleTimeString() : ''
+          } | Clock Out: ${r.clockOut ? r.clockOut.toLocaleTimeString() : ''} | Status: ${
+            r.status
+          } | IP: ${r.ip || ''} | IP Status: ${r.ipStatus || ''}`
+        );
       doc.moveDown(0.5);
     });
     doc.end();
