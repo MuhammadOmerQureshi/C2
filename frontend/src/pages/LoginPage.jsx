@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 
-
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,11 +12,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      // Login request
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
-
-      // Get user info to determine role
       const me = await api.get('/auth/me');
       if (me.data.role === 'admin') navigate('/admin');
       else if (me.data.role === 'employer') navigate('/employer');
@@ -29,46 +25,45 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-       <div className="logo-container">
-        <img src="logo.png" alt="Logo" className="logo" />
-        <h1 className="logo-text">
-          <span>CESIUM</span>CLOCK
+    <div className="login login-outer-center">
+      {/* Logo outside the card, centered */}
+      <img
+        src="/logo.png"
+        alt="App Logo"
+        className="login-logo horizontal-spin"
+      />
+
+      <div className="login-card">
+        {/* Neon title */}
+        <h1 className="login-title" data-text="CesiumClock">
+          CesiumClock
         </h1>
-      </div>
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl mb-4">Login</h2>
-        {error && <div className="mb-2 text-red-600">{error}</div>}
-        <label className="block mb-2">
-          Email
+
+        {/* Optionally, a live clock can be placed here */}
+        {/* <div id="live-clock"></div> */}
+
+        {/* Login form */}
+        <form className="login-form" onSubmit={handleSubmit}>
+          {error && <div className="mb-2 text-red-600">{error}</div>}
+          <label htmlFor="email">Email</label>
           <input
+            id="email"
             type="email"
+            required
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
           />
-        </label>
-        <label className="block mb-4">
-          Password
+          <label htmlFor="password">Password</label>
           <input
+            id="password"
             type="password"
+            required
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
           />
-        </label>
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded"
-        >
-          Submit
-        </button>
-      </form>
+          <button type="submit">Submit</button>
+        </form>
+      </div>
     </div>
   );
 }
