@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { logout } from '../utils/logout';
 import '../styles/pages/employer.css';
 import SpinningLogo from '../components/SpinningLogo';
+import Chatbot from '../components/Chatbot';
 
 async function exportAttendanceExcel(empId) {
   const token = localStorage.getItem('token'); 
@@ -327,6 +328,7 @@ export default function EmployerDashboard() {
             Export All Attendance (PDF)
           </button>
         </div>
+        <Chatbot />
       </div>
     </>
   )
