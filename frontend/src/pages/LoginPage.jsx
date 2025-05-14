@@ -25,25 +25,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login login-outer-center">
-      {/* Logo outside the card, centered */}
-      <img
-        src="/logo.png"
-        alt="App Logo"
-        className="login-logo horizontal-spin"
-      />
+    <div className="login-outer-center">
+      {/* Orbiting and spinning logo container */}
+      <div className="logo-container">
+        <img src="/logo.png" alt="App Logo" className="logo" />
+        <div className="logo-text">
+          <span>CESIUM</span>CLOCK
+        </div>
+      </div>
 
-      <div className="login-card">
-        {/* Neon title */}
-        <h1 className="login-title" data-text="CesiumClock">
-          CesiumClock
-        </h1>
-
-        {/* Optionally, a live clock can be placed here */}
-        {/* <div id="live-clock"></div> */}
-
-        {/* Login form */}
-        <form className="login-form" onSubmit={handleSubmit}>
+      {/* Login form */}
+      <div className="login-container">
+        <form onSubmit={handleSubmit}>
           {error && <div className="mb-2 text-red-600">{error}</div>}
           <label htmlFor="email">Email</label>
           <input
