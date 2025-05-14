@@ -26,11 +26,17 @@ exports.clockIn = async (req, res) => {
     const ipStatus = ALLOWED_IPS.includes(ip) ? 'allowed' : 'denied';
     const message = ipStatus === 'allowed' ? 'Yahoo' : 'very sad';
 
+    // Check if the clock-in is late
+    const now = new Date();
+    const shiftStartTime = new Date(`${shift.date}T${shift.startTime}`);
+    const status = now > shiftStartTime ? 'late' : 'ontime';
+
     // Save attendance
     const attendance = await Attendance.create({
       shift: shiftId,
       employee: userId,
-      clockIn: new Date(),
+      clockIn: now,
+      status,
       ip,
       ipStatus,
     });
@@ -38,7 +44,14 @@ exports.clockIn = async (req, res) => {
     // Broadcast the new attendance record
     broadcastAttendanceUpdate(attendance);
 
-    res.status(201).json({ message, attendance });
+    // Send email alert if late
+    if (status === 'late') {
+      const employee = await User.findById(userId);
+      const emailText = `Dear ${employee.firstName},\n\nYou were late for your shift on ${shift.date}. Please ensure timely attendance in the future.\n\nBest regards,\nHR Team`;
+      await sendEmail(employee.email, 'Late Check-in Alert', emailText);
+    }
+
+    res.status(201).json({ message: 'Clock-in successful', attendance });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -117,27 +130,79 @@ exports.exportAttendanceExcel = async (req, res) => {
 exports.exportAttendancePDF = async (req, res) => {
   try {
     const { employeeId } = req.query;
+
+    // Fetch attendance records for the employee
     const records = await Attendance.find({ employee: employeeId }).populate('shift');
+    if (records.length === 0) {
+      return res.status(404).json({ message: 'No attendance records found for this employee' });
+    }
+
+    // Create a new PDF document
     const doc = new PDFDocument();
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=attendance.pdf');
     doc.pipe(res);
-    doc.fontSize(18).text('Attendance Sheet', { align: 'center' });
+
+    // Add title
+    doc.fontSize(18).text('Attendance Report', { align: 'center' });
     doc.moveDown();
-    records.forEach((r) => {
+
+    // Add attendance records
+    records.forEach((record) => {
       doc
         .fontSize(12)
         .text(
-          `Date: ${r.shift ? r.shift.date.toISOString().slice(0, 10) : ''} | Clock In: ${
-            r.clockIn ? r.clockIn.toLocaleTimeString() : ''
-          } | Clock Out: ${r.clockOut ? r.clockOut.toLocaleTimeString() : ''} | Status: ${
-            r.status
-          } | IP: ${r.ip || ''} | IP Status: ${r.ipStatus || ''}`
+          `Date: ${record.shift ? record.shift.date.toISOString().slice(0, 10) : 'N/A'} | Clock In: ${
+            record.clockIn ? record.clockIn.toLocaleTimeString() : 'N/A'
+          } | Clock Out: ${record.clockOut ? record.clockOut.toLocaleTimeString() : 'N/A'} | Status: ${
+            record.status || 'N/A'
+          }`
         );
       doc.moveDown(0.5);
     });
+
+    // Finalize the PDF
     doc.end();
   } catch (err) {
-    res.status(500).json({ message: 'Export failed' });
+    res.status(500).json({ message: 'Export failed', error: err.message });
+  }
+};
+
+exports.exportAllAttendancePDF = async (req, res) => {
+  try {
+    // Fetch attendance records for all employees
+    const records = await Attendance.find().populate('employee shift');
+    if (records.length === 0) {
+      return res.status(404).json({ message: 'No attendance records found' });
+    }
+
+    // Create a new PDF document
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=all_attendance.pdf');
+    doc.pipe(res);
+
+    // Add title
+    doc.fontSize(18).text('All Employees Attendance Report', { align: 'center' });
+    doc.moveDown();
+
+    // Add attendance records
+    records.forEach((record) => {
+      doc
+        .fontSize(12)
+        .text(
+          `Employee: ${record.employee.firstName} ${record.employee.lastName} | Date: ${
+            record.shift ? record.shift.date.toISOString().slice(0, 10) : 'N/A'
+          } | Clock In: ${record.clockIn ? record.clockIn.toLocaleTimeString() : 'N/A'} | Clock Out: ${
+            record.clockOut ? record.clockOut.toLocaleTimeString() : 'N/A'
+          } | Status: ${record.status || 'N/A'}`
+        );
+      doc.moveDown(0.5);
+    });
+
+    // Finalize the PDF
+    doc.end();
+  } catch (err) {
+    res.status(500).json({ message: 'Export failed', error: err.message });
   }
 };

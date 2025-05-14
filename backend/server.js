@@ -5,11 +5,13 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const http = require('http');
 const { Server } = require('socket.io');
+const nodemailer = require('nodemailer');
 
 
 // import models for seeding
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
+
 
 // 2. Route imports
 const authRoutes        = require('./routes/authRoutes');
@@ -127,3 +129,27 @@ mongoose.connect(process.env.MONGODB_URI)
     process.on('SIGTERM', shutdown);
   })
   .catch((error) => console.error('MongoDB connection error:', error));
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // Use your email service (e.g., Gmail, Outlook, etc.)
+  auth: {
+    user: process.env.EMAIL_USER, // Your email address
+    pass: process.env.EMAIL_PASS, // Your email password or app-specific password
+  },
+});
+
+const sendEmail = async (to, subject, text) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      text,
+    });
+    console.log(`Email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+};
+
+module.exports = sendEmail;
