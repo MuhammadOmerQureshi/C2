@@ -2,6 +2,8 @@ const Attendance = require('../models/Attendance');
 const Shift = require('../models/Shift');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
+const generateICS = require('../utils/calendar');
+const sendEmail = require('../utils/email');
 
 // Import the broadcast function from server.js
 const { broadcastAttendanceUpdate } = require('../server');
@@ -204,5 +206,42 @@ exports.exportAllAttendancePDF = async (req, res) => {
     doc.end();
   } catch (err) {
     res.status(500).json({ message: 'Export failed', error: err.message });
+  }
+};
+
+exports.sendShiftReminder = async (req, res) => {
+  try {
+    const { shiftId, email } = req.body;
+
+    // Fetch shift details
+    const shift = await Shift.findById(shiftId).populate('employee');
+    if (!shift) return res.status(404).json({ message: 'Shift not found' });
+
+    const startDate = new Date(`${shift.date}T${shift.startTime}`);
+    const endDate = new Date(`${shift.date}T${shift.endTime}`);
+
+    // Generate ICS file
+    const eventDetails = {
+      title: `Shift Reminder for ${shift.employee.firstName} ${shift.employee.lastName}`,
+      description: `You have a shift scheduled on ${shift.date} from ${shift.startTime} to ${shift.endTime}.`,
+      location: shift.location,
+      start: [startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate(), startDate.getHours(), startDate.getMinutes()],
+      end: [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate(), endDate.getHours(), endDate.getMinutes()],
+    };
+
+    const { icsContent } = await generateICS(eventDetails);
+
+    // Send ICS file via email
+    await sendEmail(
+      email,
+      'Shift Reminder',
+      `Dear ${shift.employee.firstName},\n\nPlease find your shift details attached.\n\nBest regards,\nHR Team`,
+      [{ filename: 'shift_reminder.ics', content: icsContent }]
+    );
+
+    res.status(200).json({ message: 'Shift reminder sent successfully' });
+  } catch (error) {
+    console.error('Error sending shift reminder:', error);
+    res.status(500).json({ message: 'Failed to send shift reminder', error: error.message });
   }
 };

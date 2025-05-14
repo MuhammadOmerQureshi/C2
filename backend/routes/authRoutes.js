@@ -75,6 +75,8 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { loginUser, getMe, updateUserProfile, forgotPassword, resetPassword } = require("../controllers/authController"); // Added forgotPassword and resetPassword
 const { protect } = require('../middleware/authMiddleware');
+const { sendShiftReminder } = require('../controllers/attendanceController');
+
 const router = express.Router();
 
 // Validation helper
@@ -109,6 +111,9 @@ router.post(
   validate,
   resetPassword
 );
+
+router.post('/send-shift-reminder', sendShiftReminder);
+
 
 // Protected "me" routes
 router.get('/me', protect, getMe);

@@ -89,6 +89,30 @@ async function exportAllAttendancePDF() {
   }
 }
 
+async function sendShiftReminder(shiftId, email) {
+  try {
+    const token = localStorage.getItem('token'); // Use your authentication token
+    const response = await fetch('http://localhost:5000/api/attendance/send-shift-reminder', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ shiftId, email }),
+    });
+
+    if (response.ok) {
+      alert('Shift reminder sent successfully!');
+    } else {
+      const error = await response.json();
+      alert(`Failed to send reminder: ${error.message}`);
+    }
+  } catch (err) {
+    console.error('Error sending shift reminder:', err);
+    alert('An error occurred while sending the reminder.');
+  }
+}
+
 export default function EmployerDashboard() {
   const [employees, setEmployees] = useState([])
   const [shifts, setShifts] = useState([])
@@ -285,6 +309,9 @@ export default function EmployerDashboard() {
                       <td>{shift.status}</td>
                       <td>
                         <button className="delete-btn" onClick={() => handleDeleteShift(shift._id)}>Delete</button>
+                        <button onClick={() => sendShiftReminder(shift._id, shift.employee.email)}>
+                          Send Calendar Reminder
+                        </button>
                       </td>
                     </tr>
                   ))}
