@@ -7,7 +7,7 @@ import AdminDashboard from '../pages/AdminDashboard';
 // import RequireAuth from '../components/RequireAuth';   // for future use
 
 
-
+// import { useAuth } from '../hooks/useAuth'; // for future use  
 export default function AppRoutes() {
   return (
     <BrowserRouter>
