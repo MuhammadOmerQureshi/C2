@@ -1,13 +1,17 @@
 const Attendance = require('../models/Attendance');
 const Shift = require('../models/Shift');
+const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit'); 
+
+const ALLOWED_IPS = ['80.217.249.6','127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
 
 // POST /api/attendance/clock-in
 exports.clockIn = async (req, res) => {
   try {
-    const { shiftId } = req.body;
+    const { shiftId, ip } = req.body;       // IP address of the employee
     const userId = req.user.id;
 
-    // Check if shift exists and belongs to this employee
+    // Find the shift for this employee
     const shift = await Shift.findOne({ _id: shiftId, employee: userId });
     if (!shift) return res.status(404).json({ message: 'Shift not found' });
 
@@ -15,15 +19,20 @@ exports.clockIn = async (req, res) => {
     const existing = await Attendance.findOne({ shift: shiftId, employee: userId, clockOut: null });
     if (existing) return res.status(400).json({ message: 'Already clocked in for this shift' });
 
+    // Compare IP
+    const ipStatus = ALLOWED_IPS.includes(ip) ? 'allowed' : 'denied';
+    const message = ipStatus === 'allowed' ? 'Yahoo' : 'very sad';
+
+    // Save attendance
     const attendance = await Attendance.create({
       shift: shiftId,
       employee: userId,
       clockIn: new Date(),
-      // Optionally: lat, lng, etc.
+      ip,
+      ipStatus,
     });
-    
 
-    res.status(201).json({ message: 'Clocked in', attendance });
+    res.status(201).json({ message, attendance });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -58,5 +67,62 @@ exports.listMyAttendance = async (req, res) => {
     res.status(200).json(records);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// GET /api/attendance/export-excel
+exports.exportAttendanceExcel = async (req, res) => {
+  try {
+    const { employeeId } = req.query;
+    const records = await Attendance.find({ employee: employeeId }).populate('shift');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Attendance');
+    worksheet.columns = [
+      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Clock In', key: 'clockIn', width: 15 },
+      { header: 'Clock Out', key: 'clockOut', width: 15 },
+      { header: 'Status', key: 'status', width: 10 },
+      { header: 'IP', key: 'ip', width: 18 },
+      { header: 'IP Status', key: 'ipStatus', width: 10 },
+    ];
+    records.forEach(r => {
+      worksheet.addRow({
+        date: r.shift ? r.shift.date.toISOString().slice(0,10) : '',
+        clockIn: r.clockIn ? r.clockIn.toLocaleTimeString() : '',
+        clockOut: r.clockOut ? r.clockOut.toLocaleTimeString() : '',
+        status: r.status,
+        ip: r.ip,
+        ipStatus: r.ipStatus,
+      });
+    });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=attendance.xlsx');
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    res.status(500).json({ message: 'Export failed' });
+  }
+};
+
+// GET /api/attendance/export-pdf
+exports.exportAttendancePDF = async (req, res) => {
+  try {
+    const { employeeId } = req.query;
+    const records = await Attendance.find({ employee: employeeId }).populate('shift');
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=attendance.pdf');
+    doc.pipe(res);
+    doc.fontSize(18).text('Attendance Sheet', { align: 'center' });
+    doc.moveDown();
+    records.forEach(r => {
+      doc.fontSize(12).text(
+        `Date: ${r.shift ? r.shift.date.toISOString().slice(0,10) : ''} | Clock In: ${r.clockIn ? r.clockIn.toLocaleTimeString() : ''} | Clock Out: ${r.clockOut ? r.clockOut.toLocaleTimeString() : ''} | Status: ${r.status} | IP: ${r.ip || ''} | IP Status: ${r.ipStatus || ''}`
+      );
+      doc.moveDown(0.5);
+    });
+    doc.end();
+  } catch (err) {
+    res.status(500).json({ message: 'Export failed' });
   }
 };

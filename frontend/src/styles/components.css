@@ -1,0 +1,64 @@
+/* — components.css — */
+
+/* Dashboard header (logo + title + logout) */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.dashboard-header h1 {
+  font-size: 1.8rem;
+  color: var(--primary);
+}
+.logout-btn {
+  background-color: var(--error);
+  color: #fff;
+}
+.logout-btn:hover {
+  background-color: #c53030;
+}
+
+/* Live clock */
+.live-clock {
+  font-family: 'Digital-7', monospace;
+  font-size: 2rem;
+  background: rgba(0,0,0,0.5);
+  padding: 0.5rem;
+  border-radius: 4px;
+  color: #0ff;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+table th,
+table td {
+  padding: 0.5rem;
+  border: 1px solid #444;
+  text-align: left;
+}
+table thead {
+  background: var(--surface-alt);
+}
+table tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+
+/* Action buttons */
+.delete-btn {
+  background: var(--error);
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.3rem 0.8rem;
+}
+.export-btn {
+  background: var(--surface-alt);
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.3rem 0.8rem;
+  margin-left: 0.5rem;
+}

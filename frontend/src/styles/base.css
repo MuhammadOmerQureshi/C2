@@ -1,0 +1,55 @@
+/* — base.css — */
+
+/* Box-sizing & reset margins/padding */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Root typography & color */
+:root {
+  --bg: #121212;
+  --fg: rgba(255,255,255,0.9);
+  --primary: #646cff;
+  --error: #e53e3e;
+  --surface: #1a1a1a;
+  --surface-alt: #242424;
+  font-family: system-ui, sans-serif;
+  color: var(--fg);
+  background-color: var(--bg);
+  line-height: 1.5;
+}
+
+/* Body fills viewport and scrolls */
+html, body {
+  height: 100%;
+}
+body {
+  min-width: 320px;
+  overflow-y: auto;    /* ← whole-page scrolling */
+}
+
+/* Basic button & link styling */
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.5em 1em;
+  transition: border-color .2s;
+  background: var(--surface);
+  color: var(--fg);
+}
+button:hover {
+  border-color: var(--primary);
+}
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}

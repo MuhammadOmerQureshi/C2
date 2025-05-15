@@ -12,11 +12,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      // Login request
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
-
-      // Get user info to determine role
       const me = await api.get('/auth/me');
       if (me.data.role === 'admin') navigate('/admin');
       else if (me.data.role === 'employer') navigate('/employer');
@@ -28,40 +25,38 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl mb-4">Login</h2>
-        {error && <div className="mb-2 text-red-600">{error}</div>}
-        <label className="block mb-2">
-          Email
+    <div className="login-outer-center">
+      {/* Orbiting and spinning logo container */}
+      <div className="logo-container">
+        <img src="/logo.png" alt="App Logo" className="logo" />
+        <div className="logo-text">
+          <span>CESIUM</span>CLOCK
+        </div>
+      </div>
+
+      {/* Login form */}
+      <div className="login-container">
+        <form onSubmit={handleSubmit}>
+          {error && <div className="mb-2 text-red-600">{error}</div>}
+          <label htmlFor="email">Email</label>
           <input
+            id="email"
             type="email"
+            required
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
           />
-        </label>
-        <label className="block mb-4">
-          Password
+          <label htmlFor="password">Password</label>
           <input
+            id="password"
             type="password"
+            required
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
           />
-        </label>
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded"
-        >
-          Submit
-        </button>
-      </form>
+          <button type="submit">Submit</button>
+        </form>
+      </div>
     </div>
   );
 }

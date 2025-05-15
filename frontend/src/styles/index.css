@@ -1,21 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@tailwind screens;
-@tailwind typography;
-@tailwind forms;
-@tailwind aspect-ratio;
-@tailwind line-clamp;
-@tailwind typography;
-@tailwind container;
-@tailwind grid;
-@tailwind grid-cols;
-@tailwind grid-rows;    
-@tailwind gap;
-@tailwind flex;
-@tailwind flex-col;
-@tailwind flex-row;
-@tailwind flex-wrap;
+/* — index.css — */
+
+@import "./base.css";
+@import "./layout.css";
+@import "./components.css";
+@import "./pages/login.css";
+@import "./pages/employee.css";
+@import "./pages/employer.css";
+
+
+
+
+
+
+@import "./base.css";
+@import "./layout.css";
+@import "./components.css";
+@import "./pages/login.css";
+@import "./pages/employee.css";
+@import "./pages/employer.css";
 
 
 
@@ -45,10 +47,11 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  /* Remove display: flex and place-items: center */
+  /* Optionally, add: */
+  /* overflow-y: auto; */
 }
 
 h1 {
@@ -87,3 +90,34 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.dashboard-scroll {
+  
+  max-height: none;
+  overflow: visible;
+  
+}
+
+/* .live-clock {
+  position: fixed;
+  top: 1rem;
+  right: 2rem;
+  z-index: 1000;
+  text-align: right;
+  font-family: 'Orbitron', 'Courier New', monospace;
+  color: #7ecbff;
+  text-shadow: 0 0 8px #1e90ff, 0 0 20px #1e90ff;
+  background: rgba(10, 20, 40, 0.7);
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 10px #1e90ff44;
+}
+.clock-time {
+  font-size: 2rem;
+  letter-spacing: 0.1em;
+}
+.clock-date {
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+} */
+
