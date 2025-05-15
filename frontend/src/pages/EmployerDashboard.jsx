@@ -1,10 +1,10 @@
 import api from '../api/axiosConfig';
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-
-import { logout } from '../utils/logout'
-import '../styles/pages/employer.css'
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../utils/logout';
+import '../styles/pages/employer.css';
 import SpinningLogo from '../components/SpinningLogo';
+import Chatbot from '../components/Chatbot';
 
 async function exportAttendanceExcel(empId) {
   const token = localStorage.getItem('token'); 
@@ -31,7 +31,7 @@ async function exportAttendanceExcel(empId) {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    alert('Export failed');
+    alert(err.response?.data?.message || 'Export failed');
   }
 }
 
@@ -60,7 +60,57 @@ async function exportAttendancePDF(empId) {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    alert('Export failed');
+    alert(err.response?.data?.message || 'Export failed');
+  }
+}
+
+async function exportAllAttendancePDF() {
+  const token = localStorage.getItem('token'); // or wherever you store your JWT
+  try {
+    const res = await fetch('http://localhost:5173/api/attendance/export-all/pdf', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      alert('Export failed');
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'all_attendance.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert(err.response?.data?.message || 'Export failed');
+  }
+}
+
+async function sendShiftReminder(shiftId, email) {
+  try {
+    const token = localStorage.getItem('token'); // Use your authentication token
+    const response = await fetch('http://localhost:5000/api/attendance/send-shift-reminder', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ shiftId, email }),
+    });
+
+    if (response.ok) {
+      alert('Shift reminder sent successfully!');
+    } else {
+      const error = await response.json();
+      alert(`Failed to send reminder: ${error.message}`);
+    }
+  } catch (err) {
+    console.error('Error sending shift reminder:', err);
+    alert('An error occurred while sending the reminder.');
   }
 }
 
@@ -92,7 +142,7 @@ export default function EmployerDashboard() {
       setEmployees(empRes.data)
       setShifts(shiftRes.data)
     } catch (err) {
-      setError('Failed to load data')
+      setError(err.response?.data?.message || 'Failed to load data')
     }
     setLoading(false)
   }
@@ -260,6 +310,9 @@ export default function EmployerDashboard() {
                       <td>{shift.status}</td>
                       <td>
                         <button className="delete-btn" onClick={() => handleDeleteShift(shift._id)}>Delete</button>
+                        <button onClick={() => sendShiftReminder(shift._id, shift.employee.email)}>
+                          Send Calendar Reminder
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -270,7 +323,12 @@ export default function EmployerDashboard() {
               </table>
             )}
           </section>
+
+          <button onClick={exportAllAttendancePDF}>
+            Export All Attendance (PDF)
+          </button>
         </div>
+        <Chatbot />
       </div>
     </>
   )

@@ -24,7 +24,7 @@ export default function EmployeeDashboard() {
       const res = await api.get('/shifts/my')
       setShifts(res.data)
     } catch (err) {
-      setError('Failed to load shifts')
+      setError(err.response?.data?.message || 'Failed to load shifts')
     }
     setLoadingShifts(false)
   }
@@ -34,8 +34,8 @@ export default function EmployeeDashboard() {
     try {
       const res = await api.get('/attendance/my-history')
       setHistory(res.data)
-    } catch {
-      setError('Failed to load attendance history')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load attendance history')
     }
     setLoadingHistory(false)
   }

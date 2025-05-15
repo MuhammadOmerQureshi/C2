@@ -1,14 +1,19 @@
 const Attendance = require('../models/Attendance');
 const Shift = require('../models/Shift');
 const ExcelJS = require('exceljs');
-const PDFDocument = require('pdfkit'); 
+const PDFDocument = require('pdfkit');
+const generateICS = require('../utils/calendar');
+const sendEmail = require('../utils/email');
 
-const ALLOWED_IPS = ['80.217.249.6','127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
+// Import the broadcast function from server.js
+const { broadcastAttendanceUpdate } = require('../server');
+
+const ALLOWED_IPS = ['80.217.249.6', '127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
 
 // POST /api/attendance/clock-in
 exports.clockIn = async (req, res) => {
   try {
-    const { shiftId, ip } = req.body;       // IP address of the employee
+    const { shiftId, ip } = req.body; // IP address of the employee
     const userId = req.user.id;
 
     // Find the shift for this employee
@@ -23,16 +28,32 @@ exports.clockIn = async (req, res) => {
     const ipStatus = ALLOWED_IPS.includes(ip) ? 'allowed' : 'denied';
     const message = ipStatus === 'allowed' ? 'Yahoo' : 'very sad';
 
+    // Check if the clock-in is late
+    const now = new Date();
+    const shiftStartTime = new Date(`${shift.date}T${shift.startTime}`);
+    const status = now > shiftStartTime ? 'late' : 'ontime';
+
     // Save attendance
     const attendance = await Attendance.create({
       shift: shiftId,
       employee: userId,
-      clockIn: new Date(),
+      clockIn: now,
+      status,
       ip,
       ipStatus,
     });
 
-    res.status(201).json({ message, attendance });
+    // Broadcast the new attendance record
+    broadcastAttendanceUpdate(attendance);
+
+    // Send email alert if late
+    if (status === 'late') {
+      const employee = await User.findById(userId);
+      const emailText = `Dear ${employee.firstName},\n\nYou were late for your shift on ${shift.date}. Please ensure timely attendance in the future.\n\nBest regards,\nHR Team`;
+      await sendEmail(employee.email, 'Late Check-in Alert', emailText);
+    }
+
+    res.status(201).json({ message: 'Clock-in successful', attendance });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -50,6 +71,9 @@ exports.clockOut = async (req, res) => {
 
     attendance.clockOut = new Date();
     await attendance.save();
+
+    // Broadcast the updated attendance record
+    broadcastAttendanceUpdate(attendance);
 
     res.status(200).json({ message: 'Clocked out', attendance });
   } catch (err) {
@@ -85,9 +109,9 @@ exports.exportAttendanceExcel = async (req, res) => {
       { header: 'IP', key: 'ip', width: 18 },
       { header: 'IP Status', key: 'ipStatus', width: 10 },
     ];
-    records.forEach(r => {
+    records.forEach((r) => {
       worksheet.addRow({
-        date: r.shift ? r.shift.date.toISOString().slice(0,10) : '',
+        date: r.shift ? r.shift.date.toISOString().slice(0, 10) : '',
         clockIn: r.clockIn ? r.clockIn.toLocaleTimeString() : '',
         clockOut: r.clockOut ? r.clockOut.toLocaleTimeString() : '',
         status: r.status,
@@ -108,21 +132,116 @@ exports.exportAttendanceExcel = async (req, res) => {
 exports.exportAttendancePDF = async (req, res) => {
   try {
     const { employeeId } = req.query;
+
+    // Fetch attendance records for the employee
     const records = await Attendance.find({ employee: employeeId }).populate('shift');
+    if (records.length === 0) {
+      return res.status(404).json({ message: 'No attendance records found for this employee' });
+    }
+
+    // Create a new PDF document
     const doc = new PDFDocument();
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=attendance.pdf');
     doc.pipe(res);
-    doc.fontSize(18).text('Attendance Sheet', { align: 'center' });
+
+    // Add title
+    doc.fontSize(18).text('Attendance Report', { align: 'center' });
     doc.moveDown();
-    records.forEach(r => {
-      doc.fontSize(12).text(
-        `Date: ${r.shift ? r.shift.date.toISOString().slice(0,10) : ''} | Clock In: ${r.clockIn ? r.clockIn.toLocaleTimeString() : ''} | Clock Out: ${r.clockOut ? r.clockOut.toLocaleTimeString() : ''} | Status: ${r.status} | IP: ${r.ip || ''} | IP Status: ${r.ipStatus || ''}`
-      );
+
+    // Add attendance records
+    records.forEach((record) => {
+      doc
+        .fontSize(12)
+        .text(
+          `Date: ${record.shift ? record.shift.date.toISOString().slice(0, 10) : 'N/A'} | Clock In: ${
+            record.clockIn ? record.clockIn.toLocaleTimeString() : 'N/A'
+          } | Clock Out: ${record.clockOut ? record.clockOut.toLocaleTimeString() : 'N/A'} | Status: ${
+            record.status || 'N/A'
+          }`
+        );
       doc.moveDown(0.5);
     });
+
+    // Finalize the PDF
     doc.end();
   } catch (err) {
-    res.status(500).json({ message: 'Export failed' });
+    res.status(500).json({ message: 'Export failed', error: err.message });
+  }
+};
+
+exports.exportAllAttendancePDF = async (req, res) => {
+  try {
+    // Fetch attendance records for all employees
+    const records = await Attendance.find().populate('employee shift');
+    if (records.length === 0) {
+      return res.status(404).json({ message: 'No attendance records found' });
+    }
+
+    // Create a new PDF document
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=all_attendance.pdf');
+    doc.pipe(res);
+
+    // Add title
+    doc.fontSize(18).text('All Employees Attendance Report', { align: 'center' });
+    doc.moveDown();
+
+    // Add attendance records
+    records.forEach((record) => {
+      doc
+        .fontSize(12)
+        .text(
+          `Employee: ${record.employee.firstName} ${record.employee.lastName} | Date: ${
+            record.shift ? record.shift.date.toISOString().slice(0, 10) : 'N/A'
+          } | Clock In: ${record.clockIn ? record.clockIn.toLocaleTimeString() : 'N/A'} | Clock Out: ${
+            record.clockOut ? record.clockOut.toLocaleTimeString() : 'N/A'
+          } | Status: ${record.status || 'N/A'}`
+        );
+      doc.moveDown(0.5);
+    });
+
+    // Finalize the PDF
+    doc.end();
+  } catch (err) {
+    res.status(500).json({ message: 'Export failed', error: err.message });
+  }
+};
+
+exports.sendShiftReminder = async (req, res) => {
+  try {
+    const { shiftId, email } = req.body;
+
+    // Fetch shift details
+    const shift = await Shift.findById(shiftId).populate('employee');
+    if (!shift) return res.status(404).json({ message: 'Shift not found' });
+
+    const startDate = new Date(`${shift.date}T${shift.startTime}`);
+    const endDate = new Date(`${shift.date}T${shift.endTime}`);
+
+    // Generate ICS file
+    const eventDetails = {
+      title: `Shift Reminder for ${shift.employee.firstName} ${shift.employee.lastName}`,
+      description: `You have a shift scheduled on ${shift.date} from ${shift.startTime} to ${shift.endTime}.`,
+      location: shift.location,
+      start: [startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate(), startDate.getHours(), startDate.getMinutes()],
+      end: [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate(), endDate.getHours(), endDate.getMinutes()],
+    };
+
+    const { icsContent } = await generateICS(eventDetails);
+
+    // Send ICS file via email
+    await sendEmail(
+      email,
+      'Shift Reminder',
+      `Dear ${shift.employee.firstName},\n\nPlease find your shift details attached.\n\nBest regards,\nHR Team`,
+      [{ filename: 'shift_reminder.ics', content: icsContent }]
+    );
+
+    res.status(200).json({ message: 'Shift reminder sent successfully' });
+  } catch (error) {
+    console.error('Error sending shift reminder:', error);
+    res.status(500).json({ message: 'Failed to send shift reminder', error: error.message });
   }
 };
