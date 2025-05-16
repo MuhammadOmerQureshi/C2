@@ -1,29 +1,95 @@
-/* — pages/employee.css — */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.spinning-logo {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  height: 50px;
+  width: 50px;
+}
 
 .employee-dashboard {
   display: flex;
   flex-direction: column;
   min-height: 100%;
   padding: 1rem;
+  background: #1e2527;
+  overflow-y: auto;
+  box-sizing: border-box;
+  margin-top: 50px;
+  justify-content: center;
+  align-items: center;
 }
 
 .shifts-section,
 .attendance-section {
   margin-top: 2rem;
+  background: #2c3436;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.shifts-section h2,
+.attendance-section h2 {
+  font-size: 1.4rem;
+  color: #00c4b4;
+  margin-bottom: 1rem;
 }
 
 .shift-list {
   list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
+
 .shift-item {
   display: flex;
   justify-content: space-between;
   padding: 0.75rem;
-  border: 1px solid #444;
-  border-radius: 4px;
+  border: 1px solid #e8ecef;
+  border-radius: 0.25rem;
   margin-bottom: 0.5rem;
+  background: #3a4446;
+  color: white;
+  width: 100%;
+  max-width: 600px;
 }
+
 .shift-actions button {
-  background: #3182ce;
-  color: #fff;
+  background: #1890ff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+.shift-actions button:hover {
+  background: #40a9ff;
+}
+
+@media (max-width: 900px) {
+  .employee-dashboard {
+    margin-top: 600px;
+  }
+}
+
+@media (max-width: 600px) {
+  .employee-dashboard {
+    margin-top: 300px;
+  }
 }
