@@ -1,19 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-<<<<<<< HEAD
-import { Bar, Pie } from 'react-chartjs-2';
-
-const AttendanceDashboard = () => {   // Attendance Dashboard Component
-    const [attendanceData, setAttendanceData] = useState([]);
-    const [barChartData, setBarChartData] = useState({ labels: [], datasets: [] });
-    const [pieChartData, setPieChartData] = useState({ labels: [], datasets: [] });  // Chart data for Bar and Pie charts
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);  // Pagination state
-    const [filters, setFilters] = useState({});
-
-    // Fetch attendance data
-    const fetchAttendanceData = useCallback(async () => {   // Fetch attendance data from the server
-=======
 import { Bar } from 'react-chartjs-2';
 
 const AttendanceDashboard = () => {
@@ -25,17 +11,12 @@ const AttendanceDashboard = () => {
 
     // Wrap fetchAttendanceData in useCallback to ensure a stable reference
     const fetchAttendanceData = useCallback(async () => {
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
         try {
             const response = await axios.get('/api/auth/attendance/dashboard', {
                 params: {
                     page: currentPage,
                     limit: 10,
-<<<<<<< HEAD
-                    ...filters,   // Include filters in the request
-=======
                     ...filters,
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
                 },
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`, // Add JWT token
@@ -45,17 +26,10 @@ const AttendanceDashboard = () => {
             setAttendanceData(response.data.attendanceRecords);
             setTotalPages(response.data.totalPages);
 
-<<<<<<< HEAD
-            // Prepare data for the Bar Chart
-            const dates = response.data.attendanceRecords.map(record => new Date(record.date).toLocaleDateString());
-            const clockIns = response.data.attendanceRecords.map(record => (record.clockIn ? 1 : 0));
-            setBarChartData({
-=======
             // Prepare data for the chart
             const dates = response.data.attendanceRecords.map(record => new Date(record.date).toLocaleDateString());
             const clockIns = response.data.attendanceRecords.map(record => (record.clockIn ? 1 : 0));
             setChartData({
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
                 labels: dates,
                 datasets: [
                     {
@@ -67,30 +41,6 @@ const AttendanceDashboard = () => {
                     },
                 ],
             });
-<<<<<<< HEAD
-
-            // Prepare data for the Pie Chart
-            const statusCounts = response.data.attendanceRecords.reduce(
-                (acc, record) => {
-                    if (record.status === 'ontime') acc.ontime += 1;
-                    else if (record.status === 'late') acc.late += 1;
-                    else if (record.status === 'absent') acc.absent += 1;
-                    return acc;
-                },
-                { ontime: 0, late: 0, absent: 0 }
-            );
-            setPieChartData({
-                labels: ['On Time', 'Late', 'Absent'],
-                datasets: [
-                    {
-                        data: [statusCounts.ontime, statusCounts.late, statusCounts.absent],
-                        backgroundColor: ['#4caf50', '#ff9800', '#f44336'],
-                        hoverBackgroundColor: ['#66bb6a', '#ffb74d', '#e57373'],
-                    },
-                ],
-            });
-=======
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
         } catch (error) {
             console.error('Error fetching attendance data:', error);
         }
@@ -145,17 +95,7 @@ const AttendanceDashboard = () => {
             {/* Bar Chart */}
             <div>
                 <h2>Daily Attendance Trends</h2>
-<<<<<<< HEAD
-                <Bar data={barChartData} />
-            </div>
-
-            {/* Pie Chart */}
-            <div>
-                <h2>Attendance Status Distribution</h2>
-                <Pie data={pieChartData} />
-=======
                 <Bar data={chartData} />
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
             </div>
 
             <table>
@@ -195,8 +135,4 @@ const AttendanceDashboard = () => {
     );
 };
 
-<<<<<<< HEAD
 export default AttendanceDashboard;
-=======
-export default AttendanceDashboard;
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61

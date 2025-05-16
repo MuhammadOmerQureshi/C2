@@ -70,11 +70,7 @@ export default function AdminDashboard() {
     }
   };
 
-<<<<<<< HEAD
-  // Bulk actions, including status update and delete,    
-=======
   // Bulk actions
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
   const onSelect = (id) => {
     setSelected(selected.includes(id) ? selected.filter(i => i !== id) : [...selected, id]);
   };

@@ -1,5 +1,6 @@
 const Attendance = require('../models/Attendance');
 const Shift = require('../models/Shift');
+const User = require('../models/User'); // Add this at the top if not present
 
 const PDFDocument = require('pdfkit'); 
 
@@ -71,25 +72,60 @@ exports.listMyAttendance = async (req, res) => {
 };
 
 
-// GET /api/attendance/export-pdf
+// GET /api/attendance/export/pdf
 exports.exportAttendancePDF = async (req, res) => {
   try {
     const { employeeId } = req.query;
-    const records = await Attendance.find({ employee: employeeId }).populate('shift');
+    if (!employeeId) return res.status(400).json({ message: 'employeeId required' });
+
+    // Get employee details
+    const employee = await User.findById(employeeId);
+    if (!employee) return res.status(404).json({ message: 'Employee not found' });
+
+    // Get all shifts for this employee
+    const shifts = await Shift.find({ employee: employeeId }).sort({ date: 1 });
+
+    // Get all attendance records for this employee
+    const attendanceMap = {};
+    const attendanceRecords = await Attendance.find({ employee: employeeId });
+    attendanceRecords.forEach(a => {
+      attendanceMap[a.shift?.toString()] = a;
+    });
+
+    // Prepare PDF
     const doc = new PDFDocument();
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=attendance.pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${employee.firstName}_${employee.lastName}_attendance.pdf`);
     doc.pipe(res);
-    doc.fontSize(18).text('Attendance Sheet', { align: 'center' });
+
+    // Employee name at top
+    doc.fontSize(20).text(`${employee.firstName} ${employee.lastName} - Attendance & Shifts`, { align: 'center' });
     doc.moveDown();
-    records.forEach(r => {
+
+    // Table header
+    doc.fontSize(14).text(
+      'Date        Start    End      Location      Status      Clock In    Clock Out    IP      IP Status',
+      { underline: true }
+    );
+    doc.moveDown(0.5);
+
+    // Table rows
+    shifts.forEach(shift => {
+      const a = attendanceMap[shift._id.toString()];
       doc.fontSize(12).text(
-        `Date: ${r.shift ? r.shift.date.toISOString().slice(0,10) : ''} | Clock In: ${r.clockIn ? r.clockIn.toLocaleTimeString() : ''} | Clock Out: ${r.clockOut ? r.clockOut.toLocaleTimeString() : ''} | Status: ${r.status} | IP: ${r.ip || ''} | IP Status: ${r.ipStatus || ''}`
+        `${shift.date?.toISOString().slice(0,10) || ''}   ` +
+        `${shift.startTime || ''}   ${shift.endTime || ''}   ${shift.location || ''}   ` +
+        `${a ? a.status : 'scheduled'}   ` +
+        `${a && a.clockIn ? new Date(a.clockIn).toLocaleTimeString() : ''}   ` +
+        `${a && a.clockOut ? new Date(a.clockOut).toLocaleTimeString() : ''}   ` +
+        `${a?.ip || ''}   ${a?.ipStatus || ''}`
       );
-      doc.moveDown(0.5);
+      doc.moveDown(0.3);
     });
+
     doc.end();
   } catch (err) {
+    console.error('PDF export error:', err);
     res.status(500).json({ message: 'Export failed' });
   }
 };

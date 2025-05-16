@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from 'react';
-<<<<<<< HEAD
-import './clock.css';
-=======
 import './Clock.css';
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
 
 function formatTime(date) {
   let hours = date.getHours();
@@ -23,11 +19,7 @@ function formatTime(date) {
 }
 
 function formatDate(date) {
-<<<<<<< HEAD
-  const days = ['SUN','MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT' ];
-=======
   const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
->>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
   const months = [
     'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
     'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
