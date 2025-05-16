@@ -4,9 +4,10 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const generateICS = require('../utils/calendar');
 const sendEmail = require('../utils/email');
+const User = require('../models/User');
 
 // Import the broadcast function from server.js
-const { broadcastAttendanceUpdate } = require('../server');
+// const { broadcastAttendanceUpdate } = require('../server');
 
 const ALLOWED_IPS = ['80.217.249.6', '127.0.0.1', '1.2.3.4']; // Replace/add your allowed IPs
 
@@ -25,8 +26,9 @@ exports.clockIn = async (req, res) => {
     if (existing) return res.status(400).json({ message: 'Already clocked in for this shift' });
 
     // Compare IP
-    const ipStatus = ALLOWED_IPS.includes(ip) ? 'allowed' : 'denied';
-    const message = ipStatus === 'allowed' ? 'Yahoo' : 'very sad';
+    const ipStatus = ALLOWED_IPS.includes(ip) ? 'ALLOWED' : 'DENIED';
+    const message = ipStatus === 'ALLOWED' ? 'IP Validation Sucessful' : 'IP Validation Failed';
+    console.log('Clock-in IP:', ip, 'Message:', message); // Add this for debugging
 
     // Check if the clock-in is late
     const now = new Date();
@@ -44,7 +46,7 @@ exports.clockIn = async (req, res) => {
     });
 
     // Broadcast the new attendance record
-    broadcastAttendanceUpdate(attendance);
+    // broadcastAttendanceUpdate(attendance);
 
     // Send email alert if late
     if (status === 'late') {
@@ -53,8 +55,9 @@ exports.clockIn = async (req, res) => {
       await sendEmail(employee.email, 'Late Check-in Alert', emailText);
     }
 
-    res.status(201).json({ message: 'Clock-in successful', attendance });
+    res.status(201).json({ message, attendance }); // Make sure message is sent
   } catch (err) {
+    console.error('Clock-in error:', err); // Add this line
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -73,7 +76,7 @@ exports.clockOut = async (req, res) => {
     await attendance.save();
 
     // Broadcast the updated attendance record
-    broadcastAttendanceUpdate(attendance);
+    // broadcastAttendanceUpdate(attendance);
 
     res.status(200).json({ message: 'Clocked out', attendance });
   } catch (err) {

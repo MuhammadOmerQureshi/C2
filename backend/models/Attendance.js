@@ -8,7 +8,7 @@ const attendanceSchema = new Schema({
   clockOut:   { type: Date },
   status:     { type: String, enum: ['ontime','late','absent','missed'], default: 'ontime' },
   ip:         { type: String }, // to store the IP address
-  ipStatus:   { type: String, enum: ['allowed', 'denied'] } // to store if IP is allowed
+  ipStatus:   { type: String, enum: ['ALLOWED', 'DENIED'] } // to store if IP is allowed
 }, { timestamps: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
