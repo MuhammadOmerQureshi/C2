@@ -11,3 +11,7 @@ backend/package-lock.json
 backend/.env
 frontend/build
 frontend/dist
+C2/node_modules
+C2/package-lock.json
+C2/.env
+C2/package.json
