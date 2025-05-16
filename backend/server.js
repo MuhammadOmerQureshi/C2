@@ -6,12 +6,32 @@ require('dotenv').config();
 const http = require('http');
 const { Server } = require('socket.io');
 const nodemailer = require('nodemailer');
+const path = require('path');
 
 
 // import models for seeding
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
+// 5. Database connection & server start
+const PORT = process.env.PORT || 5000;
 
+// 3. App setup
+const app = express();
+app.use(express.static(path.join(__dirname, '../frontend/dist/'))); // Serve static files from the public directory
+
+// Middleware
+app.use(express.json());  // parse JSON bodies
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  credentials: true
+}));
+app.use(cookieParser());
+
+
+// 404 handler for API routes only
+app.use('/api', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
 // 2. Route imports
 const authRoutes        = require('./routes/authRoutes');
@@ -24,17 +44,7 @@ const chatbotRoutes = require('./routes/chatbotRoutes');
 
 // const attendanceRoutes = require('./routes/attendanceRoutes');
 
-// 3. App setup
-const app = express();
-app.use(express.static('../frontend/dist/')); // Serve static files from the public directory
 
-// Middleware
-app.use(express.json());  // parse JSON bodies
-app.use(cors({
-  origin: 'http://localhost:5173', // your frontend URL
-  credentials: true
-}));
-app.use(cookieParser());
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -45,18 +55,6 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 
-// 4. Health-check & 404
-app.get('/', (req, res) => {
-  res.send('Backend is running');
-});
-
-// Catch-all for unknown routes
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
-
-// 5. Database connection & server start
-const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
