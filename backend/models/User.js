@@ -2,19 +2,17 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
-  name:      { type: String, required: true },
-  email:     { type: String, required: true, unique: true },
-  password:  { type: String, required: true },
-  role:      { 
-    type: String, 
-    enum: ['admin', 'employer', 'employee'], 
-    default: 'employee' 
-  },
-  status:    { 
-    type: String, 
-    enum: ['active', 'inactive', 'suspended'], 
-    default: 'active' 
-  },
+  firstName:   { type: String, required: true },
+  lastName:    { type: String, required: true },
+  username:    { type: String, required: true, unique: true },
+  email:       { type: String, required: true, unique: true },
+  password:    { type: String, required: true },        // will store hashed
+  address:     { type: String },
+  contactNo:   { type: String },
+  employeeId:  { type: String, unique: true, sparse: true },
+
+  role:      { type: String, enum: ['admin', 'employer', 'employee'], required: true }, 
+  status:    { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active'},
   lastLogin: { type: Date }, // Timestamp for the last login
   phoneNumber: { type: String }, // Optional phone number
   address: { type: String }, // Optional address
