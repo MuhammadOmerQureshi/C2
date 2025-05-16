@@ -1,47 +1,56 @@
-// 1. Module imports & config
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const http = require('http');
+const { Server } = require('socket.io');
+const nodemailer = require('nodemailer');
+
+
+// import models for seeding
+const User = require('./models/User');
+const bcrypt = require('bcryptjs');
+
+
+
+
+
+
+
+
+
 
 // 2. Route imports
-const authRoutes       = require('./routes/authRoutes');
-<<<<<<< HEAD
-//const employerRoutes   = require('./routes/employerRoutes');
-//const employeeRoutes   = require('./routes/employeeRoutes');
-//const shiftRoutes      = require('./routes/shiftRoutes');
-//const attendanceRoutes = require('./routes/attendanceRoutes');
-=======
-/*
-const employerRoutes   = require('./routes/employerRoutes');
-const employeeRoutes   = require('./routes/employeeRoutes');
+const authRoutes        = require('./routes/authRoutes');
 const shiftRoutes      = require('./routes/shiftRoutes');
-const attendanceRoutes = require('./routes/attendanceRoutes');
-*/
->>>>>>> e588013cf56dffde295b6c9cbab391d277d874f5
+const employeeRoutes   = require('./routes/employeeRoutes');
+const employerRoutes   = require('./routes/employerRoutes');
+const attendanceRoutes= require('./routes/attendanceRoutes');
+const adminRoutes       = require('./routes/adminRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
+
+// const attendanceRoutes = require('./routes/attendanceRoutes');
 
 // 3. App setup
 const app = express();
 
 // Middleware
 app.use(express.json());  // parse JSON bodies
-app.use(cors());          // enable CORS for all origins
+app.use(cors({
+  origin: 'http://localhost:5173', // your frontend URL
+  credentials: true
+}));
+app.use(cookieParser());
 
 // Mount routers
-app.use('/api/auth',       authRoutes);
-<<<<<<< HEAD
-//app.use('/api/employers',  employerRoutes);
-//app.use('/api/employees',  employeeRoutes);
-//app.use('/api/shifts',     shiftRoutes);
-//app.use('/api/attendance', attendanceRoutes);
-=======
-/*
-app.use('/api/employers',  employerRoutes);
-app.use('/api/employees',  employeeRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/shifts',     shiftRoutes);
+app.use('/api/employees',  employeeRoutes);
+app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
-*/
->>>>>>> e588013cf56dffde295b6c9cbab391d277d874f5
+app.use('/api/admin', adminRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // 4. Health-check & 404
 app.get('/', (req, res) => {
@@ -53,52 +62,104 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Connect to MongoDB using Mongoose
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB')) // Log successful connection
-  .catch((error) => console.error('MongoDB connection error:', error)); // Log connection errors
-
-let server;
 // 5. Database connection & server start
 const PORT = process.env.PORT || 5000;
-server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-<<<<<<< HEAD
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser:    true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log('MongoDB connected');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-  });
+mongoose.connect(process.env.MONGODB_URI)
+  .then(async () => {
+    console.log('Connected to MongoDB');
 
-
-
-  
-=======
-// Function to handle graceful shutdown of the server and database connection
-function shutdown() {
-    console.log('Shutting down server...');
-    server.close(async () => { // Close the HTTP server
-      console.log('HTTP server closed.');
-      try {
-        await mongoose.connection.close(); // Close the MongoDB connection
-        console.log('MongoDB connection closed.');
-        process.exit(0); // Exit the process with success code
-      } catch (error) {
-        console.error('Error closing MongoDB connection:', error); // Log any errors during shutdown
-        process.exit(1); // Exit the process with error code
+    // --- Step 2: Seed hard-coded admin user if not exists ---
+    const adminEmail = 'admin@company.com';
+    const adminPassword = 'SuperSecret123';
+    try {
+      let admin = await User.findOne({ email: adminEmail });
+      if (!admin) {
+        const hashed = await bcrypt.hash(adminPassword, 10);
+        admin = await User.create({
+          firstName: 'Super',
+          lastName:  'Admin',
+          username:  'superadmin',
+          email:     adminEmail,
+          password:  hashed,
+          address:   '',
+          contactNo: '',
+          role:      'admin'
+        });
+        console.log(`Seeded admin user: ${adminEmail}`);
       }
+    } catch (err) {
+      console.error('Error seeding admin user:', err);
+    }
+
+    // Create HTTP server
+    const server = http.createServer(app);
+
+    // Initialize Socket.IO
+    const io = new Server(server, {
+      cors: {
+        origin: 'http://localhost:5173', 
+        credentials: true,
+      },
     });
+
+    // Handle WebSocket connections
+    io.on('connection', (socket) => {
+      console.log('Client connected:', socket.id);
+
+      socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+      });
+    });
+
+    // Broadcast attendance updates
+    const broadcastAttendanceUpdate = (attendance) => {
+      io.emit('attendanceUpdate', attendance);
+    };
+
+    // start HTTP server after seeding
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+    // graceful shutdown
+    function shutdown() {
+      console.log('Shutting down server...');
+      server.close(async () => {
+        console.log('HTTP server closed.');
+        try {
+          await mongoose.connection.close();
+          console.log('MongoDB connection closed.');
+          process.exit(0);
+        } catch (error) {
+          console.error('Error closing MongoDB connection:', error);
+          process.exit(1);
+        }
+      });
+    }
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+  })
+  .catch((error) => console.error('MongoDB connection error:', error));
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // Use your email service (e.g., Gmail, Outlook, etc.)
+  auth: {
+    user: process.env.EMAIL_USER, // Your email address
+    pass: process.env.EMAIL_PASS, // Your email password or app-specific password
+  },
+});
+
+const sendEmail = async (to, subject, text) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      text,
+    });
+    console.log(`Email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending email:', error);
   }
-  
-  // Handle termination signals (e.g., Ctrl+C or system termination)
-  process.on('SIGINT', shutdown); // Handle Ctrl+C
-  process.on('SIGTERM', shutdown); // Handle termination signals from the system
->>>>>>> e588013cf56dffde295b6c9cbab391d277d874f5
+};
+
+module.exports = sendEmail;

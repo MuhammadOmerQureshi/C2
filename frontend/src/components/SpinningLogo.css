@@ -1,0 +1,39 @@
+.spinning-logo-container {
+  position: fixed;
+  top: 1rem;
+  left: 1.5rem;
+  z-index: 1001;
+}
+
+.spinning-logo {
+  width: 80px;
+  height: 80px;
+  animation: orbit 10s linear infinite, spin 4s linear infinite;
+}
+
+@keyframes orbit {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(10px) translateY(10px);
+  }
+  50% {
+    transform: translateX(0) translateY(20px);
+  }
+  75% {
+    transform: translateX(-10px) translateY(10px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}

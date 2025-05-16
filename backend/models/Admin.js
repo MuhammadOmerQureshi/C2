@@ -1,4 +1,3 @@
-// models/Admin.js
 // (uses the same underlying collection as User via a discriminator)
 const mongoose = require('mongoose');
 const User = require('./User');
