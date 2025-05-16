@@ -1,5 +1,13 @@
 /* — pages/employer.css — */
 
+body {
+  direction: ltr; /* Default direction */
+}
+
+body[lang="ar"], body[lang="he"] {
+  direction: rtl; /* Right-to-left for Arabic or Hebrew */
+}
+
 .employer-dashboard {
   display: flex;
   flex-direction: column;

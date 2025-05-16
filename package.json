@@ -1,0 +1,36 @@
+{
+  "name": "c2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "nodemon backend/server.js",
+    "render_install": "npm install; cd frontend && npm install; cd backend && npm install",
+    "render_backend": "node backend/server.js",
+    "render_frontend": "cd frontend && npm run build",
+    "render_run": "concurrently \"npm run render_backend\" \"npm run render_frontend\"",
+    "frontend": "cd frontend && npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MuhammadOmerQureshi/C2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MuhammadOmerQureshi/C2/issues"
+  },
+  "homepage": "https://github.com/MuhammadOmerQureshi/C2#readme",
+  "dependencies": {
+    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.14.3",
+    "nodemon": "^3.1.10",
+    "path": "^0.12.7"
+  }
+}

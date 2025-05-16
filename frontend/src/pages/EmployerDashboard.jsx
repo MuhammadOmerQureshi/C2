@@ -5,6 +5,7 @@ import { logout } from '../utils/logout';
 import '../styles/pages/employer.css';
 import SpinningLogo from '../components/SpinningLogo';
 import Chatbot from '../components/Chatbot';
+import { useTranslation } from 'react-i18next';
 
 async function exportAttendanceExcel(empId) {
   const token = localStorage.getItem('token'); 
@@ -115,6 +116,12 @@ async function sendShiftReminder(shiftId, email) {
 }
 
 export default function EmployerDashboard() {
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
+
   const [employees, setEmployees] = useState([])
   const [shifts, setShifts] = useState([])
   const [empForm, setEmpForm] = useState({
@@ -199,7 +206,10 @@ export default function EmployerDashboard() {
       <div className="employer-dashboard">
         <div className="dashboard-header">
           <header className="dashboard-header">
-            <h1>Employer Dashboard</h1>
+            <h1>{t('welcome')}</h1>
+            <button onClick={() => changeLanguage('en')}>English</button>
+            <button onClick={() => changeLanguage('es')}>Español</button>
+            <button onClick={() => changeLanguage('fr')}>Français</button>
             <button className="logout-btn" onClick={() => logout(navigate)}>
               Logout
             </button>

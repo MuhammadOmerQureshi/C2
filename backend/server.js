@@ -6,6 +6,8 @@ require('dotenv').config();
 const http = require('http');
 const { Server } = require('socket.io');
 const nodemailer = require('nodemailer');
+const i18next = require('./i18n');
+const i18nextMiddleware = require('i18next-http-middleware');
 
 
 // import models for seeding
@@ -33,6 +35,9 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+
+// Add i18next middleware
+app.use(i18nextMiddleware.handle(i18next));
 
 // Mount routers
 app.use('/api/auth', authRoutes);
