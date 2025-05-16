@@ -2,22 +2,22 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Bar, Pie } from 'react-chartjs-2';
 
-const AttendanceDashboard = () => {
+const AttendanceDashboard = () => {   // Attendance Dashboard Component
     const [attendanceData, setAttendanceData] = useState([]);
     const [barChartData, setBarChartData] = useState({ labels: [], datasets: [] });
-    const [pieChartData, setPieChartData] = useState({ labels: [], datasets: [] });
+    const [pieChartData, setPieChartData] = useState({ labels: [], datasets: [] });  // Chart data for Bar and Pie charts
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);  // Pagination state
     const [filters, setFilters] = useState({});
 
     // Fetch attendance data
-    const fetchAttendanceData = useCallback(async () => {
+    const fetchAttendanceData = useCallback(async () => {   // Fetch attendance data from the server
         try {
             const response = await axios.get('/api/auth/attendance/dashboard', {
                 params: {
                     page: currentPage,
                     limit: 10,
-                    ...filters,
+                    ...filters,   // Include filters in the request
                 },
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`, // Add JWT token

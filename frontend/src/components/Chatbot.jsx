@@ -10,28 +10,28 @@ const Chatbot = () => {
     // Add user message to the chat
     setMessages([...messages, { role: 'user', content: input }]);
 
-    try {
-      const response = await fetch('http://localhost:5000/api/chatbot/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+    try {     // Send message to the backend, you can replace the URL with your backend endpoint
+      const response = await fetch('http://localhost:5000/api/chatbot/chat', {      
+        method: 'POST',     // Change to your backend URL
+        headers: { 'Content-Type': 'application/json' },  // Set the content type to JSON
         body: JSON.stringify({ message: input }),
       });
 
-      const data = await response.json();
+      const data = await response.json();  // Check if the response is in JSON format
       setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error sending message:', error);  // Log the error for debugging
       setMessages((prev) => [...prev, { role: 'assistant', content: 'Sorry, something went wrong.' }]);
     }
 
-    setInput('');
+    setInput('');  // Clear the input field
   };
 
-  return (
-    <div className="chatbot">
+  return (  // Render the chat interface
+    <div className="chatbot">  // Chatbot component
       <div className="chat-window">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.role}`}>
+        {messages.map((msg, index) => (   // Map through messages
+          <div key={index} className={`message ${msg.role}`}>  // Assign class based on role
             {msg.content}
           </div>
         ))}
