@@ -23,8 +23,9 @@ app.use(express.static(path.join(__dirname, '../frontend/dist/'))); // Serve sta
 app.use(express.json());  // parse JSON bodies
 app.use(cors({
   origin: [
-    'http://localhost:5173',           
-    'https://c2-85uf.onrender.com'    
+    'https://c2-85uf.onrender.com', 
+    'http://localhost:5173'           
+        
   ],
   credentials: true
 }));

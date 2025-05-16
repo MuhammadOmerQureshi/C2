@@ -73,14 +73,13 @@ module.exports = router;
 
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { loginUser, getMe, updateUserProfile, forgotPassword, resetPassword } = require("../controllers/authController"); // Added forgotPassword and resetPassword
+const { loginUser, getMe, updateUserProfile, forgotPassword, resetPassword } = require("../controllers/authController"); 
 const { protect } = require('../middleware/authMiddleware');
 const { sendShiftReminder } = require('../controllers/attendanceController');
 
 
 
-
-const router = express.Router();    
+const router = express.Router();
 
 // Validation helper
 const validate = (req, res, next) => {
