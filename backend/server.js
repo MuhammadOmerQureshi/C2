@@ -26,6 +26,7 @@ const chatbotRoutes = require('./routes/chatbotRoutes');
 
 // 3. App setup
 const app = express();
+app.use(express.static('../frontend/dist/')); // Serve static files from the public directory
 
 // Middleware
 app.use(express.json());  // parse JSON bodies
