@@ -80,12 +80,12 @@ const { sendShiftReminder } = require('../controllers/attendanceController');
 
 
 
-const router = express.Router();
+const router = express.Router();    
 
 // Validation helper
 const validate = (req, res, next) => {
   const errs = validationResult(req);
-  if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
+  if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() }); // Check for validation errors
   next();
 };
 

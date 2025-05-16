@@ -144,9 +144,9 @@
   "scripts": {
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
     "backend": "nodemon backend/server.js",
-    "render_install": "npm install; cd frontend && npm install; cd ../backend && npm install",
+    "render_install": "npm install;  cd backend && npm install; cd ../frontend && npm install;",
     "render_backend": "node backend/server.js",
-    "render_frontend": "cd frontend && npm run build",
+    "render_frontend": "cd frontend; npm run build",
     "render_run": "concurrently \"npm run render_backend\" \"npm run render_frontend\"",
     "frontend": "cd frontend && npm run dev"
   },
