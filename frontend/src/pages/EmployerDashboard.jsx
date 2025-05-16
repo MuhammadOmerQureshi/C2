@@ -1,18 +1,26 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Chart as ChartJS, defaults } from 'chart.js/auto';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import api from '../api/axiosConfig';
 import { logout } from '../utils/logout';
 import '../styles/pages/employer.css';
 import SpinningLogo from '../components/SpinningLogo';
 
+// Configure Chart.js defaults
+defaults.maintainAspectRatio = false;
+defaults.responsive = true;
+defaults.plugins.title.display = true;
+defaults.plugins.title.align = "start";
+defaults.plugins.title.font.size = 20;
+defaults.plugins.title.color = "black";
 
 async function exportAttendancePDF(empId) {
-  const token = localStorage.getItem('token');
   try {
     const res = await api.get(`/attendance/export/pdf?employeeId=${empId}`, {
       responseType: 'blob',
     });
-    const blob = await res.data;
+    const blob = res.data;
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -22,7 +30,7 @@ async function exportAttendancePDF(empId) {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    alert('Export failed');
+    alert('Export failed: ' + (err.response?.data?.message || 'Unknown error'));
   }
 }
 
@@ -46,13 +54,13 @@ export default function EmployerDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [chartData, setChartData] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const employerId = localStorage.getItem('userId');
   const dashboardRef = useRef(null);
 
   useEffect(() => {
-    // Disable browser scroll restoration
     if (window.history.scrollRestoration) {
       window.history.scrollRestoration = 'manual';
     }
@@ -67,7 +75,6 @@ export default function EmployerDashboard() {
         window.scrollTo(0, 0);
         if (dashboardRef.current) {
           dashboardRef.current.scrollTop = 0;
-          // Find and scroll any parent scrollable containers
           let parent = dashboardRef.current.parentElement;
           while (parent) {
             if (parent.scrollHeight > parent.clientHeight) {
@@ -92,9 +99,80 @@ export default function EmployerDashboard() {
       setEmployees(empRes.data);
       setShifts(shiftRes.data);
     } catch (err) {
-      setError('Failed to load data');
+      setError(err.response?.data?.message || 'Failed to load data');
     }
-    setLoading(false);
+  setLoading(false);
+  }
+
+  async function fetchAttendanceForChart(empId) {
+    setError('');
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Session expired. Please log in again.');
+        logout(navigate);
+        return;
+      }
+      // Validate employee ID
+      const employeeExists = employees.some(emp => emp._id === empId);
+      if (!employeeExists) {
+        setError('Employee not found.');
+        setChartData(null);
+        return;
+      }
+      console.log('Fetching attendance for employee:', empId);
+      const res = await api.get(`/attendance?employeeId=${empId}`);
+      const attendance = res.data;
+      console.log('Attendance data:', attendance);
+      // Process attendance data for charts
+      const labels = attendance.map((record) => new Date(record.date).toLocaleDateString());
+      const hoursWorked = attendance.map((record) => record.hoursWorked || 0);
+      const statusCounts = attendance.reduce((acc, record) => {
+        acc[record.status] = (acc[record.status] || 0) + 1;
+        return acc;
+      }, {});
+
+      setChartData({
+        hours: {
+          labels,
+          datasets: [{
+            label: 'Hours Worked',
+            data: hoursWorked,
+            backgroundColor: 'rgba(43, 63, 229, 0.8)',
+            borderColor: 'rgba(43, 63, 229, 0.8)',
+            borderRadius: 5,
+          }],
+        },
+        status: {
+          labels: Object.keys(statusCounts),
+          datasets: [{
+            label: 'Attendance Status',
+            data: Object.values(statusCounts),
+            backgroundColor: [
+              'rgba(43, 63, 229, 0.8)',
+              'rgba(250, 192, 19, 0.8)',
+              'rgba(253, 135, 135, 0.8)',
+            ],
+            borderColor: [
+              'rgba(43, 63, 229, 0.8)',
+              'rgba(250, 192, 19, 0.8)',
+              'rgba(253, 135, 135, 0.8)',
+            ],
+          }],
+        },
+      });
+    } catch (err) {
+      console.error('Attendance fetch error:', err);
+      if (err.response?.status === 403) {
+        setError('Unauthorized access. Please log in again.');
+        logout(navigate);
+      } else if (err.response?.status === 404) {
+        setError('No attendance data found for this employee.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to load attendance data for charts');
+      }
+      setChartData(null);
+    }
   }
 
   async function handleAddEmployee(e) {
@@ -154,6 +232,38 @@ export default function EmployerDashboard() {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete shift');
     }
+  }
+
+  function setTestChartData() {
+    setChartData({
+      hours: {
+        labels: ['2024-05-01', '2024-05-02', '2024-05-03'],
+        datasets: [{
+          label: 'Hours Worked',
+          data: [8, 7, 9],
+          backgroundColor: 'rgba(43, 63, 229, 0.8)',
+          borderColor: 'rgba(43, 63, 229, 0.8)',
+          borderRadius: 5,
+        }],
+      },
+      status: {
+        labels: ['Present', 'Absent', 'Late'],
+        datasets: [{
+          label: 'Attendance Status',
+          data: [2, 1, 0],
+          backgroundColor: [
+            'rgba(43, 63, 229, 0.8)',
+            'rgba(250, 192, 19, 0.8)',
+            'rgba(253, 135, 135, 0.8)',
+          ],
+          borderColor: [
+            'rgba(43, 63, 229, 0.8)',
+            'rgba(250, 192, 19, 0.8)',
+            'rgba(253, 135, 135, 0.8)',
+          ],
+        }],
+      },
+    });
   }
 
   return (
@@ -297,9 +407,11 @@ export default function EmployerDashboard() {
                       >
                         Delete
                       </button>
-
                       <button onClick={() => exportAttendancePDF(emp._id)}>
                         Export PDF
+                      </button>
+                      <button onClick={() => fetchAttendanceForChart(emp._id)}>
+                        View Charts
                       </button>
                     </td>
                   </tr>
@@ -313,6 +425,41 @@ export default function EmployerDashboard() {
             </table>
           )}
         </section>
+
+        {chartData && (
+          <section className="chart-section">
+            <h2>Attendance Charts</h2>
+            <div className="chart-container">
+              <div className="chart-card">
+                <Bar
+                  data={chartData.hours}
+                  options={{
+                    plugins: {
+                      title: {
+                        text: 'Hours Worked Over Time',
+                      },
+                    },
+                  }}
+                />
+              </div>
+              <div className="chart-card">
+                <Doughnut
+                  data={chartData.status}
+                  options={{
+                    plugins: {
+                      title: {
+                        text: 'Attendance Status Distribution',
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+            <button onClick={() => setChartData(null)}>Close Charts</button>
+          </section>
+        )}
+
+        <button onClick={setTestChartData}>Test Charts</button>
 
         <section className="list-section">
           <h2>Shifts</h2>

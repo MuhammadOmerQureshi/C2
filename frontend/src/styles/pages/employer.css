@@ -181,6 +181,49 @@ div.employer-dashboard .data-table .delete-btn {
 div.employer-dashboard .data-table .delete-btn:hover {
   background: #e6393d;
 }
+
+.chart-section {
+  margin: 2rem 0;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.chart-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.chart-card {
+  flex: 1;
+  min-width: 300px;
+  max-width: 500px;
+  height: 400px;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-section button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #064FF0;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chart-section button:hover {
+  background: #053ECB;
+}
+
+
+
 @media (max-width: 900px) {
   div.employer-dashboard {
     margin-top: 600px;
