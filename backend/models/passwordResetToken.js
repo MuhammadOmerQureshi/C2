@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-
+// Import mongoose to use its Schema constructor
+// Define the PasswordResetToken schema
 const passwordResetTokenSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
