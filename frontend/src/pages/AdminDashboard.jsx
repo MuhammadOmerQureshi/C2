@@ -3,7 +3,7 @@ import api from '../api/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../utils/logout';
 import SpinningLogo from '../components/SpinningLogo';
-import '../styles/pages/login.css'
+import '../styles/pages/admin.css'
 
 export default function AdminDashboard() {
   const [employers, setEmployers] = useState([]);
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
       <div className="p-6">
         <div className="dashboard-scroll">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl">Admin Dashboard</h1>
+            <h1 className="text-3xl">            Admin Dashboard</h1>
             <button
               onClick={() => logout(navigate)}
               className="bg-red-500 text-white px-4 py-2 rounded"
