@@ -161,5 +161,8 @@
   "bugs": {
     "url": "https://github.com/MuhammadOmerQureshi/C2/issues"
   },
-  "homepage": "https://github.com/MuhammadOmerQureshi/C2#readme"
+  "homepage": "https://github.com/MuhammadOmerQureshi/C2#readme",
+  "engines": {
+    "node": "18.x"
+  }
 }
