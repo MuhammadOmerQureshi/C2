@@ -13,14 +13,6 @@ const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 
 
-
-
-
-
-
-
-
-
 // 2. Route imports
 const authRoutes        = require('./routes/authRoutes');
 const shiftRoutes      = require('./routes/shiftRoutes');
