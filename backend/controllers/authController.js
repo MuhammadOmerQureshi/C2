@@ -1,11 +1,8 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto"); // Added for token generation
-const User = require("../models/User");
-const PasswordResetToken = require("../models/PasswordResetToken"); // Added PasswordResetToken model
-const { body, validationResult } = require("express-validator");
-const AuditLog = require("../models/AuditLog");
-const nodemailer = require('nodemailer');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const { body, validationResult } = require('express-validator');
+const AuditLog = require('../models/AuditLog');
 
 // Admin-only: create a new Employer account
 exports.registerEmployer = async (req, res) => {
@@ -22,13 +19,13 @@ exports.registerEmployer = async (req, res) => {
 
         // Validate required fields
         if (!firstName || !lastName || !username || !email || !password) {
-            return res.status(400).json({ message: "Missing required fields" });
+            return res.status(400).json({ message: 'Missing required fields' });
         }
 
         // Prevent duplicates by email or username
         const exists = await User.findOne({ $or: [{ email }, { username }] });
         if (exists) {
-            return res.status(409).json({ message: "Email or username already in use" });
+            return res.status(409).json({ message: 'Email or username already in use' });
         }
 
         // Hash password
@@ -43,15 +40,15 @@ exports.registerEmployer = async (req, res) => {
             password: hashed,
             address,
             contactNo,
-            role: "employer"
+            role: 'employer'
         });
 
         // Omit password from response
         const { password: _p, ...data } = employer.toObject();
-        res.status(201).json({ message: "Employer created", employer: data });
+        res.status(201).json({ message: 'Employer created', employer: data });
     } catch (err) {
-        console.error("registerEmployer error:", err);
-        res.status(500).json({ message: "Server error" });
+        console.error('registerEmployer error:', err);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -74,17 +71,16 @@ exports.loginUser = async (req, res) => {
         user.lastLogin = new Date();
         await user.save();
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-        res.cookie("jwt", token, {
+        res.cookie('jwt', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // true in production, false in dev
-            sameSite: "lax", // use "lax" for local dev, "none" for HTTPS
+            secure: process.env.NODE_ENV === 'production', // true in production, false in dev
+            sameSite: 'lax', // use 'lax' for local dev, 'none' for HTTPS
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
-        // Return the token in the response body as well
-        res.status(200).json({ message: "Login successful", token: token });
+        res.status(200).json({ message: 'Login successful' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -93,159 +89,30 @@ exports.loginUser = async (req, res) => {
 // Get the authenticated user"s details
 exports.getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("-password");
-        if (!user) return res.status(404).json({ message: "User not found" });
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
         res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Forgot Password - Step 1: Request password reset
-exports.forgotPassword = [
-    body('email').isEmail().withMessage('Valid email is required'),
-    async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
+// RegisterUser is now internal; public registration disabled
+// exports.registerUser = async (req, res) => { /* removed */ };
 
-        const { email } = req.body;
-        try {
-            const user = await User.findOne({ email });
-            if (!user) {
-                return res.status(200).json({ message: 'If your email is registered, you will receive a password reset link.' });
-            }
-
-            // Generate a reset token
-            const resetToken = crypto.randomBytes(32).toString('hex');
-            const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-            // Set token expiry (e.g., 1 hour)
-            const expiresAt = new Date(Date.now() + 3600000);
-
-            // Save the token to the database
-            await PasswordResetToken.create({
-                userId: user._id,
-                token: hashedToken,
-                expiresAt,
-            });
-
-            // Construct reset URL
-            const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-            // Create a test account with Ethereal
-            const testAccount = await nodemailer.createTestAccount();
-
-            // Configure Nodemailer transporter for Ethereal
-            const transporter = nodemailer.createTransport({
-                host: 'smtp.ethereal.email',
-                port: 587,
-                secure: false, // Use TLS
-                auth: {
-                    user: testAccount.user, // Ethereal username (e.g., a random email like "user@ethereal.email")
-                    pass: testAccount.pass, // Ethereal password (unmasked)
-                },
-                debug: true,
-                logger: true,
-            });
-
-            // Debug credentials
-            console.log('Ethereal User:', testAccount.user);
-            console.log('Ethereal Pass:', testAccount.pass);
-
-            // Define email options
-            const mailOptions = {
-                from: `"C2" <${testAccount.user}>`, // Use Ethereal username
-                to: user.email,
-                subject: 'Password Reset Request',
-                text: `You requested a password reset. Please go to this link to reset your password: ${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.`,
-                html: `
-                    <h2>Password Reset Request</h2>
-                    <p>You requested a password reset. Click the link below to reset your password:</p>
-                    <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px;">Reset Password</a>
-                    <p>This link will expire in 1 hour.</p>
-                    <p>If you did not request this, please ignore this email.</p>
-                `,
-            };
-
-            // Send the email
-            const info = await transporter.sendMail(mailOptions);
-            console.log('Email sent:', info.messageId);
-            // Get the preview URL for the email
-            const previewUrl = nodemailer.getTestMessageUrl(info);
-            console.log('Preview URL:', previewUrl);
-
-            res.status(200).json({ message: 'If your email is registered, you will receive a password reset link.' });
-        } catch (error) {
-            console.error('Forgot password error:', error);
-            res.status(500).json({ message: 'An error occurred. Please try again.' });
-        }
-    }
-];
-
-// Reset Password - Step 2: Set new password using token
-exports.resetPassword = [
-    body("token").notEmpty().withMessage("Token is required"),
-    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
-    async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const { token, password } = req.body;
-        try {
-            // Hash the received token to compare with the stored one
-            const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
-            // Find the token in the database
-            const passwordResetDoc = await PasswordResetToken.findOne({
-                token: hashedToken,
-                expiresAt: { $gt: Date.now() }, // Check if token is not expired
-            });
-
-            if (!passwordResetDoc) {
-                return res.status(400).json({ message: "Invalid or expired password reset token." });
-            }
-
-            // Find the user associated with the token
-            const user = await User.findById(passwordResetDoc.userId);
-            if (!user) {
-                return res.status(400).json({ message: "User not found." });
-            }
-
-            // Hash the new password
-            const hashedPassword = await bcrypt.hash(password, 10);
-
-            // Update user"s password
-            user.password = hashedPassword;
-            await user.save();
-
-            // Delete the used token from the database
-            await PasswordResetToken.findByIdAndDelete(passwordResetDoc._id);
-
-            res.status(200).json({ message: "Password has been reset successfully." });
-
-        } catch (error) {
-            console.error("Reset password error:", error);
-            res.status(500).json({ message: "An error occurred. Please try again later." });
-        }
-    }
-];
 // Get all users (Admin only) with pagination, sorting, and filtering
 exports.getAllUsers = async (req, res) => {
-    const { page = 1, limit = 10, sortBy = "name", order = "asc", role, status, search, lastLoginFrom, lastLoginTo } = req.query;
+    const { page = 1, limit = 10, sortBy = 'name', order = 'asc', role, status, search, lastLoginFrom, lastLoginTo } = req.query;
     try {
-        const sortOrder = order === "desc" ? -1 : 1;
+        const sortOrder = order === 'desc' ? -1 : 1;
         const filter = {};
 
         if (role) filter.role = role;
         if (status) filter.status = status;
         if (search) {
             filter.$or = [
-                { name: { $regex: search, $options: "i" } },
-                { email: { $regex: search, $options: "i" } }
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
             ];
         }
         if (lastLoginFrom || lastLoginTo) {
@@ -255,7 +122,7 @@ exports.getAllUsers = async (req, res) => {
         }
 
         const users = await User.find(filter)
-            .select("-password")
+            .select('-password')
             .sort({ [sortBy]: sortOrder })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
@@ -275,8 +142,8 @@ exports.getAllUsers = async (req, res) => {
 // Get a single user by ID (Admin only)
 exports.getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select("-password");
-        if (!user) return res.status(404).json({ message: "User not found" });
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
         res.status(200).json(user);
     } catch (error) {
@@ -284,11 +151,11 @@ exports.getUserById = async (req, res) => {
     }
 };
 
-// Update a user"s status (Admin only)
+// Update a user's status (Admin only)
 exports.updateUserStatus = [
-    body("status")
-        .isIn(["active", "inactive", "suspended"])
-        .withMessage("Status must be one of: active, inactive, suspended"),
+    body('status')
+        .isIn(['active', 'inactive', 'suspended'])
+        .withMessage('Status must be one of: active, inactive, suspended'),
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -298,13 +165,13 @@ exports.updateUserStatus = [
         const { userId, status } = req.body;
         try {
             const user = await User.findById(userId);
-            if (!user) return res.status(404).json({ message: "User not found" });
+            if (!user) return res.status(404).json({ message: 'User not found' });
 
             user.status = status;
             await user.save();
 
             await AuditLog.create({
-                action: "updateStatus",
+                action: 'updateStatus',
                 performedBy: req.user.id,
                 targetUser: userId,
                 details: { status },
@@ -317,12 +184,12 @@ exports.updateUserStatus = [
     }
 ];
 
-// Update authenticated user"s profile
+// Update authenticated user's profile
 exports.updateUserProfile = [
-    body("email").optional().isEmail().withMessage("Valid email is required"),
-    body("phoneNumber").optional().isMobilePhone().withMessage("Valid phone number is required"),
-    body("name").optional().notEmpty().withMessage("Name cannot be empty"),
-    body("address").optional().notEmpty().withMessage("Address cannot be empty"),
+    body('email').optional().isEmail().withMessage('Valid email is required'),
+    body('phoneNumber').optional().isMobilePhone().withMessage('Valid phone number is required'),
+    body('name').optional().notEmpty().withMessage('Name cannot be empty'),
+    body('address').optional().notEmpty().withMessage('Address cannot be empty'),
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -332,7 +199,7 @@ exports.updateUserProfile = [
         const { name, email, phoneNumber, address } = req.body;
         try {
             const user = await User.findById(req.user.id);
-            if (!user) return res.status(404).json({ message: "User not found" });
+            if (!user) return res.status(404).json({ message: 'User not found' });
 
             if (name) user.name = name;
             if (email) user.email = email;
@@ -340,19 +207,25 @@ exports.updateUserProfile = [
             if (address) user.address = address;
 
             await user.save();
-            res.status(200).json({ message: "Profile updated successfully", user });
+            res.status(200).json({ message: 'Profile updated successfully', user });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
 ];
 
+
+
+
+
+
+
 // Bulk update user status (Admin only)
 exports.bulkUpdateUserStatus = [
-    body("userIds").isArray({ min: 1 }).withMessage("userIds must be a non-empty array"),
-    body("status")
-      .isIn(["active", "inactive", "suspended"])
-      .withMessage("Status must be one of: active, inactive, suspended"),
+    body('userIds').isArray({ min: 1 }).withMessage('userIds must be a non-empty array'),
+    body('status')
+      .isIn(['active', 'inactive', 'suspended'])
+      .withMessage('Status must be one of: active, inactive, suspended'),
     async (req, res) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -369,7 +242,7 @@ exports.bulkUpdateUserStatus = [
         // Log each status change
         for (const userId of userIds) {
           await AuditLog.create({
-            action: "bulkUpdateStatus",
+            action: 'bulkUpdateStatus',
             performedBy: req.user.id,
             targetUser: userId,
             details: { status },
@@ -377,13 +250,17 @@ exports.bulkUpdateUserStatus = [
         }
   
         res.status(200).json({
-          message: `Status updated to "${status}" for ${result.nModified || result.modifiedCount} users.`,
+          message: `Status updated to '${status}' for ${result.nModified || result.modifiedCount} users.`,
         });
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
     }
   ];
+  
+
+
+
   exports.deleteUser = async (req, res) => {
     try {
       const userId = req.params.id;
@@ -398,7 +275,7 @@ exports.bulkUpdateUserStatus = [
   
       // Log the deletion
       await AuditLog.create({
-        action: "deleteUser",
+        action: 'deleteUser',
         performedBy: req.user.id,
         targetUser: userId,
         details: {},
@@ -409,9 +286,11 @@ exports.bulkUpdateUserStatus = [
       res.status(500).json({ error: error.message });
     }
   };
+
+
   // Bulk delete users (Admin only)
   exports.bulkDeleteUsers = [
-    body("userIds").isArray({ min: 1 }).withMessage("userIds must be a non-empty array"),
+    body('userIds').isArray({ min: 1 }).withMessage('userIds must be a non-empty array'),
     async (req, res) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -425,7 +304,7 @@ exports.bulkUpdateUserStatus = [
         // Log each deletion
         for (const userId of userIds) {
           await AuditLog.create({
-            action: "bulkDelete",
+            action: 'bulkDelete',
             performedBy: req.user.id,
             targetUser: userId,
             details: {},
@@ -440,3 +319,4 @@ exports.bulkUpdateUserStatus = [
       }
     }
   ];
+

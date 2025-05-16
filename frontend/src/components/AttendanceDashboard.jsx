@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+<<<<<<< HEAD
 import { Bar, Pie } from 'react-chartjs-2';
 
 const AttendanceDashboard = () => {   // Attendance Dashboard Component
@@ -12,12 +13,29 @@ const AttendanceDashboard = () => {   // Attendance Dashboard Component
 
     // Fetch attendance data
     const fetchAttendanceData = useCallback(async () => {   // Fetch attendance data from the server
+=======
+import { Bar } from 'react-chartjs-2';
+
+const AttendanceDashboard = () => {
+    const [attendanceData, setAttendanceData] = useState([]);
+    const [chartData, setChartData] = useState({});
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [filters, setFilters] = useState({});
+
+    // Wrap fetchAttendanceData in useCallback to ensure a stable reference
+    const fetchAttendanceData = useCallback(async () => {
+>>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
         try {
             const response = await axios.get('/api/auth/attendance/dashboard', {
                 params: {
                     page: currentPage,
                     limit: 10,
+<<<<<<< HEAD
                     ...filters,   // Include filters in the request
+=======
+                    ...filters,
+>>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
                 },
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`, // Add JWT token
@@ -27,10 +45,17 @@ const AttendanceDashboard = () => {   // Attendance Dashboard Component
             setAttendanceData(response.data.attendanceRecords);
             setTotalPages(response.data.totalPages);
 
+<<<<<<< HEAD
             // Prepare data for the Bar Chart
             const dates = response.data.attendanceRecords.map(record => new Date(record.date).toLocaleDateString());
             const clockIns = response.data.attendanceRecords.map(record => (record.clockIn ? 1 : 0));
             setBarChartData({
+=======
+            // Prepare data for the chart
+            const dates = response.data.attendanceRecords.map(record => new Date(record.date).toLocaleDateString());
+            const clockIns = response.data.attendanceRecords.map(record => (record.clockIn ? 1 : 0));
+            setChartData({
+>>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
                 labels: dates,
                 datasets: [
                     {
@@ -42,6 +67,7 @@ const AttendanceDashboard = () => {   // Attendance Dashboard Component
                     },
                 ],
             });
+<<<<<<< HEAD
 
             // Prepare data for the Pie Chart
             const statusCounts = response.data.attendanceRecords.reduce(
@@ -63,6 +89,8 @@ const AttendanceDashboard = () => {   // Attendance Dashboard Component
                     },
                 ],
             });
+=======
+>>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
         } catch (error) {
             console.error('Error fetching attendance data:', error);
         }
@@ -117,6 +145,7 @@ const AttendanceDashboard = () => {   // Attendance Dashboard Component
             {/* Bar Chart */}
             <div>
                 <h2>Daily Attendance Trends</h2>
+<<<<<<< HEAD
                 <Bar data={barChartData} />
             </div>
 
@@ -124,6 +153,9 @@ const AttendanceDashboard = () => {   // Attendance Dashboard Component
             <div>
                 <h2>Attendance Status Distribution</h2>
                 <Pie data={pieChartData} />
+=======
+                <Bar data={chartData} />
+>>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
             </div>
 
             <table>
@@ -163,4 +195,8 @@ const AttendanceDashboard = () => {   // Attendance Dashboard Component
     );
 };
 
+<<<<<<< HEAD
 export default AttendanceDashboard;
+=======
+export default AttendanceDashboard;
+>>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61

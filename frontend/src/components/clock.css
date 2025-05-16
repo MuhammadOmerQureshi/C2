@@ -7,6 +7,7 @@
 
 .live-clock {
     position: fixed;
+<<<<<<< HEAD
     top: 1rem;
     right: 2rem;
     z-index: 1000;
@@ -64,4 +65,30 @@
             0 0 28px rgba(30, 132, 242, 0.88),
             0 0 60px rgba(30, 132, 242, 1);
     }
+=======
+    bottom: 1rem; /* Moved to bottom-left */
+    left: 1rem;
+    z-index: 1000;
+    text-align: left;
+    font-family: 'Digital', 'Courier New', monospace;
+    color: #F7F9FB;
+    background: rgba(7, 15, 30, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 8px #F7F9FB33;
+    font-size: 0.9rem;
+}
+
+.clock-time {
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 4px rgba(30, 132, 242, 0.8);
+}
+
+.clock-date {
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    margin-top: 0.3rem;
+    text-shadow: 0 0 4px rgba(30, 132, 242, 0.8);
+>>>>>>> c615c2fd63428fac6b70bab20292ffa5fc6afb61
 }

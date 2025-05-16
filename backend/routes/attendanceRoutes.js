@@ -1,3 +1,4 @@
+// routes/attendanceRoutes.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { protect, authorize } = require('../middleware/authMiddleware');
@@ -5,7 +6,6 @@ const {
   clockIn,
   clockOut,
   listMyAttendance,
-  exportAttendanceExcel,
   exportAttendancePDF
 } = require('../controllers/attendanceController');
 
@@ -49,8 +49,6 @@ router.post(
 // GET /api/attendance/my-history
 router.get('/my-history', listMyAttendance);
 
-// GET /api/attendance/export/excel
-router.get('/export/excel', exportAttendanceExcel);
 
 // GET /api/attendance/export/pdf
 router.get('/export/pdf', exportAttendancePDF);
