@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1) Create and name your axios instance "api"
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://c2-85uf.onrender.com/api',
   withCredentials: true,
 });
 
