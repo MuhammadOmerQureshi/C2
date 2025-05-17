@@ -37,7 +37,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/shifts',     shiftRoutes);
 app.use('/api/employees',  employeeRoutes);
 app.use('/api/employers',  employerRoutes);
-app.use('/api/attendance', attendanceRoutes);
+app.use('/api/attendance', require('./routes/attendanceRoutes'));
+app.use('/api/employer', require('./routes/employerSettingsRoutes'));
 app.use('/api/admin', adminRoutes);
 
 
@@ -111,5 +112,3 @@ mongoose.connect(process.env.MONGODB_URI, {
     process.on('SIGTERM', shutdown);
   })
   .catch((error) => console.error('MongoDB connection error:', error));
-
-

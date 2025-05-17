@@ -16,6 +16,7 @@ const userSchema = new Schema({
   lastLogin: { type: Date }, // Timestamp for the last login
   phoneNumber: { type: String }, // Optional phone number
   address: { type: String }, // Optional address
+  employerSettings: { type: Schema.Types.ObjectId, ref: 'EmployerSettings' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

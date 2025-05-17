@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { logout } from '../utils/logout';
 import SpinningLogo from '../components/SpinningLogo';
@@ -22,8 +22,10 @@ export default function EmployeeDashboard() {
   async function fetchShifts() {
     setLoadingShifts(true);
     try {
+      console.log('employerId:', employerId);
       const res = await api.get(`/shifts/my?employerId=${employerId}`);
-      setShifts(res.data);
+      console.log('shifts response:', res.data);
+      setShifts(res.data); // or setShifts(res.data.shifts) if that's the structure
     } catch (err) {
       setError('Failed to load shifts');
     }
@@ -70,6 +72,11 @@ export default function EmployeeDashboard() {
       <div className="employee-dashboard">
         <header className="dashboard-header">
           <h1>Employee Dashboard</h1>
+          <div className="nav-links">
+            <Link to="/employee/attendance" className="nav-link">
+              Clock In/Out
+            </Link>
+          </div>
           <button className="logout-btn" onClick={() => logout(navigate)}>
             Logout
           </button>

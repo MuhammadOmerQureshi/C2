@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Chart as ChartJS, defaults } from 'chart.js/auto';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import api from '../api/axiosConfig';
@@ -272,6 +272,11 @@ export default function EmployerDashboard() {
       <div className="employer-dashboard" ref={dashboardRef}>
         <header className="dashboard-header">
           <h1>Employer Dashboard</h1>
+          <div className="nav-links">
+            <Link to="/employer/ip-settings" className="nav-link">
+              IP Settings
+            </Link>
+          </div>
           <button className="logout-btn" onClick={() => logout(navigate)}>
             Logout
           </button>
@@ -458,8 +463,6 @@ export default function EmployerDashboard() {
             <button onClick={() => setChartData(null)}>Close Charts</button>
           </section>
         )}
-
-        <button onClick={setTestChartData}>Test Charts</button>
 
         <section className="list-section">
           <h2>Shifts</h2>

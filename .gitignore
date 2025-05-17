@@ -9,3 +9,8 @@ frontend/.env
 backend/node_modules
 backend/package-lock.json 
 backend/.env
+frontend/build
+frontend/dist
+frontend/.next
+frontend/package.json
+backend/package.json
