@@ -78,8 +78,8 @@ exports.loginUser = async (req, res) => {
 
         res.cookie('jwt', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // true in production, false in dev
-            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+            secure: true,           // Must be true for cross-site cookies (HTTPS)
+            sameSite: 'None',       // Must be 'None' for cross-site cookies
             maxAge: 24 * 60 * 60 * 1000 // 1 day
         });
 
