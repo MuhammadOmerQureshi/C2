@@ -143,7 +143,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS, 
   },
 });
-
+// Test the email transport
 const sendEmail = async (to, subject, text) => {
   try {
     await transporter.sendMail({
