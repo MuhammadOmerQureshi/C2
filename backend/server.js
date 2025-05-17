@@ -8,6 +8,9 @@ const { Server } = require('socket.io');
 const nodemailer = require('nodemailer');
 const path = require('path');
 
+// --- Declare io and broadcastAttendanceUpdate at the top ---
+let io;
+let broadcastAttendanceUpdate = () => {};
 
 // import models for seeding
 const User = require('./models/User');
@@ -25,7 +28,6 @@ app.use(cors({
   origin: [
     'https://c2-85uf.onrender.com', 
     'http://localhost:5173'           
-        
   ],
   credentials: true
 }));
@@ -40,8 +42,6 @@ const attendanceRoutes= require('./routes/attendanceRoutes');
 const adminRoutes       = require('./routes/adminRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const contactRoutes = require('./routes/contactRoutes');
-
-// const attendanceRoutes = require('./routes/attendanceRoutes');
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -89,9 +89,12 @@ mongoose.connect(process.env.MONGODB_URI)
     const server = http.createServer(app);
 
     // Initialize Socket.IO
-    const io = new Server(server, {
+    io = new Server(server, {
       cors: {
-        origin: 'http://localhost:5173', 
+        origin: [
+          'https://c2-85uf.onrender.com',
+          'http://localhost:5173'
+        ],
         credentials: true,
       },
     });
@@ -106,7 +109,7 @@ mongoose.connect(process.env.MONGODB_URI)
     });
 
     // Broadcast attendance updates
-    const broadcastAttendanceUpdate = (attendance) => {
+    broadcastAttendanceUpdate = (attendance) => {
       io.emit('attendanceUpdate', attendance);
     };
 
@@ -155,4 +158,7 @@ const sendEmail = async (to, subject, text) => {
   }
 };
 
-module.exports = sendEmail;
+module.exports = {
+  sendEmail,
+  broadcastAttendanceUpdate
+};

@@ -8,7 +8,7 @@ const {
   exportAttendanceExcel,
   exportAttendancePDF
 } = require('../controllers/attendanceController');
-
+const { broadcastAttendanceUpdate } = require('../server'); // adjust path if needed
 const router = express.Router();
 
 // validation helper
@@ -28,12 +28,22 @@ router.post(
   '/clock-in',
   [
     body('shiftId').notEmpty().withMessage('Shift ID is required'),
-    // optionally validate geo fields if you send them:
     // body('lat').isFloat(),
     // body('lng').isFloat()
   ],
   validate,
-  clockIn
+  async (req, res) => {
+    const { shiftId } = req.body;
+    const attendance = await Attendance.create({
+      user: req.user._id,
+      shift: shiftId,
+      // Add other fields if needed
+    });
+
+    broadcastAttendanceUpdate(attendance);
+
+    res.json(attendance);
+  }
 );
 
 // POST /api/attendance/clock-out
