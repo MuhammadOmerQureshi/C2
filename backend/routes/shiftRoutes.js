@@ -1,5 +1,9 @@
 // routes/shiftRoutes.js
 
+
+const shiftController = require('../controllers/shiftController');
+
+
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { protect, authorize } = require('../middleware/authMiddleware');
@@ -69,12 +73,9 @@ router.delete(
 /**
  * Employee route — view only your own shifts
  */
-router.get(
-  '/my',
-  protect,
-  authorize('employee'),
-  listMyShifts
-);
+// GET /api/shifts/my
+router.get('/my', protect, authorize('employee'), shiftController.listMyShifts);
+
 
 module.exports = router;
 

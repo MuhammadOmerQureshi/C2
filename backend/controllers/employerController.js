@@ -1,63 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+const User = require('../models/User');
+const EmployeeProfile = require('../models/EmployeeProfile');
 
-const EmployerDashboard = () => {
-  const navigate = useNavigate();
-  const [employees, setEmployees] = useState([]);
+// POST /api/employer/addEmployee
+exports.addEmployee = async (req, res) => {
+  try {
+    // 1. Create the user
+    const employeeUser = await User.create({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      password: req.body.password,
+      role: "employee"
+    });
 
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/api/employer/employees', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setEmployees(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchEmployees();
-  }, []);
+    // 2. Create EmployeeProfile with employer set to current user (the employer)
+    await EmployeeProfile.create({
+      user: employeeUser._id,
+      employeeId: req.body.employeeId,
+      contact: req.body.contact,
+      employer: req.user.id
+    });
 
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post('/api/employer/logout', {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      localStorage.removeItem('token');
-      navigate('/login');
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Employer Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
-        </header>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {employees.map((employee) => (
-            <div key={employee._id} className="bg-white p-4 rounded-lg shadow">
-              <h2 className="text-xl font-semibold">{employee.firstName} {employee.lastName}</h2>
-              <p>Email: {employee.email}</p>
-              <p>Employee ID: {employee.employeeId}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+    res.status(201).json({ message: "Employee created successfully" });
+  } catch (err) {
+    console.error("Add employee error:", err);
+    res.status(500).json({ message: "Could not add employee" });
+  }
 };
 
-export default EmployerDashboard;
+// GET /api/employer/employees
+exports.listEmployees = async (req, res) => {
+  try {
+    // Only return employees for this employer
+    const profiles = await EmployeeProfile.find({ employer: req.user.id }).populate('user');
+    const employees = profiles.map(profile => ({
+      _id: profile.user._id,
+      firstName: profile.user.firstName,
+      lastName: profile.user.lastName,
+      email: profile.user.email,
+      employeeId: profile.employeeId,
+      contact: profile.contact,
+    }));
+    res.json(employees);
+  } catch (err) {
+    console.error('List employees error:', err);
+    res.status(500).json({ message: 'Could not retrieve employees' });
+  }
+};
+
+// GET /api/employer/dashboard (optional)
+exports.getDashboard = async (req, res) => {
+  try {
+    res.json({ message: "Employer dashboard works!" });
+  } catch (err) {
+    console.error('Get dashboard error:', err);
+    res.status(500).json({ message: 'Could not load dashboard' });
+  }
+};
+
+// Add more employer-specific functions as needed (no frontend code here!)

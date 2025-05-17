@@ -1,6 +1,11 @@
 // routes/attendanceRoutes.js
+
+const attendanceController = require('../controllers/attendanceController');
+
+
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+
 const { protect, authorize } = require('../middleware/authMiddleware');
 const {
   clockIn,
@@ -18,14 +23,13 @@ const validate = (req, res, next) => {
   next();
 };
 
-/**
- * All attendance routes require an authenticated employee
- */
-router.use(protect, authorize('employee'));
+// Base protection for all routes
+router.use(protect);
 
-// POST /api/attendance/clock-in
+// Employee-only routes
 router.post(
   '/clock-in',
+  authorize('employee'),
   [
     body('shiftId').notEmpty().withMessage('Shift ID is required'),
     // optionally validate geo fields if you send them:
@@ -36,9 +40,9 @@ router.post(
   clockIn
 );
 
-// POST /api/attendance/clock-out
 router.post(
   '/clock-out',
+  authorize('employee'),
   [
     body('attendanceId').notEmpty().withMessage('Attendance record ID is required')
   ],
@@ -47,10 +51,12 @@ router.post(
 );
 
 // GET /api/attendance/my-history
-router.get('/my-history', listMyAttendance);
+router.get('/my-history', authorize('employee'), attendanceController.listMyAttendance);
 
-
-// GET /api/attendance/export/pdf
+// Routes accessible by employees, employers, and admins
 router.get('/export/pdf', exportAttendancePDF);
+
+// GET /api/attendance?employeeId=xxx (admin, employer, employee)
+router.get('/', attendanceController.getAttendanceForEmployee);
 
 module.exports = router;

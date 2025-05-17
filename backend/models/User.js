@@ -9,7 +9,8 @@ const userSchema = new Schema({
   password:    { type: String, required: true },        // will store hashed
   address:     { type: String },
   contactNo:   { type: String },
-  employeeId:  { type: String, unique: true, sparse: true },
+  
+  employerId:  { type: String, unique: true, sparse: true }, // Add this line
 
   role:      { type: String, enum: ['admin', 'employer', 'employee'], required: true }, 
   status:    { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active'},

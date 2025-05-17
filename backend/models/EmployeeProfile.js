@@ -13,3 +13,5 @@ module.exports = mongoose.model('EmployeeProfile', employeeProfileSchema);
 // The schema includes fields for user (linking to the User model), employeeId, contact information, and a reference to the employer.
 // The schema also includes timestamps for createdAt and updatedAt fields.
 
+
+

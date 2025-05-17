@@ -1,19 +1,24 @@
 const jwt = require('jsonwebtoken');
 
-// Middleware to protect routes
+// Middleware to protect routes with explicit logging for token issues
 const protect = (req, res, next) => {
-    const token = req.cookies.jwt || (req.headers.authorization && req.headers.authorization.split(' ')[1]); // Extract token from cookies or header
+    const header = req.headers['authorization'];
+    const token = req.cookies.jwt || (header && header.split(' ')[1]);
+
     if (!token) {
+        console.error('No token found in cookies or Authorization header');
         return res.status(401).json({ message: 'Not authorized, no token' });
     }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify token
-        req.user = decoded; // Attach user info to request
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            // LOG specific JWT errors
+            console.error('JWT error:', err.message);
+            return res.status(401).json({ message: 'Invalid or expired token' });
+        }
+        req.user = decoded;
         next();
-    } catch (error) {
-        res.status(401).json({ message: 'Not authorized, token failed' });
-    }
+    });
 };
 
 // Middleware to restrict access based on roles
@@ -27,6 +32,11 @@ const authorize = (...roles) => {
 };
 
 module.exports = { protect, authorize };
+
+
+
+
+
 
 
 

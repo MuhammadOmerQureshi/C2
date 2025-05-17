@@ -9,6 +9,53 @@ const AttendanceDashboard = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [filters, setFilters] = useState({});
 
+    // Add these new functions
+    const exportAttendanceFile = async (format) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Session expired. Please log in again.');
+                return;
+            }
+            
+            const response = await axios.get(`/api/attendance/export?format=${format}`, {
+                responseType: 'blob',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            
+            // Get filename from content-disposition header if available
+            let filename = `attendance.${format}`;
+            const contentDisposition = response.headers['content-disposition'];
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
+                }
+            }
+            
+            // Create a blob from the data
+            const contentType = format === 'pdf' ? 'application/pdf' : 'text/csv';
+            const blob = new Blob([response.data], { type: contentType });
+            
+            // Create a link to download the file
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } catch (error) {
+            console.error(`${format.toUpperCase()} export error:`, error);
+            alert(`Export failed: ${error.response?.data?.message || 'Unknown error'}`);
+        }
+    };
+
     // Wrap fetchAttendanceData in useCallback to ensure a stable reference
     const fetchAttendanceData = useCallback(async () => {
         try {
@@ -84,10 +131,7 @@ const AttendanceDashboard = () => {
 
             {/* Export Buttons */}
             <div>
-                <button onClick={() => window.open('/api/auth/attendance/export?format=csv', '_blank')}>
-                    Export as CSV
-                </button>
-                <button onClick={() => window.open('/api/auth/attendance/export?format=pdf', '_blank')}>
+                <button onClick={() => exportAttendanceFile('pdf')}>
                     Export as PDF
                 </button>
             </div>
@@ -107,17 +151,21 @@ const AttendanceDashboard = () => {
                         <th>Clock-In</th>
                         <th>Clock-Out</th>
                         <th>Date</th>
+                        <th>Status</th>
+                        <th>Hours Worked</th>
                     </tr>
                 </thead>
                 <tbody>
                     {attendanceData.map((record) => (
                         <tr key={record._id}>
-                            <td>{record.user.name}</td>
-                            <td>{record.user.email}</td>
-                            <td>{record.user.department}</td>
-                            <td>{new Date(record.clockIn).toLocaleTimeString()}</td>
-                            <td>{record.clockOut ? new Date(record.clockOut).toLocaleTimeString() : 'N/A'}</td>
-                            <td>{new Date(record.date).toLocaleDateString()}</td>
+                            <td>{record.user?.name || record.firstName + ' ' + record.lastName || ''}</td>
+                            <td>{record.user?.email || record.email || ''}</td>
+                            <td>{record.user?.department || record.department || ''}</td>
+                            <td>{record.clockIn ? new Date(record.clockIn).toLocaleTimeString() : '—'}</td>
+                            <td>{record.clockOut ? new Date(record.clockOut).toLocaleTimeString() : '—'}</td>
+                            <td>{record.date ? new Date(record.date).toLocaleDateString() : '—'}</td>
+                            <td>{record.status || '—'}</td>
+                            <td>{record.hoursWorked != null ? record.hoursWorked : '—'}</td>
                         </tr>
                     ))}
                 </tbody>

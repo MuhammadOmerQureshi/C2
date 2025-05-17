@@ -38,7 +38,7 @@ exports.listShiftsForEmployer = async (req, res) => {
   }
 };
 
-// GET /api/shifts/my/shifts (employee)
+// GET /api/shifts/my (employee)
 exports.listMyShifts = async (req, res) => {
   try {
     const shifts = await Shift.find({ employee: req.user.id }).sort({ date: 1 });

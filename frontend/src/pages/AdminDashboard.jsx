@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
-    firstName: '', lastName: '', username: '', email: '', password: ''
+    firstName: '', lastName: '', username: '', email: '', password: '', employerId: ''
   });
   const [selected, setSelected] = useState([]);
   const [showDetails, setShowDetails] = useState(null);
@@ -41,8 +41,8 @@ export default function AdminDashboard() {
     e.preventDefault();
     setError('');
     try {
-      await api.post('/admin/employers', form);
-      setForm({ firstName: '', lastName: '', username: '', email: '', password: '' });
+      await api.post('/admin/employers', form); // form includes employerId
+      setForm({ firstName: '', lastName: '', username: '', email: '', password: '', employerId: '' });
       fetchEmployers();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create employer');
@@ -139,6 +139,7 @@ export default function AdminDashboard() {
             <input name="username" value={form.username} onChange={onChange} placeholder="Username" required className="p-2 border rounded" />
             <input name="email" value={form.email} onChange={onChange} placeholder="Email" type="email" required className="p-2 border rounded" />
             <input name="password" value={form.password} onChange={onChange} placeholder="Password" type="password" required className="p-2 border rounded" />
+            <input name="employerId" value={form.employerId} onChange={onChange} placeholder="Employer ID" required className="p-2 border rounded" />
             <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Create</button>
           </form>
 

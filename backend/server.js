@@ -45,8 +45,21 @@ app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
 
+// At the end of your main app.js or server.js file, after all routes:
 
-
+app.use((err, req, res, next) => {
+  // Log full error details in the terminal
+  console.error('--- ERROR START ---');
+  console.error('Time:', new Date().toISOString());
+  console.error('Path:', req.originalUrl);
+  console.error('Method:', req.method);
+  if (req.user) console.error('User:', req.user);
+  if (req.headers.authorization) console.error('Auth header:', req.headers.authorization);
+  console.error('Error stack:', err.stack || err);
+  console.error('--- ERROR END ---');
+  // Respond with a generic error (don't leak stack in prod)
+  res.status(err.status || 500).json({ message: err.message || 'Server Error' });
+});
 
 
 

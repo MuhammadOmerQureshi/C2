@@ -6,6 +6,7 @@ import api from '../api/axiosConfig';
 import { logout } from '../utils/logout';
 import '../styles/pages/employer.css';
 import SpinningLogo from '../components/SpinningLogo';
+import axios from 'axios';
 
 // Configure Chart.js defaults
 defaults.maintainAspectRatio = false;
@@ -15,37 +16,99 @@ defaults.plugins.title.align = "start";
 defaults.plugins.title.font.size = 20;
 defaults.plugins.title.color = "black";
 
-async function exportAttendancePDF(empId) {
+// -- DEFENSIVE HOOK --
+function useEmployerApiEmployees() {
+  const [apiEmployees, setApiEmployees] = useState([]);
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('/api/employer/employees', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setApiEmployees(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        setApiEmployees([]); // Always array
+        console.error(err);
+      }
+    };
+    fetchEmployees();
+  }, []);
+  return apiEmployees;
+}
+
+// Additional logout handler for /api/employer/logout endpoint
+async function handleEmployerApiLogout(navigate) {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.post('/api/employer/logout', {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    localStorage.removeItem('token');
+    navigate('/login');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function exportAttendancePDF(employeeId) {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
       alert('Session expired. Please log in again.');
       return;
     }
-    const res = await api.get(`/attendance/export/pdf?employeeId=${empId}`, {
-      responseType: 'blob',
+    const url = `/api/attendance/export/pdf?employeeId=${employeeId}&ts=${Date.now()}`;
+    const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    // Try to get filename from header
+
+    // Check for HTML response (error)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      const text = await response.text();
+      alert('Export failed: ' + text);
+      return;
+    }
+
+    if (!response.ok) {
+      let errorMsg = 'Export failed';
+      if (response.status === 401 || response.status === 403) {
+        errorMsg = 'Unauthorized. Please log in again.';
+      } else {
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.message || errorMsg;
+        } catch {
+          errorMsg = response.statusText || errorMsg;
+        }
+      }
+      throw new Error(errorMsg);
+    }
+
+    const blob = await response.blob();
+    if (blob.size === 0) {
+      alert('Export failed: The file is empty. You may not have permission or there is no data.');
+      return;
+    }
     let filename = 'attendance.pdf';
-    const disposition = res.headers['content-disposition'];
+    const disposition = response.headers.get('content-disposition');
     if (disposition) {
       const match = disposition.match(/filename="?([^"]+)"?/);
       if (match) filename = match[1];
     }
-    const blob = new Blob([res.data], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
+    const downloadUrl = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = downloadUrl;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    alert('Export failed: ' + (err.response?.data?.message || 'Unknown error'));
+    window.URL.revokeObjectURL(downloadUrl);
+  } catch (error) {
+    alert(`Export failed: ${error.message}`);
   }
 }
 
@@ -72,8 +135,9 @@ export default function EmployerDashboard() {
   const [chartData, setChartData] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const employerId = localStorage.getItem('userId');
+  const employerId = localStorage.getItem('userId'); // Should be MongoDB _id
   const dashboardRef = useRef(null);
+  const apiEmployees = useEmployerApiEmployees();
 
   useEffect(() => {
     if (window.history.scrollRestoration) {
@@ -108,15 +172,15 @@ export default function EmployerDashboard() {
     setError('');
     try {
       const [empRes, shiftRes] = await Promise.all([
-        api.get(`/employees?employerId=${employerId}`),
-        api.get(`/shifts?employerId=${employerId}`),
+        api.get('/employees'), // Removed ?employerId=...
+        api.get('/shifts'),    // Removed ?employerId=...
       ]);
       setEmployees(empRes.data);
       setShifts(shiftRes.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load data');
     }
-  setLoading(false);
+    setLoading(false);
   }
 
   async function fetchAttendanceForChart(empId) {
@@ -135,15 +199,17 @@ export default function EmployerDashboard() {
         setChartData(null);
         return;
       }
-      console.log('Fetching attendance for employee:', empId);
+      // Fetch attendance records for chart
       const res = await api.get(`/attendance?employeeId=${empId}`);
       const attendance = res.data;
-      console.log('Attendance data:', attendance);
-      // Process attendance data for charts
-      const labels = attendance.map((record) => new Date(record.date).toLocaleDateString());
+      // Map chart data
+      const labels = attendance.map((record) =>
+        record.date ? new Date(record.date).toLocaleDateString() : ''
+      );
       const hoursWorked = attendance.map((record) => record.hoursWorked || 0);
       const statusCounts = attendance.reduce((acc, record) => {
-        acc[record.status] = (acc[record.status] || 0) + 1;
+        const label = record.status || 'Unknown';
+        acc[label] = (acc[label] || 0) + 1;
         return acc;
       }, {});
 
@@ -193,8 +259,21 @@ export default function EmployerDashboard() {
   async function handleAddEmployee(e) {
     e.preventDefault();
     setError('');
+    const employerId = localStorage.getItem('userId'); // This should be the MongoDB _id
+
+    // Username validation
+    if (!empForm.username || empForm.username.trim() === '') {
+      setError('Username is required');
+      return;
+    }
+
+    const employeeData = {
+      ...empForm,
+      employerId // Make sure this is the MongoDB _id
+    };
+
     try {
-      await api.post('/employees', { ...empForm, employerId });
+      await api.post('/employees', employeeData);
       setEmpForm({
         firstName: '',
         lastName: '',
@@ -204,8 +283,8 @@ export default function EmployerDashboard() {
         employeeId: '',
       });
       fetchAll();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add employee');
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to add employee');
     }
   }
 
@@ -290,7 +369,32 @@ export default function EmployerDashboard() {
           <button className="logout-btn" onClick={() => logout(navigate)}>
             Logout
           </button>
+          <button
+            onClick={() => handleEmployerApiLogout(navigate)}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 ml-4"
+          >
+            API Logout
+          </button>
         </header>
+
+        {/* ---- FIXED EMPLOYEE SUMMARY SECTION ---- */}
+        <div className="min-h-screen bg-gray-100 p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.isArray(apiEmployees) && apiEmployees.length > 0 ? (
+                apiEmployees.map((employee) => (
+                  <div key={employee._id} className="bg-white p-4 rounded-lg shadow">
+                    <h2 className="text-xl font-semibold">{employee.firstName} {employee.lastName}</h2>
+                    <p>Email: {employee.email}</p>
+                    <p>Employee ID: {employee.employeeId}</p>
+                  </div>
+                ))
+              ) : (
+                <div>No employees found.</div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {error && <div className="error-message">{error}</div>}
 

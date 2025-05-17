@@ -2,29 +2,21 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { protect, authorize } = require('../middleware/authMiddleware');
-const {
-  createEmployee,
-  listEmployees,
-  getEmployeeById,
-  updateEmployee,
-  deleteEmployee
-} = require('../controllers/employeeController');
+const employeeController = require('../controllers/employeeController');
 
 const router = express.Router();
 
-// validation helper
+// Validation helper
 const validate = (req, res, next) => {
   const errs = validationResult(req);
   if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
   next();
 };
 
-/**
- * Employer endpoints (must be logged in as role='employer')
- */
+// All routes below require employer authentication
 router.use(protect, authorize('employer'));
 
-// POST /api/employees      → create employee profile
+// Add employee (standardized endpoint)
 router.post(
   '/',
   [
@@ -36,16 +28,19 @@ router.post(
     body('employeeId').notEmpty().withMessage('Employee ID is required'),
   ],
   validate,
-  createEmployee
+  employeeController.createEmployee
 );
 
-// GET /api/employees       → list all employees under this employer
-router.get('/', listEmployees);
+// Add employee via /add endpoint (if needed)
+// router.post('/add', employeeController.addEmployee);
 
-// GET /api/employees/:id   → get one employee’s profile
-router.get('/:id', getEmployeeById);
+// List all employees for employer
+router.get('/', employeeController.listEmployees);
 
-// PUT /api/employees/:id   → update an employee’s profile
+// Get one employee’s profile
+router.get('/:id', employeeController.getEmployeeById);
+
+// Update an employee
 router.put(
   '/:id',
   [
@@ -53,11 +48,12 @@ router.put(
     body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
   ],
   validate,
-  updateEmployee
+  employeeController.updateEmployee
 );
 
-// DELETE /api/employees/:id → delete an employee profile
-router.delete('/:id', deleteEmployee);
+// Delete an employee
+router.delete('/:id', employeeController.deleteEmployee);
 
 module.exports = router;
+
 

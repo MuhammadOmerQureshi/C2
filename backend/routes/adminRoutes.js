@@ -31,7 +31,7 @@ router.post(
 
 // Manage users
 router.get('/users', protect, authorize('admin'), getAllUsers);
-router.get('/users', getAllUsers);
+
 router.get('/users/:id', getUserById);
 router.put('/status', ...updateUserStatus);
 router.delete('/users/:id', deleteUser);

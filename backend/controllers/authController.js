@@ -14,7 +14,8 @@ exports.registerEmployer = async (req, res) => {
             email,
             password,
             address,
-            contactNo
+            contactNo,
+            employerId // Add this
         } = req.body;
 
         // Validate required fields
@@ -22,10 +23,10 @@ exports.registerEmployer = async (req, res) => {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
-        // Prevent duplicates by email or username
-        const exists = await User.findOne({ $or: [{ email }, { username }] });
+        // Prevent duplicates by email, username, or employerId
+        const exists = await User.findOne({ $or: [{ email }, { username }, { employerId }] });
         if (exists) {
-            return res.status(409).json({ message: 'Email or username already in use' });
+            return res.status(409).json({ message: 'Email, username, or employer ID already in use' });
         }
 
         // Hash password
@@ -40,7 +41,8 @@ exports.registerEmployer = async (req, res) => {
             password: hashed,
             address,
             contactNo,
-            role: 'employer'
+            role: 'employer',
+            employerId // Save employerId
         });
 
         // Omit password from response

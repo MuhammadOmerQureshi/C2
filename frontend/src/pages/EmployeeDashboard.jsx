@@ -12,7 +12,7 @@ export default function EmployeeDashboard() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const employerId = localStorage.getItem('employerId');
+  const userId = localStorage.getItem('userId'); // Use userId instead of employerId
 
   useEffect(() => {
     fetchShifts();
@@ -23,10 +23,12 @@ export default function EmployeeDashboard() {
   async function fetchShifts() {
     setLoadingShifts(true);
     try {
-      const res = await api.get(`/shifts/my?employerId=${employerId}`);
+      // Remove the query parameter - let the backend use the JWT token
+      const res = await api.get('/shifts/my');
       setShifts(res.data);
     } catch (err) {
       setError('Failed to load shifts');
+      console.error('Shift fetch error:', err);
     }
     setLoadingShifts(false);
   }
@@ -34,10 +36,12 @@ export default function EmployeeDashboard() {
   async function fetchHistory() {
     setLoadingHistory(true);
     try {
-      const res = await api.get(`/attendance/my-history?employerId=${employerId}`);
+      // Remove the query parameter - let the backend use the JWT token
+      const res = await api.get('/attendance/my-history');
       setHistory(res.data);
-    } catch {
+    } catch (err) {
       setError('Failed to load attendance history');
+      console.error('History fetch error:', err);
     }
     setLoadingHistory(false);
   }
@@ -45,9 +49,10 @@ export default function EmployeeDashboard() {
   async function handleClockIn(shiftId) {
     setError('');
     try {
-      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const ipRes = await fetch('https://api.ipify.org?format=json' );
       const { ip } = await ipRes.json();
-      const res = await api.post('/attendance/clock-in', { shiftId, ip, employerId });
+      // Remove employerId from the request body
+      const res = await api.post('/attendance/clock-in', { shiftId, ip });
       alert(res.data.message);
       fetchHistory();
     } catch (err) {
@@ -58,13 +63,15 @@ export default function EmployeeDashboard() {
   async function handleClockOut(recordId) {
     setError('');
     try {
-      await api.post('/attendance/clock-out', { attendanceId: recordId, employerId });
+      // Remove employerId from the request body
+      await api.post('/attendance/clock-out', { attendanceId: recordId });
       fetchHistory();
     } catch (err) {
       setError(err.response?.data?.message || 'Clock-out failed');
     }
   }
 
+  // Rest of the component remains the same
   return (
     <>
       <div className="employee-dashboard-bg">
@@ -129,6 +136,7 @@ export default function EmployeeDashboard() {
                       <th>Clock In</th>
                       <th>Clock Out</th>
                       <th>Status</th>
+                      <th>Hours Worked</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -150,7 +158,12 @@ export default function EmployeeDashboard() {
                             ? new Date(r.clockOut).toLocaleTimeString()
                             : '—'}
                         </td>
-                        <td>{r.status}</td>
+                        <td>
+                          {r.status || '—'}
+                        </td>
+                        <td>
+                          {r.hoursWorked != null ? r.hoursWorked : '—'}
+                        </td>
                         <td>
                           {!r.clockOut && (
                             <button onClick={() => handleClockOut(r._id)}>

@@ -7,6 +7,7 @@ const {
   updateEmployee,
   deleteEmployee
 } = require('../controllers/employeeController');
+const employerController = require('../controllers/employerController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const router = express.Router();
 
@@ -16,9 +17,16 @@ const validate = (req, res, next) => {
   next();
 };
 
-// Only employers
-router.use(protect, authorize('employer'));
+// Employer dashboard route (with middleware)
+router.get('/dashboard', protect, authorize('employer'), employerController.getDashboard);
 
+// Employees CRUD (with middleware, no overlap)
+router.post('/employees', protect, authorize('employer'), createEmployee);
+router.get('/employees', protect, authorize('employer'), listEmployees);
+router.put('/employees/:id', protect, authorize('employer'), updateEmployee);
+router.delete('/employees/:id', protect, authorize('employer'), deleteEmployee);
+
+// Existing routes (no overlap with /employees)
 router.post(
   '/',
   [ body('firstName').notEmpty(), /* etc. */ ],
@@ -31,4 +39,8 @@ router.put('/:id', /* validators */ validate, updateEmployee);
 router.delete('/:id', deleteEmployee);
 
 module.exports = router;
+
+
+
+
 

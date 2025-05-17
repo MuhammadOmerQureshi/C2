@@ -2,94 +2,80 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const EmployeeProfile = require('../models/EmployeeProfile');
 
-// Create a new employee (employer only)
+// Create a new employee (called by both employer and employee routes)
 exports.createEmployee = async (req, res) => {
   try {
-    const {
-      firstName,
-      lastName,
-      username,
-      email,
-      password,
-      address,
-      contactNo,
-      employeeId
-    } = req.body;
+    console.log('Employee creation request body:', req.body); // Log the request body
 
-    // Check for required fields
-    if (!firstName || !lastName || !username || !email || !password || !employeeId) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    const { firstName, lastName, username, email, password, employeeId, contact, employerId } = req.body;
+
+    // Add validation
+    if (!username) {
+      return res.status(400).json({ message: 'Username is required' });
+    }
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: 'All required fields must be filled' });
     }
 
-    // Check for duplicate email, username, or employeeId
-    const exists = await User.findOne({
-      $or: [
-        { email },
-        { username },
-        { employeeId }
-      ]
-    });
-    if (exists) {
-      return res.status(409).json({ message: 'Email, username, or employee ID already in use' });
+    // Check for duplicate
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: 'Employee already exists with this email' });
+    }
+
+    // Find employer by employerId
+    const employer = await User.findOne({ employerId, role: 'employer' });
+    if (!employer) {
+      return res.status(404).json({ message: 'Employer not found with provided Employer ID' });
     }
 
     // Hash password
-    const hashed = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create employee user
-    const employee = await User.create({
+    const employeeUser = await User.create({
       firstName,
       lastName,
       username,
       email,
-      password: hashed,
-      address,
-      contactNo,
-      employeeId,
-      role: 'employee'
+      password: hashedPassword,
+      role: "employee"
     });
 
-    // Create employee profile with link to employer
+    // Create employee profile linked to employer
     await EmployeeProfile.create({
-      user: employee._id,
+      user: employeeUser._id,
       employeeId,
-      contact: contactNo,
-      employer: req.user.id // Link to the currently authenticated employer
+      contact,
+      employer: employer._id // Link to employer's MongoDB _id
     });
 
-    // Omit password from response
-    const { password: _p, ...data } = employee.toObject();
-    res.status(201).json({ message: 'Employee created', employee: data });
+    res.status(201).json({ message: "Employee created successfully" });
   } catch (err) {
-    console.error('createEmployee error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.warn("Add employee error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// List all employees under this employer
+// List all employees for an employer
 exports.listEmployees = async (req, res) => {
   try {
-    // Find all employee profiles where employer matches the current user
-    const employeeProfiles = await EmployeeProfile.find({ employer: req.user.id }).populate('user');
-    
-    // Extract user data from profiles and remove password
-    const employees = employeeProfiles.map(profile => {
-      const userData = profile.user.toObject();
-      delete userData.password;
-      return userData;
-    });
-    
-    res.status(200).json(employees);
+    const profiles = await EmployeeProfile.find({ employer: req.user.id }).populate('user');
+    const employees = profiles.map(profile => ({
+      ...profile.user.toObject(),
+      employeeId: profile.employeeId,
+      contact: profile.contact,
+    }));
+    res.json(employees);
   } catch (err) {
-    console.error('listEmployees error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('List employees error:', err);
+    res.status(500).json({ message: 'Could not retrieve employees' });
   }
 };
 
-// Get one employee's profile by ID
+// Get one employee's profile by ID (keep your existing implementation if needed)
 exports.getEmployeeById = async (req, res) => {
   try {
-    // Check if employee belongs to this employer
     const employeeProfile = await EmployeeProfile.findOne({
       user: req.params.id,
       employer: req.user.id
@@ -99,74 +85,57 @@ exports.getEmployeeById = async (req, res) => {
       return res.status(404).json({ message: 'Employee not found or not authorized to access' });
     }
 
-    // Return employee data without password
     const userData = employeeProfile.user.toObject();
     delete userData.password;
-    
-    res.status(200).json(userData);
+
+    res.status(200).json({
+      ...userData,
+      employeeId: employeeProfile.employeeId,
+      contact: employeeProfile.contact
+    });
   } catch (err) {
     console.error('getEmployeeById error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Update an employee's profile
+// Update an employee
 exports.updateEmployee = async (req, res) => {
   try {
-    // Check if employee belongs to this employer
-    const employeeProfile = await EmployeeProfile.findOne({
-      user: req.params.id,
-      employer: req.user.id
-    });
+    const { id } = req.params;
+    const profile = await EmployeeProfile.findOne({ user: id, employer: req.user.id });
+    if (!profile) return res.status(404).json({ message: 'Employee not found or not yours' });
 
-    if (!employeeProfile) {
-      return res.status(404).json({ message: 'Employee not found or not authorized to update' });
+    // Update user data
+    await User.findByIdAndUpdate(id, req.body);
+    // Optionally update profile data too
+    if (req.body.employeeId || req.body.contact) {
+      await EmployeeProfile.findByIdAndUpdate(profile._id, {
+        employeeId: req.body.employeeId || profile.employeeId,
+        contact: req.body.contact || profile.contact
+      });
     }
 
-    const updates = { ...req.body };
-    if (updates.password) {
-      updates.password = await bcrypt.hash(updates.password, 10);
-    }
-    // Prevent role change via this endpoint
-    delete updates.role;
-
-    const employee = await User.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true, runValidators: true }
-    ).select('-password');
-
-    if (!employee) return res.status(404).json({ message: 'Employee not found' });
-    res.status(200).json({ message: 'Employee updated', employee });
+    res.json({ message: 'Employee updated successfully' });
   } catch (err) {
-    console.error('updateEmployee error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Update employee error:', err);
+    res.status(500).json({ message: 'Could not update employee' });
   }
 };
 
-// Delete an employee profile
+// Delete an employee
 exports.deleteEmployee = async (req, res) => {
   try {
-    // Check if employee belongs to this employer
-    const employeeProfile = await EmployeeProfile.findOne({
-      user: req.params.id,
-      employer: req.user.id
-    });
+    const { id } = req.params;
+    const profile = await EmployeeProfile.findOne({ user: id, employer: req.user.id });
+    if (!profile) return res.status(404).json({ message: 'Employee not found or not yours' });
 
-    if (!employeeProfile) {
-      return res.status(404).json({ message: 'Employee not found or not authorized to delete' });
-    }
+    await User.findByIdAndDelete(id);
+    await EmployeeProfile.findByIdAndDelete(profile._id);
 
-    // Delete the employee profile first
-    await EmployeeProfile.findByIdAndDelete(employeeProfile._id);
-    
-    // Then delete the user
-    const employee = await User.findByIdAndDelete(req.params.id);
-    
-    if (!employee) return res.status(404).json({ message: 'Employee not found' });
-    res.status(200).json({ message: 'Employee deleted' });
+    res.json({ message: 'Employee deleted successfully' });
   } catch (err) {
-    console.error('deleteEmployee error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Delete employee error:', err);
+    res.status(500).json({ message: 'Could not delete employee' });
   }
 };
