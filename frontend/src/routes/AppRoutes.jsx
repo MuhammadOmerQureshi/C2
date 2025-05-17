@@ -7,6 +7,7 @@ import AdminDashboard from "../pages/AdminDashboard";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage"; // Import ForgotPasswordPage
 import ResetPasswordPage from "../pages/ResetPasswordPage";   // Import ResetPasswordPage
 import ContactUsPage from '../pages/ContactUsPage';
+import AdminContactMessages from '../pages/AdminContactMessages';
 // import RequireAuth from '../components/RequireAuth';   // for future use
 
 export default function AppRoutes() {
@@ -20,6 +21,7 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* Add route for ForgotPasswordPage */}
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} /> {/* Add route for ResetPasswordPage */}
         <Route path="/contact" element={<ContactUsPage />} />
+        <Route path="/admin/contact-messages" element={<AdminContactMessages />} />
 
         {/* future routes */}
       </Routes>

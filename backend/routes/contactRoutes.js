@@ -26,5 +26,16 @@ router.post('/', async (req, res) => {
     return res.status(500).json({ message: 'Server error. Please try again.' });
   }
 });
+// Get all contact messages (admin only)
+router.get('/', async (req, res) => {
+  try {
+    // Optionally, add authentication/authorization middleware here
+    const messages = await ContactMessage.find().sort({ createdAt: -1 });
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 module.exports = router;
