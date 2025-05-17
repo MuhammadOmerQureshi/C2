@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -11,7 +12,7 @@ const Chatbot = () => {
     setMessages([...messages, { role: 'user', content: input }]);
 
     try {     // Send message to the backend, you can replace the URL with your backend endpoint
-      const response = await fetch('http://localhost:5000/api/chatbot/chat', {      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/chatbot/chat`, {      
         method: 'POST',     // Change to your backend URL
         headers: { 'Content-Type': 'application/json' },  // Set the content type to JSON
         body: JSON.stringify({ message: input }),

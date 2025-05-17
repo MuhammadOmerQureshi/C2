@@ -7,10 +7,11 @@ import SpinningLogo from '../components/SpinningLogo';
 import Chatbot from '../components/Chatbot';
 
 async function exportAttendanceExcel(empId) {
-  const token = localStorage.getItem('token'); 
+  const token = localStorage.getItem('token');
+  const API_URL = import.meta.env.VITE_API_URL; 
   try {
     const res = await fetch(
-      `http://localhost:5173/api/attendance/export/excel?employeeId=${empId}`,
+      `${API_URL}/attendance/export/excel?employeeId=${empId}`,
      {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -36,10 +37,11 @@ async function exportAttendanceExcel(empId) {
 }
 
 async function exportAttendancePDF(empId) {
-  const token = localStorage.getItem('token'); // or wherever you store your JWT
+  const token = localStorage.getItem('token');
+  const API_URL = import.meta.env.VITE_API_URL; 
   try {
     const res = await fetch(
-      `http://localhost:5173/api/attendance/export/pdf?employeeId=${empId}`,
+      `${API_URL}/attendance/export/pdf?employeeId=${empId}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -65,9 +67,10 @@ async function exportAttendancePDF(empId) {
 }
 
 async function exportAllAttendancePDF() {
-  const token = localStorage.getItem('token'); // or wherever you store your JWT
+  const token = localStorage.getItem('token');
+  const API_URL = import.meta.env.VITE_API_URL;
   try {
-    const res = await fetch('http://localhost:5173/api/attendance/export-all/pdf', {
+    const res = await fetch(`${API_URL}/attendance/export-all/pdf`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -92,7 +95,7 @@ async function exportAllAttendancePDF() {
 
 async function sendShiftReminder(shiftId, email) {
   try {
-    const token = localStorage.getItem('token'); // Use your authentication token
+    const token = localStorage.getItem('token'); 
     const response = await fetch('http://localhost:5000/api/attendance/send-shift-reminder', {
       method: 'POST',
       headers: {

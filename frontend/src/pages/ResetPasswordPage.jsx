@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api/axiosConfig"; // Import the configured API instance
 import { useParams, useNavigate } from "react-router-dom";
 
 const ResetPasswordPage = () => {
@@ -10,12 +10,10 @@ const ResetPasswordPage = () => {
   const { token } = useParams(); // Get token from URL
   const navigate = useNavigate();
 
-  // If no token is present, redirect or show an error (optional, depends on routing setup)
+  // If no token is present, redirect or show an error
   useEffect(() => {
     if (!token) {
       setError("Invalid password reset link. No token provided.");
-      // Optionally redirect to login or forgot password page after a delay
-      // setTimeout(() => navigate("/login"), 3000);
     }
   }, [token, navigate]);
 
@@ -29,22 +27,24 @@ const ResetPasswordPage = () => {
       return;
     }
     if (!token) {
-        setError("Invalid or missing reset token.");
-        return;
+      setError("Invalid or missing reset token.");
+      return;
     }
 
     try {
-      const response = await axios.post("/api/auth/reset-password", { token, password });
+      // Use the configured API instance instead of direct axios import
+      const response = await api.post("/auth/reset-password", { token, password });
       setMessage(response.data.message + " You can now login with your new password.");
       // Optionally redirect to login page after a delay
       setTimeout(() => navigate("/login"), 5000);
     } catch (err) {
+      console.error("Reset password error:", err);
       setError(err.response?.data?.message || "An error occurred. Please try again.");
     }
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "auto", paddingTop: "50px" }}>
+    <div className="reset-password-container" style={{ maxWidth: "400px", margin: "auto", paddingTop: "50px" }}>
       <h2>Reset Password</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "1rem" }}>
@@ -73,7 +73,18 @@ const ResetPasswordPage = () => {
         </div>
         {message && <p style={{ color: "green" }}>{message}</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit" style={{ padding: "0.5rem 1rem" }} disabled={!token}>
+        <button 
+          type="submit" 
+          style={{ 
+            padding: "0.5rem 1rem",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer"
+          }} 
+          disabled={!token}
+        >
           Reset Password
         </button>
       </form>
@@ -82,4 +93,3 @@ const ResetPasswordPage = () => {
 };
 
 export default ResetPasswordPage;
-
