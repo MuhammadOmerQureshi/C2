@@ -38,4 +38,5 @@ router.delete('/users/:id', deleteUser);
 router.put('/bulk-status', ...bulkUpdateUserStatus);
 router.delete('/bulk-delete', ...bulkDeleteUsers);
 
+
 module.exports = router;

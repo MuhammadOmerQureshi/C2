@@ -3,6 +3,15 @@ const router = express.Router();
 const ContactMessage = require('../models/ContactMessage');
 const sendEmail = require('../server'); // Import the sendEmail function
 
+// Admin-only middleware
+const requireAdmin = (req, res, next) => {
+  // Assumes req.user is set by your auth middleware
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+};
+// Middleware to check if the user is an admin
 router.post('/', async (req, res) => {
   const { name, email, message } = req.body;
   // Validation
@@ -27,7 +36,7 @@ router.post('/', async (req, res) => {
   }
 });
 // Get all contact messages (admin only)
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   try {
     // Optionally, add authentication/authorization middleware here
     const messages = await ContactMessage.find().sort({ createdAt: -1 });
@@ -36,6 +45,45 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+// Get all messages (with search)
+router.get('/', async (req, res) => {
+  try {
+    const { q } = req.query;
+    let filter = {};
+    if (q) {
+      filter = {
+        $or: [
+          { name:    { $regex: q, $options: 'i' } },
+          { email:   { $regex: q, $options: 'i' } },
+          { message: { $regex: q, $options: 'i' } }
+        ]
+      };
+    }
+    const messages = await ContactMessage.find(filter).sort({ createdAt: -1 });
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
+// Delete a message
+router.delete('/:id', requireAdmin, async (req, res) => {
+  try {
+    await ContactMessage.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Delete failed' });
+  }
+});
+
+// Archive a message (add archived field)
+router.patch('/:id/archive', requireAdmin, async (req, res) => {
+  try {
+    await ContactMessage.findByIdAndUpdate(req.params.id, { archived: true });
+    res.json({ message: 'Archived' });
+  } catch (err) {
+    res.status(500).json({ message: 'Archive failed' });
+  }
+});
 
 module.exports = router;
