@@ -39,6 +39,7 @@ const employerRoutes   = require('./routes/employerRoutes');
 const attendanceRoutes= require('./routes/attendanceRoutes');
 const adminRoutes       = require('./routes/adminRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 // const attendanceRoutes = require('./routes/attendanceRoutes');
 
@@ -50,6 +51,7 @@ app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/contact', contactRoutes);
 
 // 404 handler for API routes only
 app.use('/api', (req, res) => {

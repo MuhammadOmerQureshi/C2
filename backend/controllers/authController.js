@@ -117,46 +117,35 @@ exports.forgotPassword = [
                 return res.status(200).json({ message: 'If your email is registered, you will receive a password reset link.' });
             }
 
-            // Generate a reset token
             const resetToken = crypto.randomBytes(32).toString('hex');
             const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-            // Set token expiry (e.g., 1 hour)
             const expiresAt = new Date(Date.now() + 3600000);
 
-            // Save the token to the database
             await PasswordResetToken.create({
                 userId: user._id,
                 token: hashedToken,
                 expiresAt,
             });
 
-            // Construct reset URL
             const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-            // Create a test account with Ethereal
-            const testAccount = await nodemailer.createTestAccount();
-
-            // Configure Nodemailer transporter for Ethereal
             const transporter = nodemailer.createTransport({
-                host: 'smtp.ethereal.email',
-                port: 587,
-                secure: false, // Use TLS
+                host: process.env.EMAIL_HOST, // smtp-relay.brevo.com
+                port: parseInt(process.env.EMAIL_PORT, 10), // 587
+                secure: false, // Use STARTTLS
                 auth: {
-                    user: testAccount.user, // Ethereal username (e.g., a random email like "user@ethereal.email")
-                    pass: testAccount.pass, // Ethereal password (unmasked)
+                    user: process.env.EMAIL_USER, // your-login@brevo.com
+                    pass: process.env.EMAIL_PASS, // Your SMTP key
                 },
                 debug: true,
                 logger: true,
             });
 
-            // Debug credentials
-            console.log('Ethereal User:', testAccount.user);
-            console.log('Ethereal Pass:', testAccount.pass);
+            console.log('Using EMAIL_USER:', process.env.EMAIL_USER);
+            console.log('Using EMAIL_PORT:', process.env.EMAIL_PORT);
 
-            // Define email options
             const mailOptions = {
-                from: `"C2" <${testAccount.user}>`, // Use Ethereal username
+                from: `"Your App Name" <${process.env.EMAIL_USER}>`,
                 to: user.email,
                 subject: 'Password Reset Request',
                 text: `You requested a password reset. Please go to this link to reset your password: ${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.`,
@@ -169,16 +158,12 @@ exports.forgotPassword = [
                 `,
             };
 
-            // Send the email
             const info = await transporter.sendMail(mailOptions);
-            console.log('Email sent:', info.messageId);
-            // Get the preview URL for the email
-            const previewUrl = nodemailer.getTestMessageUrl(info);
-            console.log('Preview URL:', previewUrl);
-
+            console.log('Email sent:', info.response);
             res.status(200).json({ message: 'If your email is registered, you will receive a password reset link.' });
         } catch (error) {
-            console.error('Forgot password error:', error);
+            console.error('Forgot password error:', error.message);
+            console.error('Stack trace:', error.stack);
             res.status(500).json({ message: 'An error occurred. Please try again.' });
         }
     }
