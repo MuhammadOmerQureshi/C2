@@ -493,64 +493,9 @@ export default function EmployerDashboard() {
             <button onClick={() => setChartData(null)}>Close Charts</button>
           </section>
         )}
-
-        <section className="list-section">
-          <h2>Shifts</h2>
-          {loading ? (
-            <p>Loading…</p>
-          ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Date</th>
-                  <th>Start</th>
-                  <th>End</th>
-                  <th>Location</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shifts.map((shift) => (
-                  <tr key={shift._id}>
-                    <td>
-                      {(() => {
-                        const emp = employees.find(
-                          (e) => e._id === (shift.employee?._id || shift.employee)
-                        );
-                        return emp
-                          ? `${emp.firstName} ${emp.lastName}`
-                          : shift.employee?._id || shift.employee;
-                      })()}
-                    </td>
-                    <td>{new Date(shift.date).toLocaleDateString()}</td>
-                    <td>{shift.startTime}</td>
-                    <td>{shift.endTime}</td>
-                    <td>{shift.location}</td>
-                    <td>{shift.status}</td>
-                    <td>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDeleteShift(shift._id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {shifts.length === 0 && (
-                  <tr>
-                    <td colSpan={7}>No shifts found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-          <div className="chatbot-container">
+        <div className="chatbot-container">
             <Chatbot />
-          </div>
-        </section>
+        </div>
       </div>
     </>
   );

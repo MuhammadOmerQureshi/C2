@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api from '../api/axiosConfig';
+import axios from 'axios';
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ const ForgotPasswordPage = () => {
 
         try {
             // Use the correct backend URL
-            const response = await api.post('/auth/forgot-password', { email });
+            const response = await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
             setMessage(response.data.message);
         } catch (err) {
             console.error('Frontend error:', err);
