@@ -28,7 +28,6 @@ function App() {
       
       <LanguageSelector />
       <Clock />
-      <AppRoutes />
       <Footer />
     </>
   );

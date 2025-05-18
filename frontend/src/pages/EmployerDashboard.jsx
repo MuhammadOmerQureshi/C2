@@ -15,10 +15,12 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Le
 // Configure Chart.js defaults
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
-defaults.plugins.title.display = true;
-defaults.plugins.title.align = "start";
-defaults.plugins.title.font.size = 20;
-defaults.plugins.title.color = "black";
+defaults.plugins.title = Object.assign({}, defaults.plugins.title, {
+  display: true,
+  align: "start",
+  font: { size: 20 },
+  color: "black"
+});
 
 async function exportAttendancePDF(empId) {
   try {
