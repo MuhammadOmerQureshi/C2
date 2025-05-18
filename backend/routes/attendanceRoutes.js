@@ -1,68 +1,136 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { protect, authorize } = require('../middleware/authMiddleware');
-const {
-  clockIn,
-  clockOut,
-  listMyAttendance,
-  exportAttendanceExcel,
-  exportAttendancePDF
-} = require('../controllers/attendanceController');
-const { broadcastAttendanceUpdate } = require('../server'); // adjust path if needed
+const { verifyEmployeeIP } = require('../middleware/ipVerificationMiddleware');
+const AttendanceLog = require('../models/AttendanceLog');
+const EmployeeProfile = require('../models/EmployeeProfile');
+
 const router = express.Router();
 
-// validation helper
+// Validation helper
 const validate = (req, res, next) => {
-  const errs = validationResult(req);
-  if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   next();
 };
 
-/**
- * All attendance routes require an authenticated employee
- */
-router.use(protect, authorize('employee'));
-
-// POST /api/attendance/clock-in
+// Clock in - with IP verification
 router.post(
   '/clock-in',
-  [
-    body('shiftId').notEmpty().withMessage('Shift ID is required'),
-    // body('lat').isFloat(),
-    // body('lng').isFloat()
-  ],
-  validate,
+  protect,
+  authorize('employee'),
+  verifyEmployeeIP, // Apply IP verification middleware
   async (req, res) => {
-    const { shiftId } = req.body;
-    const attendance = await Attendance.create({
-      user: req.user._id,
-      shift: shiftId,
-      // Add other fields if needed
-    });
+    try {
+      // Get employee profile to find employer
+      const employeeProfile = await EmployeeProfile.findOne({ user: req.user.id });
+      if (!employeeProfile) {
+        return res.status(404).json({ message: 'Employee profile not found' });
+      }
 
-    broadcastAttendanceUpdate(attendance);
+      // Check if there's an open attendance record
+      const openAttendance = await AttendanceLog.findOne({
+        employee: req.user.id,
+        clockOutTime: null
+      });
 
-    res.json(attendance);
+      if (openAttendance) {
+        return res.status(400).json({ message: 'You already have an active clock-in session' });
+      }
+
+      // Create new attendance record
+      const attendance = await AttendanceLog.create({
+        employee: req.user.id,
+        employer: employeeProfile.employer,
+        clockInTime: new Date(),
+        ipAddress: req.ip || req.connection.remoteAddress,
+        verified: true,
+        status: 'pending'
+      });
+
+      res.status(201).json({
+        message: 'Clock-in successful',
+        attendance
+      });
+    } catch (error) {
+      console.error('Clock-in error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
   }
 );
 
-// POST /api/attendance/clock-out
+// Clock out
 router.post(
   '/clock-out',
-  [
-    body('attendanceId').notEmpty().withMessage('Attendance record ID is required')
-  ],
-  validate,
-  clockOut
+  protect,
+  authorize('employee'),
+  async (req, res) => {
+    try {
+      // Find open attendance record
+      const attendance = await AttendanceLog.findOne({
+        employee: req.user.id,
+        clockOutTime: null
+      });
+
+      if (!attendance) {
+        return res.status(400).json({ message: 'No active clock-in session found' });
+      }
+
+      // Update with clock out time
+      attendance.clockOutTime = new Date();
+      await attendance.save();
+
+      res.status(200).json({
+        message: 'Clock-out successful',
+        attendance
+      });
+    } catch (error) {
+      console.error('Clock-out error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
 );
 
-// GET /api/attendance/my-history
-router.get('/my-history', listMyAttendance);
+// Get employee's attendance history
+router.get(
+  '/history',
+  protect,
+  authorize('employee'),
+  async (req, res) => {
+    try {
+      const attendanceHistory = await AttendanceLog.find({
+        employee: req.user.id
+      }).sort({ clockInTime: -1 });
 
-// GET /api/attendance/export/excel
-router.get('/export/excel', exportAttendanceExcel);
+      res.status(200).json(attendanceHistory);
+    } catch (error) {
+      console.error('Attendance history error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+);
 
-// GET /api/attendance/export/pdf
-router.get('/export/pdf', exportAttendancePDF);
+// Get employer's employee attendance records
+router.get(
+  '/employer/records',
+  protect,
+  authorize('employer'),
+  async (req, res) => {
+    try {
+      const attendanceRecords = await AttendanceLog.find({
+        employer: req.user.id
+      })
+        .populate('employee', 'firstName lastName username')
+        .sort({ clockInTime: -1 });
+
+      res.status(200).json(attendanceRecords);
+    } catch (error) {
+      console.error('Employer attendance records error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+);
 
 module.exports = router;

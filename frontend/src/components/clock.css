@@ -7,61 +7,28 @@
 
 .live-clock {
     position: fixed;
-    top: 1rem;
-    right: 2rem;
+    bottom: 1rem; /* Moved to bottom-left */
+    left: 1rem;
     z-index: 1000;
-    text-align: right;
+    text-align: left;
     font-family: 'Digital', 'Courier New', monospace;
     color: #F7F9FB;
-    background: rgba(7, 15, 30, 0.802);
-    padding: 0.5rem 1.2rem;
+    background: rgba(7, 15, 30, 0.8);
+    padding: 0.5rem 1rem;
     border-radius: 0.5rem;
-    box-shadow: 0 0 10px #F7F9FB44;
-    animation: neon 20s linear infinite;
+    box-shadow: 0 0 8px #F7F9FB33;
+    font-size: 0.9rem;
 }
 
 .clock-time {
-    font-size: 3rem;
-    letter-spacing: 0.1em;
-    text-shadow:
-        0 0 6px rgba(202, 228, 225, 0.92),
-        0 0 20px rgba(202, 228, 225, 0.34),
-        0 0 12px rgba(30, 132, 242, 0.52),
-        0 0 21px rgba(30, 132, 242, 0.92),
-        0 0 24px rgba(30, 132, 242, 0.78),
-        0 0 44px rgba(30, 132, 242, 0.92);
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 4px rgba(30, 132, 242, 0.8);
 }
 
 .clock-date {
-    font-size: 1.2rem;
+    font-size: 0.8rem;
     letter-spacing: 0.05em;
-    margin-top: 0.5rem;
-    text-shadow:
-        0 0 6px rgba(202, 228, 225, 0.92),
-        0 0 20px rgba(202, 228, 225, 0.34),
-        0 0 12px rgba(30, 132, 242, 0.52),
-        0 0 21px rgba(30, 132, 242, 0.92),
-        0 0 24px rgba(30, 132, 242, 0.78),
-        0 0 44px rgba(30, 132, 242, 0.92);
-}
-
-@keyframes neon {
-    from {
-        text-shadow:
-            0 0 6px rgba(202, 228, 225, 0.92),
-            0 0 20px rgba(202, 228, 225, 0.34),
-            0 0 12px rgba(30, 132, 242, 0.52),
-            0 0 21px rgba(30, 132, 242, 0.92),
-            0 0 24px rgba(30, 132, 242, 0.78),
-            0 0 44px rgba(30, 132, 242, 0.92);
-    }
-    to {
-        text-shadow:
-            0 0 6px rgba(202, 228, 225, 0.98),
-            0 0 20px rgba(202, 228, 225, 0.42),
-            0 0 12px rgba(30, 132, 242, 0.58),
-            0 0 22px rgba(30, 132, 242, 0.84),
-            0 0 28px rgba(30, 132, 242, 0.88),
-            0 0 60px rgba(30, 132, 242, 1);
-    }
+    margin-top: 0.3rem;
+    text-shadow: 0 0 4px rgba(30, 132, 242, 0.8);
 }

@@ -76,7 +76,7 @@ exports.clockOut = async (req, res) => {
     await attendance.save();
 
     // Broadcast the updated attendance record
-    // broadcastAttendanceUpdate(attendance);
+    broadcastAttendanceUpdate(attendance);
 
     res.status(200).json({ message: 'Clocked out', attendance });
   } catch (err) {

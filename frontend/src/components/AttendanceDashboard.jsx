@@ -17,7 +17,7 @@ const AttendanceDashboard = () => {   // Attendance Dashboard Component
                 params: {
                     page: currentPage,
                     limit: 10,
-                    ...filters,   // Include filters in the request
+                    ...filters,
                 },
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`, // Add JWT token
