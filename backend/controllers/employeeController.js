@@ -7,7 +7,7 @@ exports.createEmployee = async (req, res) => {
   try {
     console.log('Employee creation request body:', req.body); // Log the request body
 
-    const { firstName, lastName, username, email, password, employeeId, contact, employerId } = req.body;
+    const { firstName, lastName, username, email, password, employeeId, contact } = req.body;
 
     // Add validation
     if (!username) {
@@ -17,16 +17,19 @@ exports.createEmployee = async (req, res) => {
       return res.status(400).json({ message: 'All required fields must be filled' });
     }
 
-    // Check for duplicate
-    const existingUser = await User.findOne({ email });
+    // Check for duplicate email, username, or employeeId
+    const existingUser = await User.findOne({
+      $or: [
+        { email: email },
+        { username: username }
+      ]
+    });
     if (existingUser) {
-      return res.status(409).json({ message: 'Employee already exists with this email' });
+      return res.status(409).json({ message: 'Email or username already in use' });
     }
-
-    // Find employer by employerId
-    const employer = await User.findOne({ employerId, role: 'employer' });
-    if (!employer) {
-      return res.status(404).json({ message: 'Employer not found with provided Employer ID' });
+    const existingProfile = await EmployeeProfile.findOne({ employeeId });
+    if (existingProfile) {
+      return res.status(409).json({ message: 'Employee ID already in use' });
     }
 
     // Hash password
@@ -42,12 +45,12 @@ exports.createEmployee = async (req, res) => {
       role: "employee"
     });
 
-    // Create employee profile linked to employer
+    // Create employee profile linked to employer (use req.user.id)
     await EmployeeProfile.create({
       user: employeeUser._id,
       employeeId,
       contact,
-      employer: employer._id // Link to employer's MongoDB _id
+      employer: req.user.id // Use the MongoDB _id from JWT/session
     });
 
     res.status(201).json({ message: "Employee created successfully" });

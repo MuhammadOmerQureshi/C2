@@ -26,6 +26,9 @@ exports.registerEmployer = async (req, res) => {
         // Prevent duplicates by email, username, or employerId
         const exists = await User.findOne({ $or: [{ email }, { username }, { employerId }] });
         if (exists) {
+            console.warn('Duplicate employer creation attempt:', {
+                email, username, employerId, found: exists
+            });
             return res.status(409).json({ message: 'Email, username, or employer ID already in use' });
         }
 
@@ -217,12 +220,6 @@ exports.updateUserProfile = [
     }
 ];
 
-
-
-
-
-
-
 // Bulk update user status (Admin only)
 exports.bulkUpdateUserStatus = [
     body('userIds').isArray({ min: 1 }).withMessage('userIds must be a non-empty array'),
@@ -261,10 +258,7 @@ exports.bulkUpdateUserStatus = [
     }
   ];
   
-
-
-
-  exports.deleteUser = async (req, res) => {
+exports.deleteUser = async (req, res) => {
     try {
       const userId = req.params.id;
   
@@ -290,9 +284,8 @@ exports.bulkUpdateUserStatus = [
     }
   };
 
-
-  // Bulk delete users (Admin only)
-  exports.bulkDeleteUsers = [
+// Bulk delete users (Admin only)
+exports.bulkDeleteUsers = [
     body('userIds').isArray({ min: 1 }).withMessage('userIds must be a non-empty array'),
     async (req, res) => {
       const errors = validationResult(req);
