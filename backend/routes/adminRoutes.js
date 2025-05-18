@@ -18,7 +18,7 @@ const validate = (req, res, next) => {
   next();
 };
 
-// All admin routes require auth + admin role
+// All admin routes require auth + admin role, so we use the middleware here
 router.use(protect, authorize('admin'));
 
 // Create employer
