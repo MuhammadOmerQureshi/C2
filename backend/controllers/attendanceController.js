@@ -121,14 +121,15 @@ exports.exportAttendancePDF = async (req, res) => {
     }
 
     // Check if the employee has a profile
-    const empProfile = await EmployeeProfile.findOne({ user: employeeId });
+    const empProfile = await EmployeeProfile.findOne({ user: employeeId }); // Ensure this path is correct
     if (!empProfile) {
       console.log(`No profile found for employee: ${employeeId}`);
       return res.status(403).json({ message: 'Forbidden: No profile found for employee.' });
     }
 
-    // Debug: log the context
-    console.log('--- PDF EXPORT ATTEMPT ---');
+    // Debug: log the context, user, and employee
+    console.log('--- PDF EXPORT ATTEMPT ---');s
+
     console.log('Requester:', userRole, userId);
     console.log('Employee:', employeeId, employee.firstName, employee.lastName);
 
