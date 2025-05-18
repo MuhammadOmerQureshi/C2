@@ -29,7 +29,7 @@ app.use(express.json());  // parse JSON bodies
 app.use(cors({
   origin: [
     'https://c2-85uf.onrender.com', 
-    'http://localhost:5173'           
+    'http://localhost:5173'         
   ],
   credentials: true
 }));
