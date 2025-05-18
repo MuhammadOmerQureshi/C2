@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import EmployerDashboard from './pages/EmployerDashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 function App() {
   // Example: get userRole from auth context or state
@@ -41,6 +42,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/employer" element={<EmployerDashboard />} />
         <Route path="/employee" element={<EmployeeDashboard />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         {/* ...other routes... */}
       </Routes>
 

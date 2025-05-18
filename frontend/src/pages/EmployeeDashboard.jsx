@@ -11,7 +11,14 @@ export default function EmployeeDashboard() {
   const [loadingShifts, setLoadingShifts] = useState(true)
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [error, setError] = useState('')
+  const [ip, setIp] = useState('');
   const navigate = useNavigate()
+
+  useEffect(() => {
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => setIp(data.ip));
+  }, []);
 
   useEffect(() => {
     fetchShifts()
@@ -43,15 +50,10 @@ export default function EmployeeDashboard() {
   async function handleClockIn(shiftId) {
     setError('');
     try {
-      // Get public IP
-      const ipRes = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await ipRes.json();
-
       // Send shiftId and ip to backend
       const res = await api.post('/attendance/clock-in', { shiftId, ip });
-
-      // Show message from backend
-      alert(res.data.message);
+      console.log('Backend response:', res.data); // Add this for debugging
+      alert(res.data.message); // This should show "Yahoo" or "very sad"
 
       fetchHistory();
     } catch (err) {

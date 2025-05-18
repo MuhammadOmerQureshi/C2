@@ -145,7 +145,7 @@ exports.forgotPassword = [
             console.log('Using EMAIL_PORT:', process.env.EMAIL_PORT);
 
             const mailOptions = {
-                from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+                from: `"C2" <${process.env.EMAIL_USER}>`,
                 to: user.email,
                 subject: 'Password Reset Request',
                 text: `You requested a password reset. Please go to this link to reset your password: ${resetUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.`,

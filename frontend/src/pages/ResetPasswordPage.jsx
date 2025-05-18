@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api/axiosConfig"; // Import the configured API instance
 import { useParams, useNavigate } from "react-router-dom";
 
 const ResetPasswordPage = () => {
@@ -33,7 +33,7 @@ const ResetPasswordPage = () => {
 
     try {
       // Use the configured API instance instead of direct axios import
-      const response = await axios.post("/api/auth/reset-password", { token, password });
+      const response = await api.post("/auth/reset-password", { token, password });
       setMessage(response.data.message + " You can now login with your new password.");
       // Optionally redirect to login page after a delay
       setTimeout(() => navigate("/login"), 5000);
