@@ -191,6 +191,12 @@ function EmployerIPSettings() {
           </form>
         </div>
       </div>
+
+      {settings && (
+        <div>
+          <pre>{JSON.stringify(settings, null, 2)}</pre>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 const { verifyEmployeeIP } = require('../middleware/ipVerificationMiddleware');
 const AttendanceLog = require('../models/AttendanceLog');
 const EmployeeProfile = require('../models/EmployeeProfile');
+const { broadcastAttendanceUpdate } = require('../server');
 
 const router = express.Router();
 
@@ -22,6 +23,9 @@ router.post(
   protect,
   authorize('employee'),
   verifyEmployeeIP, // Apply IP verification middleware
+  // Add validation rules here (example: require a location field)
+  body('location').optional().isString().withMessage('Location must be a string'),
+  validate, // Run validation
   async (req, res) => {
     try {
       // Get employee profile to find employer
@@ -49,6 +53,7 @@ router.post(
         verified: true,
         status: 'pending'
       });
+      broadcastAttendanceUpdate(attendance);
 
       res.status(201).json({
         message: 'Clock-in successful',
@@ -81,6 +86,14 @@ router.post(
       // Update with clock out time
       attendance.clockOutTime = new Date();
       await attendance.save();
+      broadcastAttendanceUpdate(attendance);
+      // Send email alert if late
+      if (attendance.clockOutTime > attendance.expectedClockOutTime) {
+        // Send email notification
+        const employee = await EmployeeProfile.findOne({ user: req.user.id });
+        const emailText = `Dear ${employee.firstName},\n\nYou clocked out late on ${attendance.clockOutTime}. Please ensure timely attendance in the future.\n\nBest regards,\nHR Team`;
+        await sendEmail(employee.email, 'Late Clock-out Alert', emailText);
+      }
 
       res.status(200).json({
         message: 'Clock-out successful',

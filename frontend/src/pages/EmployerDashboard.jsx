@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Chart as ChartJS, defaults } from 'chart.js/auto';
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend, defaults } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import api from '../api/axiosConfig';
 import { logout } from '../utils/logout';
@@ -8,6 +8,9 @@ import '../styles/pages/employer.css';
 import SpinningLogo from '../components/SpinningLogo';
 import Chatbot from '../components/Chatbot';
 import { useTranslation } from 'react-i18next';
+
+// Register Chart.js components
+ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend);
 
 // Configure Chart.js defaults
 defaults.maintainAspectRatio = false;
@@ -88,11 +91,7 @@ async function sendShiftReminder(shiftId, email) {
 }
 
 export default function EmployerDashboard() {
-  const { t, i18n } = useTranslation();
-
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-  };
+  const { t } = useTranslation();
 
   const [employees, setEmployees] = useState([])
   const [shifts, setShifts] = useState([])
@@ -129,15 +128,12 @@ export default function EmployerDashboard() {
   useEffect(() => {
     if (!loading) {
       requestAnimationFrame(() => {
-        console.log('Scrolling to top');
-        console.log('Zoom level:', window.devicePixelRatio * 100 + '%');
         window.scrollTo(0, 0);
         if (dashboardRef.current) {
           dashboardRef.current.scrollTop = 0;
           let parent = dashboardRef.current.parentElement;
           while (parent) {
             if (parent.scrollHeight > parent.clientHeight) {
-              console.log('Found scrollable parent:', parent);
               parent.scrollTop = 0;
             }
             parent = parent.parentElement;
@@ -160,7 +156,7 @@ export default function EmployerDashboard() {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load data');
     }
-  setLoading(false);
+    setLoading(false);
   }
 
   async function fetchAttendanceForChart(empId) {
@@ -172,18 +168,14 @@ export default function EmployerDashboard() {
         logout(navigate);
         return;
       }
-      // Validate employee ID
       const employeeExists = employees.some(emp => emp._id === empId);
       if (!employeeExists) {
         setError('Employee not found.');
         setChartData(null);
         return;
       }
-      console.log('Fetching attendance for employee:', empId);
       const res = await api.get(`/attendance?employeeId=${empId}`);
       const attendance = res.data;
-      console.log('Attendance data:', attendance);
-      // Process attendance data for charts
       const labels = attendance.map((record) => new Date(record.date).toLocaleDateString());
       const hoursWorked = attendance.map((record) => record.hoursWorked || 0);
       const statusCounts = attendance.reduce((acc, record) => {
@@ -221,7 +213,6 @@ export default function EmployerDashboard() {
         },
       });
     } catch (err) {
-      console.error('Attendance fetch error:', err);
       if (err.response?.status === 403) {
         setError('Unauthorized access. Please log in again.');
         logout(navigate);
@@ -332,9 +323,6 @@ export default function EmployerDashboard() {
         <div className="dashboard-header">
           <header className="dashboard-header">
             <h1>{t('welcome')}</h1>
-            <button onClick={() => changeLanguage('en')}>English</button>
-            <button onClick={() => changeLanguage('es')}>Español</button>
-            <button onClick={() => changeLanguage('fr')}>Français</button>
             <button className="logout-btn" onClick={() => logout(navigate)}>
               Logout
             </button>
@@ -397,9 +385,6 @@ export default function EmployerDashboard() {
                       <td>{emp.employeeId}</td>
                       <td>
                         <button className="delete-btn" onClick={() => handleDeleteEmployee(emp._id)}>Delete</button>
-                        <button onClick={() => exportAttendanceExcel(emp._id)}>
-                          Export Attendance (Excel)
-                        </button>
                         <button onClick={() => exportAttendancePDF(emp._id)}>
                           Export Attendance (PDF)
                         </button>
@@ -462,7 +447,7 @@ export default function EmployerDashboard() {
           <button onClick={exportAllAttendancePDF}>
             Export All Attendance (PDF)
           </button>
-        </header>
+        </div>
 
         {error && <div className="error-message">{error}</div>}
 
@@ -613,6 +598,11 @@ export default function EmployerDashboard() {
           )}
         </section>
 
+        {import.meta.env.DEV && (
+          <button onClick={setTestChartData} style={{ margin: '1rem 0' }}>
+            Load Test Chart Data
+          </button>
+        )}
         {chartData && (
           <section className="chart-section">
             <h2>Attendance Charts</h2>

@@ -8,7 +8,7 @@ i18next
   .use(middleware.LanguageDetector)
   .init({
     fallbackLng: 'en', // Default language
-    preload: ['en', 'es', 'fr'], // Preload supported languages
+    preload: ['en', 'es', 'fr', 'ar', 'se', 'it'], // Preload supported languages
     backend: {
       loadPath: path.join(__dirname, '/locales/{{lng}}/translation.json'), // Path to translation files
     },

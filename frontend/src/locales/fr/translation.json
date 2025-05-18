@@ -1,0 +1,16 @@
+{
+  "welcome": "Bienvenue sur C2 Gestion du Personnel",
+  "login": "Connexion",
+  "logout": "Déconnexion",
+  "dashboard": "Tableau de bord",
+  "add_employee": "Ajouter un employé",
+  "add_shift": "Ajouter un quart",
+  "employees": "Employés",
+  "shifts": "Quarts",
+  "attendance": "Présence",
+  "contact_us": "Contactez-nous",
+  "about": "À propos",
+  "language": "Langue",
+  "clock_in": "Pointer l'entrée",
+  "clock_out": "Pointer la sortie"
+}

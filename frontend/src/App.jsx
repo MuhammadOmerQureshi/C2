@@ -3,6 +3,7 @@ import './styles/index.css';
 import AppRoutes from './routes/AppRoutes';
 import Clock from './components/Clock';
 import Footer from './Footer';
+import LanguageSelector from './components/LanguageSelector';
 
 function App() {
   // You might have some authentication state here
@@ -25,6 +26,7 @@ function App() {
         )}
       </nav>
       
+      <LanguageSelector />
       <Clock />
       <AppRoutes />
       <Footer />

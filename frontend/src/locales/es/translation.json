@@ -1,0 +1,16 @@
+{
+  "welcome": "Bienvenido a C2 Gestión de Personal",
+  "login": "Iniciar sesión",
+  "logout": "Cerrar sesión",
+  "dashboard": "Panel de control",
+  "add_employee": "Agregar empleado",
+  "add_shift": "Agregar turno",
+  "employees": "Empleados",
+  "shifts": "Turnos",
+  "attendance": "Asistencia",
+  "contact_us": "Contáctanos",
+  "about": "Acerca de",
+  "language": "Idioma",
+  "clock_in": "Registrar entrada",
+  "clock_out": "Registrar salida"
+}

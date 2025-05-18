@@ -1,0 +1,16 @@
+{
+  "welcome": "Benvenuto in C2 Gestione del Personale",
+  "login": "Accedi",
+  "logout": "Disconnetti",
+  "dashboard": "Cruscotto",
+  "add_employee": "Aggiungi dipendente",
+  "add_shift": "Aggiungi turno",
+  "employees": "Dipendenti",
+  "shifts": "Turni",
+  "attendance": "Presenze",
+  "contact_us": "Contattaci",
+  "about": "Informazioni",
+  "language": "Lingua",
+  "clock_in": "Timbra entrata",
+  "clock_out": "Timbra uscita"
+}
