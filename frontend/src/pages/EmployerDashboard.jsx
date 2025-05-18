@@ -390,6 +390,9 @@ export default function EmployerDashboard() {
                         <button onClick={() => exportAttendancePDF(emp._id)}>
                           Export Attendance (PDF)
                         </button>
+                        <button onClick={() => fetchAttendanceForChart(emp._id)}>
+                          Show Attendance Chart
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -452,153 +455,6 @@ export default function EmployerDashboard() {
         </div>
 
         {error && <div className="error-message">{error}</div>}
-
-        <section className="add-section">
-          <h2>Add Employee</h2>
-          <form className="add-form" onSubmit={handleAddEmployee}>
-            <input
-              placeholder="First Name"
-              value={empForm.firstName}
-              onChange={(e) => setEmpForm((f) => ({ ...f, firstName: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <input
-              placeholder="Last Name"
-              value={empForm.lastName}
-              onChange={(e) => setEmpForm((f) => ({ ...f, lastName: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <input
-              placeholder="Username"
-              value={empForm.username}
-              onChange={(e) => setEmpForm((f) => ({ ...f, username: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <input
-              placeholder="Email"
-              type="email"
-              value={empForm.email}
-              onChange={(e) => setEmpForm((f) => ({ ...f, email: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <input
-              placeholder="Password"
-              type="password"
-              value={empForm.password}
-              onChange={(e) => setEmpForm((f) => ({ ...f, password: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <input
-              placeholder="Employee ID"
-              value={empForm.employeeId}
-              onChange={(e) => setEmpForm((f) => ({ ...f, employeeId: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <button type="submit">Add</button>
-          </form>
-        </section>
-
-        <section className="add-section">
-          <h2>Add Shift</h2>
-          <form className="add-form" onSubmit={handleAddShift}>
-            <select
-              value={shiftForm.employeeId}
-              onChange={(e) => setShiftForm((f) => ({ ...f, employeeId: e.target.value }))}
-              required
-              autoFocus={false}
-            >
-              <option value="">Select Employee</option>
-              {employees.map((emp) => (
-                <option key={emp._id} value={emp._id}>
-                  {emp.firstName} {emp.lastName} ({emp.employeeId})
-                </option>
-              ))}
-            </select>
-            <input
-              type="date"
-              value={shiftForm.date}
-              onChange={(e) => setShiftForm((f) => ({ ...f, date: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <input
-              type="time"
-              value={shiftForm.startTime}
-              onChange={(e) => setShiftForm((f) => ({ ...f, startTime: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <input
-              type="time"
-              value={shiftForm.endTime}
-              onChange={(e) => setShiftForm((f) => ({ ...f, endTime: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <input
-              placeholder="Location"
-              value={shiftForm.location}
-              onChange={(e) => setShiftForm((f) => ({ ...f, location: e.target.value }))}
-              required
-              autoFocus={false}
-            />
-            <button type="submit">Add</button>
-          </form>
-        </section>
-
-        <section className="list-section">
-          <h2>Employees</h2>
-          {loading ? (
-            <p>Loading…</p>
-          ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Username</th>
-                  <th>Email</th>
-                  <th>Employee ID</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employees.map((emp) => (
-                  <tr key={emp._id}>
-                    <td>{emp.firstName} {emp.lastName}</td>
-                    <td>{emp.username}</td>
-                    <td>{emp.email}</td>
-                    <td>{emp.employeeId}</td>
-                    <td>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDeleteEmployee(emp._id)}
-                      >
-                        Delete
-                      </button>
-                      <button onClick={() => exportAttendancePDF(emp._id)}>
-                        Export PDF
-                      </button>
-                      <button onClick={() => fetchAttendanceForChart(emp._id)}>
-                        View Charts
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {employees.length === 0 && (
-                  <tr>
-                    <td colSpan={5}>No employees found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-        </section>
 
         {import.meta.env.DEV && (
           <button onClick={setTestChartData} style={{ margin: '1rem 0' }}>

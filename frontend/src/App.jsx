@@ -1,39 +1,58 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, Routes, Route, useLocation } from 'react-router-dom';
 import './styles/index.css';
-import AppRoutes from './routes/AppRoutes';
 import Clock from './components/Clock';
 import Footer from './Footer';
 import LanguageSelector from './components/LanguageSelector';
+import LoginPage from './pages/LoginPage';
+import AdminDashboard from './pages/AdminDashboard';
+import EmployerDashboard from './pages/EmployerDashboard';
+import EmployeeDashboard from './pages/EmployeeDashboard';
 
 function App() {
-  // You might have some authentication state here
-  const userRole = 'employer'; // This should come from your auth system
+  // Example: get userRole from auth context or state
+  // const userRole = useAuth()?.role;
+  const userRole = null; // null means not logged in
+
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/';
 
   return (
     <>
-      <nav className="main-nav">
-        <NavLink to="/dashboard">Dashboard</NavLink>
-        
-        {userRole === 'employer' && (
-          <>
-            <NavLink to="/employer/ip-settings">IP Settings</NavLink>
-            <NavLink to="/employer/failed-attempts">Failed Attempts</NavLink>
-          </>
-        )}
-        
-        {userRole === 'employee' && (
-          <NavLink to="/employee/clock-in">Clock In/Out</NavLink>
-        )}
-      </nav>
-      
+      {/* Only show nav if not on login page and user is logged in */}
+      {!isLoginPage && userRole && (
+        <nav className="main-nav">
+          <NavLink to="/dashboard">Dashboard</NavLink>
+          {userRole === 'employer' && (
+            <>
+              <NavLink to="/employer/ip-settings">IP Settings</NavLink>
+              <NavLink to="/employer/failed-attempts">Failed Attempts</NavLink>
+            </>
+          )}
+          {userRole === 'employee' && (
+            <NavLink to="/employee/clock-in">Clock In/Out</NavLink>
+          )}
+        </nav>
+      )}
+
       <LanguageSelector />
-      <Clock />
-      <Footer />
+
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/employer" element={<EmployerDashboard />} />
+        <Route path="/employee" element={<EmployeeDashboard />} />
+        {/* ...other routes... */}
+      </Routes>
+
+      {/* Only show clock and footer if not on login page */}
+      {!isLoginPage && (
+        <>
+          <Clock />
+          <Footer />
+        </>
+      )}
     </>
   );
 }
 
 export default App;
-
-
-
