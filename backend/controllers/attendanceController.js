@@ -215,18 +215,19 @@ exports.exportAllAttendancePDF = async (req, res) => {
 exports.sendShiftReminder = async (req, res) => {
   try {
     const { shiftId, email } = req.body;
+    const { t } = req; // Access the translation function
 
     // Fetch shift details
     const shift = await Shift.findById(shiftId).populate('employee');
-    if (!shift) return res.status(404).json({ message: 'Shift not found' });
+    if (!shift) return res.status(404).json({ message: t('shiftNotFound') });
 
     const startDate = new Date(`${shift.date}T${shift.startTime}`);
     const endDate = new Date(`${shift.date}T${shift.endTime}`);
 
     // Generate ICS file
     const eventDetails = {
-      title: `Shift Reminder for ${shift.employee.firstName} ${shift.employee.lastName}`,
-      description: `You have a shift scheduled on ${shift.date} from ${shift.startTime} to ${shift.endTime}.`,
+      title: t('shiftReminder'),
+      description: t('shiftDetails'),
       location: shift.location,
       start: [startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate(), startDate.getHours(), startDate.getMinutes()],
       end: [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate(), endDate.getHours(), endDate.getMinutes()],
@@ -237,14 +238,14 @@ exports.sendShiftReminder = async (req, res) => {
     // Send ICS file via email
     await sendEmail(
       email,
-      'Shift Reminder',
-      `Dear ${shift.employee.firstName},\n\nPlease find your shift details attached.\n\nBest regards,\nHR Team`,
+      t('shiftReminder'),
+      `${t('shiftDetails')}\n\n${t('bestRegards')},\nHR Team`,
       [{ filename: 'shift_reminder.ics', content: icsContent }]
     );
 
-    res.status(200).json({ message: 'Shift reminder sent successfully' });
+    res.status(200).json({ message: t('shiftReminderSent') });
   } catch (error) {
     console.error('Error sending shift reminder:', error);
-    res.status(500).json({ message: 'Failed to send shift reminder', error: error.message });
+    res.status(500).json({ message: t('shiftReminderFailed'), error: error.message });
   }
 };

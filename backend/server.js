@@ -7,6 +7,8 @@ const http = require('http');
 const { Server } = require('socket.io');
 const nodemailer = require('nodemailer');
 const path = require('path');
+const i18next = require('./i18n');
+const i18nextMiddleware = require('i18next-http-middleware');
 
 // --- Declare io and broadcastAttendanceUpdate at the top ---
 let io;
@@ -42,6 +44,9 @@ const attendanceRoutes= require('./routes/attendanceRoutes');
 const adminRoutes       = require('./routes/adminRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+
+// Add i18next middleware
+app.use(i18nextMiddleware.handle(i18next));
 
 // Mount routers
 app.use('/api/auth', authRoutes);

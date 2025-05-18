@@ -1,8 +1,7 @@
-// api/axiosConfig.js
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api', // This adds the /api prefix to all requests
+  baseURL: import.meta.env.VITE_API_URL, 
   headers: {
     'Content-Type': 'application/json',
   },
