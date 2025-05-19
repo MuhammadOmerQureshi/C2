@@ -1,23 +1,30 @@
 import React, { useState, useEffect } from "react";
-import api from "../api/api";
+import api from "../api/axiosConfig";
 
-const ClockInOut = () => {
+const ClockInOut = ({ shiftId }) => {
   const [status, setStatus] = useState("loading");
   const [activeLog, setActiveLog] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [ip, setIp] = useState("");
 
   useEffect(() => {
+    // Get user's IP address
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => setIp(data.ip))
+      .catch(err => console.error("Failed to get IP:", err));
+
     checkStatus();
   }, []);
 
   const checkStatus = async () => {
     try {
-      const res = await api.get("/attendance/history");
+      const res = await api.get("/attendance/my-history");
       const logs = res.data;
 
-      // Check if there's an active clock-in (no clock-out time)
-      const active = logs.find((log) => !log.clockOutTime);
+      // Check if there's an active clock-in (no clockOut time)
+      const active = logs.find((log) => !log.clockOut);
 
       if (active) {
         setActiveLog(active);
@@ -26,7 +33,7 @@ const ClockInOut = () => {
         setStatus("clocked-out");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error checking status:", err);
       setError("Failed to check status");
       setStatus("error");
     }
@@ -37,11 +44,19 @@ const ClockInOut = () => {
       setStatus("loading");
       setError("");
 
-      const res = await api.post("/attendance/clock-in");
+      // Make sure we have a shiftId and IP to send
+      if (!shiftId) {
+        setError("No shift selected for clock-in");
+        setStatus("error");
+        return;
+      }
+
+      const res = await api.post("/attendance/clock-in", { shiftId, ip });
       setMessage("Successfully clocked in!");
-      setActiveLog(res.data.attendanceLog);
+      setActiveLog(res.data.attendance);
       setStatus("clocked-in");
     } catch (err) {
+      console.error("Clock-in error:", err);
       setError(err.response?.data?.message || "Failed to clock in");
       setStatus("error");
     }
@@ -52,11 +67,18 @@ const ClockInOut = () => {
       setStatus("loading");
       setError("");
 
-      await api.post("/attendance/clock-out");
+      if (!activeLog || !activeLog._id) {
+        setError("No active attendance record found");
+        setStatus("error");
+        return;
+      }
+
+      await api.post("/attendance/clock-out", { attendanceId: activeLog._id });
       setMessage("Successfully clocked out!");
       setActiveLog(null);
       setStatus("clocked-out");
     } catch (err) {
+      console.error("Clock-out error:", err);
       setError(err.response?.data?.message || "Failed to clock out");
       setStatus("error");
     }
@@ -109,9 +131,9 @@ const ClockInOut = () => {
             <div className="mb-4">
               <p>
                 Clocked in at:{" "}
-                {new Date(activeLog.clockInTime).toLocaleString()}
+                {new Date(activeLog.clockIn).toLocaleString()}
               </p>
-              <p>IP Address: {activeLog.ipAddress}</p>
+              <p>IP Address: {activeLog.ip}</p>
             </div>
           )}
 

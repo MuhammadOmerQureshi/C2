@@ -25,6 +25,10 @@ export default function EmployeeDashboard() {
     fetchHistory()
   }, [])
 
+  const activeAttendance = history.find(
+  r => r.clockIn && !r.clockOut && new Date(r.date).toDateString() === new Date().toDateString()
+  );
+
   async function fetchShifts() {
     setLoadingShifts(true)
     try {
@@ -99,11 +103,15 @@ export default function EmployeeDashboard() {
                         {' '}{s.startTime}–{s.endTime}
                       </div>
                       <div className="shift-actions">
-                        {s.status === 'scheduled'
-                          ? <button onClick={() => handleClockIn(s._id)}>
-                              Clock In
+                        {activeAttendance
+                          ? <button onClick={() => handleClockOut(activeAttendance._id)}>
+                              Clock Out
                             </button>
-                          : <span>Status: {s.status}</span>
+                          : s.status === 'scheduled'
+                            ? <button onClick={() => handleClockIn(s._id)}>
+                                Clock In
+                              </button>
+                            : <span>Status: {s.status}</span>
                         }
                       </div>
                     </li>
