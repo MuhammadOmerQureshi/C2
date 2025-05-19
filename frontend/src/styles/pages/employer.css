@@ -24,8 +24,6 @@ div.employer-dashboard {
    margin-top: 1100px;   
 }
 
-
-
 div.employer-dashboard .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -44,6 +42,9 @@ div.employer-dashboard .dashboard-header h1 {
   font-size: 1.8rem;
   font-weight: 600;
   color: #00c4b4;
+  margin: 0 auto;
+  text-align: center;
+  flex: 1;
 }
 
 div.employer-dashboard .logout-btn {

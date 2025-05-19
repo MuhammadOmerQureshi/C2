@@ -73,14 +73,18 @@ module.exports = router;
 
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { loginUser, getMe, updateUserProfile } = require('../controllers/authController');
+const { loginUser, getMe, updateUserProfile, forgotPassword, resetPassword } = require("../controllers/authController"); 
 const { protect } = require('../middleware/authMiddleware');
+const { sendShiftReminder } = require('../controllers/attendanceController');
+
+
+
 const router = express.Router();
 
 // Validation helper
 const validate = (req, res, next) => {
   const errs = validationResult(req);
-  if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
+  if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() }); // Check for validation errors
   next();
 };
 
@@ -91,10 +95,30 @@ router.post(
   validate,
   loginUser
 );
+// Forgot password route
+router.post(
+  "/forgot-password",
+  [ body("email").isEmail().withMessage("Valid email is required") ],
+  validate,
+  forgotPassword
+);
+
+// Reset password route
+router.post(
+  "/reset-password",
+  [
+    body("token").notEmpty().withMessage("Token is required"),
+    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
+  ],
+  validate,
+  resetPassword
+);
+
+// router.post('/send-shift-reminder', sendShiftReminder);
+
 
 // Protected "me" routes
 router.get('/me', protect, getMe);
 router.put('/me', protect, updateUserProfile);
 
 module.exports = router;
-

@@ -1,4 +1,3 @@
-// filepath: c:\Users\ibola\C2\backend\utils\calendar.js
 const { writeFileSync } = require('fs');
 const { createEvent } = require('ics');
 

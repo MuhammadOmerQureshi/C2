@@ -44,6 +44,54 @@ export default function EmployeeDashboard() {
       console.error('History fetch error:', err);
     }
     setLoadingHistory(false);
+
+// import React, { useEffect, useState } from 'react'
+// import { useNavigate } from 'react-router-dom'
+// import api from '../api/axiosConfig'
+// import { logout } from '../utils/logout'
+// import SpinningLogo from '../components/SpinningLogo';
+// import '../styles/pages/employer.css'
+
+// export default function EmployeeDashboard() {
+//   const [shifts, setShifts] = useState([])
+//   const [history, setHistory] = useState([])
+//   const [loadingShifts, setLoadingShifts] = useState(true)
+//   const [loadingHistory, setLoadingHistory] = useState(true)
+//   const [error, setError] = useState('')
+//   const [ip, setIp] = useState('');
+//   const navigate = useNavigate()
+
+//   useEffect(() => {
+//     fetch('https://api.ipify.org?format=json')
+//       .then(res => res.json())
+//       .then(data => setIp(data.ip));
+//   }, []);
+
+//   useEffect(() => {
+//     fetchShifts()
+//     fetchHistory()
+//   }, [])
+
+//   async function fetchShifts() {
+//     setLoadingShifts(true)
+//     try {
+//       const res = await api.get('/shifts/my')
+//       setShifts(res.data)
+//     } catch (err) {
+//       setError(err.response?.data?.message || 'Failed to load shifts')
+//     }
+//     setLoadingShifts(false)
+//   }
+
+//   async function fetchHistory() {
+//     setLoadingHistory(true)
+//     try {
+//       const res = await api.get('/attendance/my-history')
+//       setHistory(res.data)
+//     } catch (err) {
+//       setError(err.response?.data?.message || 'Failed to load attendance history')
+//     }
+//     setLoadingHistory(false)
   }
 
   async function handleClockIn(shiftId) {
@@ -54,6 +102,12 @@ export default function EmployeeDashboard() {
       // Remove employerId from the request body
       const res = await api.post('/attendance/clock-in', { shiftId, ip });
       alert(res.data.message);
+      
+      // // Send shiftId and ip to backend
+      // const res = await api.post('/attendance/clock-in', { shiftId, ip });
+      // console.log('Backend response:', res.data); // Add this for debugging
+      // alert(res.data.message); // This should show "Yahoo" or "very sad"
+
       fetchHistory();
     } catch (err) {
       setError(err.response?.data?.message || 'Clock-in failed');

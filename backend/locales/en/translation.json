@@ -1,0 +1,16 @@
+{
+  "welcome": "Welcome to C2 Workforce Management",
+  "login": "Login",
+  "logout": "Logout",
+  "dashboard": "Dashboard",
+  "add_employee": "Add Employee",
+  "add_shift": "Add Shift",
+  "employees": "Employees",
+  "shifts": "Shifts",
+  "attendance": "Attendance",
+  "contact_us": "Contact Us",
+  "about": "About",
+  "language": "Language",
+  "clock_in": "Clock In",
+  "clock_out": "Clock Out"
+}

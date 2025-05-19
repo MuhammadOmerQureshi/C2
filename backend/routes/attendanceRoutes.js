@@ -13,13 +13,19 @@ const {
   listMyAttendance,
   exportAttendancePDF
 } = require('../controllers/attendanceController');
+const { verifyEmployeeIP } = require('../middleware/ipVerificationMiddleware');
+const AttendanceLog = require('../models/AttendanceLog');
+const EmployeeProfile = require('../models/EmployeeProfile');
+const { broadcastAttendanceUpdate } = require('../server');
 
 const router = express.Router();
 
-// validation helper
+// Validation helper
 const validate = (req, res, next) => {
-  const errs = validationResult(req);
-  if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   next();
 };
 

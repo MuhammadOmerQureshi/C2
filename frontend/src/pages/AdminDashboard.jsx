@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { logout } from '../utils/logout';
 import SpinningLogo from '../components/SpinningLogo';
 import '../styles/pages/login.css'
+import '../styles/pages/admin.css'
 
 export default function AdminDashboard() {
   const [employers, setEmployers] = useState([]);

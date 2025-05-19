@@ -1,0 +1,16 @@
+{
+  "welcome": "Välkommen till C2 Personalhantering",
+  "login": "Logga in",
+  "logout": "Logga ut",
+  "dashboard": "Instrumentpanel",
+  "add_employee": "Lägg till anställd",
+  "add_shift": "Lägg till skift",
+  "employees": "Anställda",
+  "shifts": "Skift",
+  "attendance": "Närvaro",
+  "contact_us": "Kontakta oss",
+  "about": "Om",
+  "language": "Språk",
+  "clock_in": "Stämpla in",
+  "clock_out": "Stämpla ut"
+}

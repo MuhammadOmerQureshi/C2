@@ -53,6 +53,9 @@ exports.createEmployee = async (req, res) => {
       employer: req.user.id // Use the MongoDB _id from JWT/session
     });
 
+    // Omit password from response
+    const { password: _p, ...data } = employee.toObject();
+    res.status(201).json({ message: 'Employee created', employee: data });
     res.status(201).json({ message: "Employee created successfully" });
   } catch (err) {
     console.warn("Add employee error:", err);
@@ -76,7 +79,7 @@ exports.listEmployees = async (req, res) => {
   }
 };
 
-// Get one employee's profile by ID (keep your existing implementation if needed)
+// Get one employee's profile by ID
 exports.getEmployeeById = async (req, res) => {
   try {
     const employeeProfile = await EmployeeProfile.findOne({
@@ -121,6 +124,8 @@ exports.updateEmployee = async (req, res) => {
 
     res.json({ message: 'Employee updated successfully' });
   } catch (err) {
+    console.error('updateEmployee error:', err);
+    res.status(500).json({ message: 'Server error' });
     console.error('Update employee error:', err);
     res.status(500).json({ message: 'Could not update employee' });
   }
@@ -129,6 +134,24 @@ exports.updateEmployee = async (req, res) => {
 // Delete an employee
 exports.deleteEmployee = async (req, res) => {
   try {
+    // Check if employee belongs to this employer
+    const employeeProfile = await EmployeeProfile.findOne({
+      user: req.params.id,
+      employer: req.user.id
+    });
+
+    if (!employeeProfile) {
+      return res.status(404).json({ message: 'Employee not found or not authorized to delete' });
+    }
+
+    // Delete the employee profile first
+    await EmployeeProfile.findByIdAndDelete(employeeProfile._id);
+    
+    // Then delete the user
+    const employee = await User.findByIdAndDelete(req.params.id);
+    
+    if (!employee) return res.status(404).json({ message: 'Employee not found' });
+    res.status(200).json({ message: 'Employee deleted' });
     const { id } = req.params;
     const profile = await EmployeeProfile.findOne({ user: id, employer: req.user.id });
     if (!profile) return res.status(404).json({ message: 'Employee not found or not yours' });
@@ -142,3 +165,6 @@ exports.deleteEmployee = async (req, res) => {
     res.status(500).json({ message: 'Could not delete employee' });
   }
 };
+
+
+  

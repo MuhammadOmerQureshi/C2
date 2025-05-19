@@ -6,12 +6,34 @@ require('dotenv').config();
 const http = require('http');
 const { Server } = require('socket.io');
 const nodemailer = require('nodemailer');
+const path = require('path');
+const i18next = require('./i18n');
+const i18nextMiddleware = require('i18next-http-middleware');
 
+// --- Declare io and broadcastAttendanceUpdate at the top ---
+let io;
+let broadcastAttendanceUpdate = () => {};
 
 // import models for seeding
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
+// 5. Database connection & server start
+const PORT = process.env.PORT || 5000;
 
+// 3. App setup
+const app = express();
+app.use(express.static(path.join(__dirname, '../frontend/dist/'))); // Serve static files from the public directory
+
+// Middleware
+app.use(express.json());  // parse JSON bodies
+app.use(cors({
+  origin: [
+    'https://c2-85uf.onrender.com', 
+    'http://localhost:5173'         
+  ],
+  credentials: true
+}));
+app.use(cookieParser());
 
 // 2. Route imports
 const authRoutes        = require('./routes/authRoutes');
@@ -20,22 +42,11 @@ const employeeRoutes   = require('./routes/employeeRoutes');
 const employerRoutes   = require('./routes/employerRoutes');
 const attendanceRoutes= require('./routes/attendanceRoutes');
 const adminRoutes       = require('./routes/adminRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
-
-
-// const attendanceRoutes = require('./routes/attendanceRoutes');
-
-
-// 3. App setup
-const app = express();
-
-// Middleware
-app.use(express.json());  // parse JSON bodies
-app.use(cors({
-  origin: 'http://localhost:5173', // your frontend URL
-  credentials: true
-}));
-app.use(cookieParser());
+// Add i18next middleware
+app.use(i18nextMiddleware.handle(i18next));
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -44,43 +55,15 @@ app.use('/api/employees',  employeeRoutes);
 app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/contact', contactRoutes);
 
-// At the end of your main app.js or server.js file, after all routes:
-
-app.use((err, req, res, next) => {
-  // Log full error details in the terminal
-  console.error('--- ERROR START ---');
-  console.error('Time:', new Date().toISOString());
-  console.error('Path:', req.originalUrl);
-  console.error('Method:', req.method);
-  if (req.user) console.error('User:', req.user);
-  if (req.headers.authorization) console.error('Auth header:', req.headers.authorization);
-  console.error('Error stack:', err.stack || err);
-  console.error('--- ERROR END ---');
-  // Respond with a generic error (don't leak stack in prod)
-  res.status(err.status || 500).json({ message: err.message || 'Server Error' });
-});
-
-
-
-
-// 4. Health-check & 404
-app.get('/', (req, res) => {
-  res.send('Backend is running');
-});
-
-// Catch-all for unknown routes
-app.use((req, res) => {
+// 404 handler for API routes only
+app.use('/api', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// 5. Database connection & server start
-const PORT = process.env.PORT || 5000;
-
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log('Connected to MongoDB');
 
@@ -107,8 +90,36 @@ mongoose.connect(process.env.MONGODB_URI, {
       console.error('Error seeding admin user:', err);
     }
 
+    // Create HTTP server
+    const server = http.createServer(app);
+
+    // Initialize Socket.IO
+    io = new Server(server, {
+      cors: {
+        origin: [
+          'https://c2-85uf.onrender.com',
+          'http://localhost:5173'
+        ],
+        credentials: true,
+      },
+    });
+
+    // Handle WebSocket connections
+    io.on('connection', (socket) => {
+      console.log('Client connected:', socket.id);
+
+      socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+      });
+    });
+
+    // Broadcast attendance updates
+    broadcastAttendanceUpdate = (attendance) => {
+      io.emit('attendanceUpdate', attendance);
+    };
+
     // start HTTP server after seeding
-    const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
     // graceful shutdown
     function shutdown() {
@@ -130,3 +141,29 @@ mongoose.connect(process.env.MONGODB_URI, {
   })
   .catch((error) => console.error('MongoDB connection error:', error));
 
+const transporter = nodemailer.createTransport({
+  service: 'brevo', 
+  auth: {
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS, 
+  },
+});
+
+const sendEmail = async (to, subject, text) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      text,
+    });
+    console.log(`Email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+};
+
+module.exports = {
+  sendEmail,
+  broadcastAttendanceUpdate
+};

@@ -8,6 +8,8 @@ const {
   deleteEmployee
 } = require('../controllers/employeeController');
 const employerController = require('../controllers/employerController');
+
+
 const { protect, authorize } = require('../middleware/authMiddleware');
 const router = express.Router();
 
@@ -17,30 +19,51 @@ const validate = (req, res, next) => {
   next();
 };
 
-// Employer dashboard route (with middleware)
+// Employer dashboard
 router.get('/dashboard', protect, authorize('employer'), employerController.getDashboard);
 
-// Employees CRUD (with middleware, no overlap)
-router.post('/employees', protect, authorize('employer'), createEmployee);
-router.get('/employees', protect, authorize('employer'), listEmployees);
-router.put('/employees/:id', protect, authorize('employer'), updateEmployee);
-router.delete('/employees/:id', protect, authorize('employer'), deleteEmployee);
-
-// Existing routes (no overlap with /employees)
+// Employee CRUD (all protected and authorized)
 router.post(
-  '/',
-  [ body('firstName').notEmpty(), /* etc. */ ],
+  '/employees',
+  ...[
+    body('firstName').notEmpty().withMessage('First name is required'),
+    body('lastName').notEmpty().withMessage('Last name is required'),
+    body('username').notEmpty().withMessage('Username is required'),
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    body('employeeId').notEmpty().withMessage('Employee ID is required'),
+    body('contact').optional().isString().withMessage('Contact must be a string'),
+    // Add any other validators you use in employeeRoutes.js
+  ],
   validate,
+  protect,
+  authorize('employer'),
   createEmployee
 );
-router.get('/', listEmployees);
-router.get('/:id', getEmployeeById);
-router.put('/:id', /* validators */ validate, updateEmployee);
-router.delete('/:id', deleteEmployee);
+
+router.get('/employees', protect, authorize('employer'), listEmployees);
+router.get('/employees/:id', protect, authorize('employer'), getEmployeeById);
+
+router.put(
+  '/employees/:id',
+  ...[
+    body('firstName').optional().notEmpty().withMessage('First name cannot be empty'),
+    body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
+    body('username').optional().notEmpty().withMessage('Username cannot be empty'),
+    body('email').optional().isEmail().withMessage('Valid email is required'),
+    body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    body('employeeId').optional().notEmpty().withMessage('Employee ID cannot be empty'),
+    body('contact').optional().isString().withMessage('Contact must be a string'),
+    // Add any other update validators as needed
+  ],
+  validate,
+  protect,
+  authorize('employer'),
+  updateEmployee
+);
+
+router.delete('/employees/:id', protect, authorize('employer'), deleteEmployee);
 
 module.exports = router;
-
-
-
 
 

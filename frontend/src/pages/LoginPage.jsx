@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import { Link } from 'react-router-dom';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -54,7 +55,18 @@ export default function LoginPage() {
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
-          <button type="submit">Submit</button>
+        
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white py-2 rounded"
+        >
+          Submit
+        </button>
+        <div className="text-center">
+          <Link to="/forgot-password" className="text-sm text-blue-500 hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
         </form>
       </div>
     </div>

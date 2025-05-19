@@ -1,6 +1,6 @@
 import React from 'react';
 import './SpinningLogo.css';
-import logoImg from '../components/logo.png'; // Update with your actual logo path
+import logoImg from '../components/logo.png'; 
 
 export default function SpinningLogo() {
   return (

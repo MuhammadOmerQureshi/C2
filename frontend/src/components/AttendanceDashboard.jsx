@@ -88,6 +88,27 @@ const AttendanceDashboard = () => {
                     },
                 ],
             });
+
+            // Prepare data for the Pie Chart
+            const statusCounts = response.data.attendanceRecords.reduce(
+                (acc, record) => {
+                    if (record.status === 'ontime') acc.ontime += 1;
+                    else if (record.status === 'late') acc.late += 1;
+                    else if (record.status === 'absent') acc.absent += 1;
+                    return acc;
+                },
+                { ontime: 0, late: 0, absent: 0 }
+            );
+            setPieChartData({
+                labels: ['On Time', 'Late', 'Absent'],
+                datasets: [
+                    {
+                        data: [statusCounts.ontime, statusCounts.late, statusCounts.absent],
+                        backgroundColor: ['#4caf50', '#ff9800', '#f44336'],
+                        hoverBackgroundColor: ['#66bb6a', '#ffb74d', '#e57373'],
+                    },
+                ],
+            });
         } catch (error) {
             console.error('Error fetching attendance data:', error);
         }
@@ -139,7 +160,13 @@ const AttendanceDashboard = () => {
             {/* Bar Chart */}
             <div>
                 <h2>Daily Attendance Trends</h2>
-                <Bar data={chartData} />
+                <Bar data={barChartData} />
+            </div>
+
+            {/* Pie Chart */}
+            <div>
+                <h2>Attendance Status Distribution</h2>
+                <Pie data={pieChartData} />
             </div>
 
             <table>
