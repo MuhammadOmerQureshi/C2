@@ -128,7 +128,7 @@ exports.exportAttendancePDF = async (req, res) => {
     }
 
     // Debug: log the context, user, and employee
-    console.log('--- PDF EXPORT ATTEMPT ---');s
+    console.log('--- PDF EXPORT ATTEMPT ---')
 
     console.log('Requester:', userRole, userId);
     console.log('Employee:', employeeId, employee.firstName, employee.lastName);
@@ -200,7 +200,7 @@ exports.exportAttendancePDF = async (req, res) => {
     doc.end();
   } catch (err) {
     console.error('PDF export error:', err);
-    res.status(500).send(`<h1>Export failed</h1><pre>${err.message}</pre>`);
+    res.status(500).send(`<h1>Export failed (attenccontroller)</h1><pre>${err.message}</pre>`);
   }
 };
 

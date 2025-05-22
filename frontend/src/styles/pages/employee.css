@@ -1,8 +1,8 @@
-html, body {
+/* html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-}
+} */
 
 .spinning-logo {
   position: fixed;
@@ -33,10 +33,10 @@ html, body {
   background: rgba(20, 24, 31, 0.98);
   border-radius: 16px;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
-  max-width: 700px;
+  max-width: none;
   width: 100%;
   padding: 2.5rem 2rem 2rem 2rem;
-  margin: 2rem 1rem 1rem 1rem; /* Add top margin */
+  margin: 0; /* Add top margin */
   display: flex;
   flex-direction: column;
   gap: 2rem;

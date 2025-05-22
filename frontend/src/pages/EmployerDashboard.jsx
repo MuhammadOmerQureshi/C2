@@ -76,12 +76,12 @@ async function exportAttendancePDF(employeeId) {
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('text/html')) {
       const text = await response.text();
-      alert('Export failed: ' + text);
+      alert('Export failed (employer dash 1)): ' + text);
       return;
     }
 
     if (!response.ok) {
-      let errorMsg = 'Export failed';
+      let errorMsg = 'Export failed (employer dash 2)';
       if (response.status === 401 || response.status === 403) {
         errorMsg = 'Unauthorized. Please log in again.';
       } else {
@@ -534,9 +534,9 @@ export default function EmployerDashboard() {
             )}
           </section>
 
-          <button onClick={exportAllAttendancePDF}>
+          {/* <button onClick={exportAllAttendancePDF}>
             Export All Attendance (PDF)
-          </button>
+          </button> */}
         </div>
 
 

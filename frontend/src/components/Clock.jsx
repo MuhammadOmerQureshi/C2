@@ -27,7 +27,7 @@ function formatDate(date) {
   return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
 }
 
-export default function Clock() {
+function Clock() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -42,3 +42,5 @@ export default function Clock() {
     </div>
   );
 }
+
+export default Clock;
