@@ -1,27 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend, defaults } from 'chart.js';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { logout } from '../utils/logout';
-import '../styles/pages/employer.css';
+
+import '../styles/pages/employerDashboard.css';
 import SpinningLogo from '../components/SpinningLogo';
-import axios from 'axios';
 import Chatbot from '../components/Chatbot';
-import { useTranslation } from 'react-i18next';
-
-// Register Chart.js components
-ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend);
-
-// Configure Chart.js defaults
-defaults.maintainAspectRatio = false;
-defaults.responsive = true;
-defaults.plugins.title = Object.assign({}, defaults.plugins.title, {
-  display: true,
-  align: "start",
-  font: { size: 20 },
-  color: "black"
-});
 
 // -- DEFENSIVE HOOK --
 function useEmployerApiEmployees() {
@@ -144,8 +128,6 @@ async function sendShiftReminder(shiftId, email) {
 }
 
 export default function EmployerDashboard() {
-  const { t } = useTranslation();
-
   const [employees, setEmployees] = useState([])
   const [shifts, setShifts] = useState([])
   const [empForm, setEmpForm] = useState({
@@ -167,9 +149,8 @@ export default function EmployerDashboard() {
   const [error, setError] = useState('');
   const [chartData, setChartData] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation();
   const employerId = localStorage.getItem('userId'); // Should be MongoDB _id
-  const dashboardRef = useRef(null);
+
   const apiEmployees = useEmployerApiEmployees();
 
   useEffect(() => {
@@ -178,24 +159,6 @@ export default function EmployerDashboard() {
     }
     fetchAll();
   }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      requestAnimationFrame(() => {
-        window.scrollTo(0, 0);
-        if (dashboardRef.current) {
-          dashboardRef.current.scrollTop = 0;
-          let parent = dashboardRef.current.parentElement;
-          while (parent) {
-            if (parent.scrollHeight > parent.clientHeight) {
-              parent.scrollTop = 0;
-            }
-            parent = parent.parentElement;
-          }
-        }
-      });
-    }
-  }, [loading, location.pathname]);
 
   async function fetchAll() {
     setLoading(true);
@@ -388,96 +351,134 @@ export default function EmployerDashboard() {
     });
   }
 
+  // Example: Calculate pending clock-ins (adjust as needed)
+  const pendingClockIns = employees.filter(e => !e.clockedIn).length;
+
   return (
     <>
       <SpinningLogo />
-{/* <<<<<<< HEAD
-      <div className="employer-dashboard" ref={dashboardRef}>
-        <header className="dashboard-header">
-          <h1>Employer Dashboard</h1>
-          <button className="logout-btn" onClick={() => logout(navigate)}>
-            Logout
-          </button>
-          <button
-            onClick={() => handleEmployerApiLogout(navigate)}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 ml-4"
-          >
-            API Logout
-          </button>
-        </header>
-======= */}
-      <div className="employer-dashboard">
-        <div className="dashboard-header">
-          <header className="dashboard-header">
-            <h1>{t('welcome')}</h1>
-            <button className="logout-btn" onClick={() => logout(navigate)}>
-              Logout
-            </button>
-          </header>
-        </div>
-        <div className="dashboard-scroll">
-          {error && <div className="error-message">{error}</div>}
 
-          <section className="add-section">
-            <h2>Add Employee</h2>
-            <form className="add-form" onSubmit={handleAddEmployee}>
-              <input placeholder="First Name" value={empForm.firstName} onChange={e => setEmpForm(f => ({ ...f, firstName: e.target.value }))} required />
-              <input placeholder="Last Name" value={empForm.lastName} onChange={e => setEmpForm(f => ({ ...f, lastName: e.target.value }))} required />
-              <input placeholder="Username" value={empForm.username} onChange={e => setEmpForm(f => ({ ...f, username: e.target.value }))} required />
-              <input placeholder="Email" type="email" value={empForm.email} onChange={e => setEmpForm(f => ({ ...f, email: e.target.value }))} required />
-              <input placeholder="Password" type="password" value={empForm.password} onChange={e => setEmpForm(f => ({ ...f, password: e.target.value }))} required />
-              <input placeholder="Employee ID" value={empForm.employeeId} onChange={e => setEmpForm(f => ({ ...f, employeeId: e.target.value }))} required />
-              <button type="submit">Add</button>
+      {/* ===== Header ===== */}
+      <header className="header">
+        <h1 className="header-title">Employer Dashboard</h1>
+        <button className="btn btn-logout" onClick={() => logout(navigate)}>
+          Logout
+        </button>
+      </header>
+
+      {/* ===== Notifications ===== */}
+      <div className="notifications">
+        <p>
+          <strong>⚠️ Pending Clock-Ins:</strong> {pendingClockIns} employees have not clocked in yet.
+        </p>
+        <p>
+          <strong>📢 Alert:</strong> {shifts.find(s => !s.employeeId) ? "Some shifts need assignment." : "All shifts assigned."}
+        </p>
+      </div>
+    {/* <div class="dashboard-flex-layout"> */}
+      <main className="main-content">
+        {/* ===== Overview Cards ===== */}
+        <section className="overview">
+          <div className="card">
+            <h3>Total Employees</h3>
+            <p className="stat-number">{employees.length}</p>
+          </div>
+          <div className="card">
+            <h3>Total Shifts Posted</h3>
+            <p className="stat-number">{shifts.length}</p>
+          </div>
+          <div className="card">
+            <h3>Pending Clock-Ins</h3>
+            <p className="stat-number">{pendingClockIns}</p>
+          </div>
+        </section>
+
+        {/* ===== Forms Section ===== */}
+        <section className="forms">
+          {/* Create Employee Form */}
+          <div className="form-card">
+            <h2>Create Employee</h2>
+            <form className="create-form" onSubmit={handleAddEmployee}>
+              <div className="form-group">
+                <label>First Name<span className="required">*</span></label>
+                <input value={empForm.firstName} onChange={e => setEmpForm(f => ({ ...f, firstName: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label>Last Name<span className="required">*</span></label>
+                <input value={empForm.lastName} onChange={e => setEmpForm(f => ({ ...f, lastName: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label>Email<span className="required">*</span></label>
+                <input type="email" value={empForm.email} onChange={e => setEmpForm(f => ({ ...f, email: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label>Employee Number<span className="required">*</span></label>
+                <input value={empForm.employeeId} onChange={e => setEmpForm(f => ({ ...f, employeeId: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label>Contact Number<span className="required">*</span></label>
+                <input value={empForm.contactNumber || ''} onChange={e => setEmpForm(f => ({ ...f, contactNumber: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label>Password<span className="required">*</span></label>
+                <input type="password" value={empForm.password} onChange={e => setEmpForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
+              </div>
+              <button type="submit" className="btn btn-primary">Create Employee</button>
             </form>
-          </section>
+          </div>
 
-          <section className="add-section">
-            <h2>Add Shift</h2>
-            <form className="add-form" onSubmit={handleAddShift}>
-              <select value={shiftForm.employeeId} onChange={e => setShiftForm(f => ({ ...f, employeeId: e.target.value }))} required>
-                <option value="">Select Employee</option>
-                {employees.map(emp => (
-                  <option key={emp._id} value={emp._id}>
-                    {emp.firstName} {emp.lastName} ({emp.employeeId})
-                  </option>
-                ))}
-              </select>
-              <input type="date" value={shiftForm.date} onChange={e => setShiftForm(f => ({ ...f, date: e.target.value }))} required />
-              <input type="time" value={shiftForm.startTime} onChange={e => setShiftForm(f => ({ ...f, startTime: e.target.value }))} required />
-              <input type="time" value={shiftForm.endTime} onChange={e => setShiftForm(f => ({ ...f, endTime: e.target.value }))} required />
-              <input placeholder="Location" value={shiftForm.location} onChange={e => setShiftForm(f => ({ ...f, location: e.target.value }))} required />
-              <button type="submit">Add</button>
+          {/* Create/Edit Shift Form */}
+          <div className="form-card">
+            <h2>Create / Edit Shift</h2>
+            <form className="create-form" onSubmit={handleAddShift}>
+              <div className="form-group">
+                <label>Date<span className="required">*</span></label>
+                <input type="date" value={shiftForm.date} onChange={e => setShiftForm(f => ({ ...f, date: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label>Start Time<span className="required">*</span></label>
+                <input type="time" value={shiftForm.startTime} onChange={e => setShiftForm(f => ({ ...f, startTime: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label>End Time<span className="required">*</span></label>
+                <input type="time" value={shiftForm.endTime} onChange={e => setShiftForm(f => ({ ...f, endTime: e.target.value }))} required />
+              </div>
+              <div className="form-group">
+                <label>Role / Position<span className="required">*</span></label>
+                <input value={shiftForm.role || ''} onChange={e => setShiftForm(f => ({ ...f, role: e.target.value }))} required />
+              </div>
+              <button type="submit" className="btn btn-primary">Save Shift</button>
             </form>
-          </section>
+          </div>
+        </section>
 
-          <section className="list-section">
+        {/* ===== Tables Section ===== */}
+        <section className="tables">
+          {/* Employees Table */}
+          <div className="table-card">
             <h2>Employees</h2>
-            {loading ? <p>Loading…</p> : (
+            <div className="table-scrollable">
               <table className="data-table">
                 <thead>
                   <tr>
+                    <th>Employee #</th>
                     <th>Name</th>
-                    <th>Username</th>
                     <th>Email</th>
-                    <th>Employee ID</th>
+                    <th>Contact</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {employees.map(emp => (
                     <tr key={emp._id}>
-                      <td>{emp.firstName} {emp.lastName}</td>
-                      <td>{emp.username}</td>
-                      <td>{emp.email}</td>
                       <td>{emp.employeeId}</td>
-                      <td>
-                        <button className="delete-btn" onClick={() => handleDeleteEmployee(emp._id)}>Delete</button>
-                        <button onClick={() => exportAttendancePDF(emp._id)}>
-                          Export Attendance (PDF)
-                        </button>
-                        <button onClick={() => fetchAttendanceForChart(emp._id)}>
-                          Show Attendance Chart
-                        </button>
+                      <td>{emp.firstName} {emp.lastName}</td>
+                      <td>{emp.email}</td>
+                      <td>{emp.contactNumber}</td>
+                      <td className="actions">
+                        <button className="btn btn-sm btn-secondary">Edit</button>
+                        <button className="btn btn-sm btn-danger" onClick={() => handleDeleteEmployee(emp._id)}>Delete</button>
+                        <button className="btn btn-sm btn-export" onClick={() => exportAttendancePDF(emp._id)}>Export Attendance</button>
                       </td>
                     </tr>
                   ))}
@@ -486,20 +487,20 @@ export default function EmployerDashboard() {
                   )}
                 </tbody>
               </table>
-            )}
-          </section>
+            </div>
+          </div>
 
-          <section className="list-section">
-            <h2>Shifts</h2>
-            {loading ? <p>Loading…</p> : (
+          {/* Shifts Table */}
+          <div className="table-card">
+            <h2>Posted Shifts</h2>
+            <div className="table-scrollable">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Employee</th>
+                    <th>Shift ID</th>
                     <th>Date</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Location</th>
+                    <th>Time</th>
+                    <th>Role</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -507,101 +508,78 @@ export default function EmployerDashboard() {
                 <tbody>
                   {shifts.map(shift => (
                     <tr key={shift._id}>
-                      <td>
-                        {(() => {
-                          const emp = employees.find(e => e._id === (shift.employee?._id || shift.employee));
-                          return emp ? `${emp.firstName} ${emp.lastName}` : (shift.employee?._id || shift.employee);
-                        })()}
-                      </td>
-                      <td>{new Date(shift.date).toLocaleDateString()}</td>
-                      <td>{shift.startTime}</td>
-                      <td>{shift.endTime}</td>
-                      <td>{shift.location}</td>
+                      <td>{shift._id}</td>
+                      <td>{shift.date ? new Date(shift.date).toLocaleDateString() : ''}</td>
+                      <td>{shift.startTime} – {shift.endTime}</td>
+                      <td>{shift.role}</td>
                       <td>{shift.status}</td>
-                      <td>
-                        <button className="delete-btn" onClick={() => handleDeleteShift(shift._id)}>Delete</button>
-                        <button onClick={() => sendShiftReminder(shift._id, shift.employee.email)}>
-                          Send Calendar Reminder
-                        </button>
+                      <td className="actions">
+                        <button className="btn btn-sm btn-secondary">Edit</button>
+                        <button className="btn btn-sm btn-danger" onClick={() => handleDeleteShift(shift._id)}>Cancel</button>
                       </td>
                     </tr>
                   ))}
                   {shifts.length === 0 && (
-                    <tr><td colSpan={7}>No shifts found.</td></tr>
+                    <tr><td colSpan={6}>No shifts found.</td></tr>
                   )}
                 </tbody>
               </table>
-            )}
-          </section>
-
-          {/* <button onClick={exportAllAttendancePDF}>
-            Export All Attendance (PDF)
-          </button> */}
-        </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    {/* <aside class="charts-area">
 
 
-        {/* ---- FIXED EMPLOYEE SUMMARY SECTION ---- */}
-        <div className="min-h-screen bg-gray-100 p-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.isArray(apiEmployees) && apiEmployees.length > 0 ? (
-                apiEmployees.map((employee) => (
-                  <div key={employee._id} className="bg-white p-4 rounded-lg shadow">
-                    <h2 className="text-xl font-semibold">{employee.firstName} {employee.lastName}</h2>
-                    <p>Email: {employee.email}</p>
-                    <p>Employee ID: {employee.employeeId}</p>
-                  </div>
-                ))
-              ) : (
-                <div>No employees found.</div>
-              )}
+        
+
+
+    </aside> */}
+
+    {/* </div> */}
+
+    
+      {/* ===== Footer ===== */}
+      <footer className="footer">
+        <div className="footer-content">
+          <div className="footer-section">
+            <h3>About Us</h3>
+            <ul>
+              <li><a href="#">Our Story</a></li>
+              <li><a href="#">Team &amp; Careers</a></li>
+              <li><a href="#">Contact Support</a></li>
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="#">API Documentation</a></li>
+              <li><a href="#">Developer Hub</a></li>
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>Policies</h3>
+            <ul>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="#">Cookie Settings</a></li>
+            </ul>
+          </div>
+          <div className="footer-section social-links">
+            <h3>Follow Us</h3>
+            <div className="social-icons">
+              <a href="#" aria-label="Facebook" className="icon-facebook">F</a>
+              <a href="#" aria-label="Twitter" className="icon-twitter">T</a>
+              <a href="#" aria-label="LinkedIn" className="icon-linkedin">L</a>
+              <a href="#" aria-label="Instagram" className="icon-instagram">I</a>
             </div>
           </div>
         </div>
-
-        {error && <div className="error-message">{error}</div>}
-
-        {import.meta.env.DEV && (
-          <button onClick={setTestChartData} style={{ margin: '1rem 0' }}>
-            Load Test Chart Data
-          </button>
-        )}
-        {chartData && (
-          <section className="chart-section">
-            <h2>Attendance Charts</h2>
-            <div className="chart-container">
-              <div className="chart-card">
-                <Bar
-                  data={chartData.hours}
-                  options={{
-                    plugins: {
-                      title: {
-                        text: 'Hours Worked Over Time',
-                      },
-                    },
-                  }}
-                />
-              </div>
-              <div className="chart-card">
-                <Doughnut
-                  data={chartData.status}
-                  options={{
-                    plugins: {
-                      title: {
-                        text: 'Attendance Status Distribution',
-                      },
-                    },
-                  }}
-                />
-              </div>
-            </div>
-            <button onClick={() => setChartData(null)}>Close Charts</button>
-          </section>
-        )}
-        <div className="chatbot-container">
-            <Chatbot />
+        <div className="footer-bottom">
+          <p>© 2023 Your Company Name. All rights reserved.</p>
         </div>
-      </div>
+      </footer>
     </>
   );
 }

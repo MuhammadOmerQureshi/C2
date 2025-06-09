@@ -1,0 +1,229 @@
+@import url('https://fonts.googleapis.com/css?family=Inter:400,600&display=swap');
+
+:root {
+  --primary-color: #007bff;
+  --accent-color: #00c4b4;
+  --bg-color: #f8f9fa;
+  --card-bg: #ffffff;
+  --text-color: #222;
+  --border-color: #dee2e6;
+  --danger-color: #dc3545;
+}
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: var(--bg-color);
+  margin: 0;
+  color: var(--text-color);
+}
+
+.login-main-center {
+  min-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2rem;
+}
+
+/* Logo area */
+.login-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2.2rem;
+}
+
+.login-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 0.7rem;
+  animation: spin 2.5s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0); }
+  100% { transform: rotate(360deg);}
+}
+.login-logo-text {
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: var(--primary-color);
+}
+.login-logo-text span {
+  color: var(--accent-color);
+  font-weight: 700;
+}
+
+/* Login card/form */
+.login-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+  padding: 2.2rem 2.5rem 2rem 2.5rem;
+  min-width: 320px;
+  max-width: 370px;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.login-title {
+  font-size: 1.25rem;
+  margin-bottom: 1.2rem;
+  color: var(--accent-color);
+  text-align: center;
+}
+.login-error {
+  background: #ffeaea;
+  color: var(--danger-color);
+  padding: 0.65rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 0.9rem;
+  font-size: 1rem;
+  text-align: center;
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
+}
+.login-label {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+.login-input {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  background: #f7fafc;
+  outline: none;
+  transition: border 0.2s;
+}
+.login-input:focus {
+  border: 1.5px solid var(--accent-color);
+  background: #fff;
+}
+.login-btn-primary {
+  background: var(--primary-color);
+  color: #fff;
+  padding: 0.7rem 0;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.06rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.login-btn-primary:hover {
+  background: #0056b3;
+}
+.login-links {
+  margin-top: 1.2rem;
+  text-align: center;
+}
+.login-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 0.96rem;
+  transition: color 0.15s;
+}
+.login-link:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 2rem;
+}
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  gap: 2rem;
+}
+.footer-section {
+  flex: 1 1 200px;
+}
+.footer-section h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+}
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.footer-section ul li {
+  margin-bottom: 0.5rem;
+}
+.footer-section ul li a {
+  color: #f1f1f1;
+  text-decoration: none;
+  font-size: 0.97rem;
+  transition: color 0.2s ease;
+}
+.footer-section ul li a:hover {
+  color: var(--accent-color);
+}
+.social-links .social-icons {
+  display: flex;
+  gap: 1rem;
+}
+.social-links .social-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: #2c3436;
+  color: #f1f1f1;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+.social-links .social-icons a:hover {
+  background-color: var(--accent-color);
+}
+.footer-bottom {
+  background-color: #111111;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+  border-top: 1px solid #2c3436;
+}
+.footer-bottom p {
+  margin: 0;
+  color: #888888;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .login-card {
+    padding: 1.3rem 0.8rem;
+    min-width: 90vw;
+    max-width: 99vw;
+  }
+  .footer-content {
+    flex-direction: column;
+    gap: 1.3rem;
+  }
+}

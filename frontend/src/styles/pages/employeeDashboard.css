@@ -1,0 +1,287 @@
+@import url('https://fonts.googleapis.com/css?family=Inter:400,600&display=swap');
+:root {
+  --primary-color: #007bff;
+  --accent-color: #00c4b4;
+  --bg-color: #f8f9fa;
+  --card-bg: #fff;
+  --text-color: #222;
+  --header-bg: #343a40;
+  --header-text: #fff;
+  --border-color: #dee2e6;
+  --danger-color: #dc3545;
+}
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: var(--bg-color);
+  margin: 0;
+  color: var(--text-color);
+}
+
+.header {
+  background: var(--header-bg);
+  color: var(--header-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 2rem;
+}
+.header-logo-title {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.header-logo {
+  width: 48px;
+  height: 48px;
+}
+.header-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+.btn-logout {
+  background: var(--danger-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.97rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-logout:hover { background: #a71022; }
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.7rem 2rem 1rem 2rem;
+}
+.overview {
+  display: flex;
+  gap: 1.3rem;
+  margin-bottom: 2.1rem;
+  flex-wrap: wrap;
+}
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1.2rem 1.3rem;
+  flex: 1 1 200px;
+  min-width: 190px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  text-align: center;
+}
+.card h3 {
+  font-size: 1rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+.stat-number {
+  font-size: 1.42rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.dashboard-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.3rem;
+}
+.dashboard-left {
+  flex: 0 0 67%;
+}
+.dashboard-right {
+  flex: 1;
+  min-width: 210px;
+}
+.section-block {
+  margin-bottom: 2rem;
+}
+
+/* Shift cards */
+.shift-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.shift-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1.1rem 1.3rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.07);
+}
+.shift-date { font-size: 1.1rem; font-weight: 600; color: var(--accent-color); }
+.shift-time { color: #555; font-size: 1.02rem; }
+
+/* Attendance table */
+.table-scrollable {
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 0.6rem;
+  border-top: 1px solid var(--border-color);
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.97rem;
+}
+.data-table th,
+.data-table td {
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+.data-table thead {
+  background: #f3f3f3;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.data-table tbody tr:nth-child(even) { background: #f7f9fb; }
+.btn-sm {
+  font-size: 0.92rem;
+  padding: 0.3rem 0.8rem;
+}
+
+.table-actions {
+  margin-top: 0.7rem;
+  display: flex;
+  gap: 1rem;
+}
+
+/* Analytics + Profile cards */
+.analytics-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1rem 1.5rem 1rem 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.analytics-card h2 {
+  font-size: 1.08rem;
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+.analytics-card ul {
+  margin: 0 0 0 1.1em;
+  color: #888;
+}
+.profile-block > div { margin-bottom: 0.6em; }
+
+/* Buttons */
+.btn, .btn-primary, .btn-secondary {
+  border: none;
+  border-radius: 4px;
+  font-size: 0.98rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.52rem 1.1rem;
+  transition: background 0.2s;
+}
+.btn-primary {
+  background: var(--primary-color);
+  color: #fff;
+}
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed;}
+.btn-primary:hover:not(:disabled) { background: #0056b3; }
+.btn-secondary {
+  background: var(--accent-color);
+  color: #fff;
+}
+.btn-secondary:hover { background: #059688; }
+
+/* Footer */
+.footer {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+  width: 100%;
+  margin-top: 2rem;
+}
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  gap: 2rem;
+}
+.footer-section {
+  flex: 1 1 200px;
+}
+.footer-section h3 {
+  font-size: 1.08rem;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+}
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.footer-section ul li { margin-bottom: 0.5rem; }
+.footer-section ul li a {
+  color: #f1f1f1;
+  text-decoration: none;
+  font-size: 0.97rem;
+  transition: color 0.2s;
+}
+.footer-section ul li a:hover { color: var(--accent-color);}
+.social-links .social-icons { display: flex; gap: 1rem; }
+.social-links .social-icons a {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 50%;
+  background: #2c3436; color: #f1f1f1; font-size: 1rem; text-decoration: none;
+  transition: background 0.2s;
+}
+.social-links .social-icons a:hover { background: var(--accent-color);}
+.footer-bottom {
+  background: #111111;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.87rem;
+  border-top: 1px solid #2c3436;
+  color: #888;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .overview { flex-direction: column;}
+  .dashboard-body { flex-direction: column;}
+  .footer-content { flex-direction: column; gap: 1.5rem;}
+  .dashboard-left, .dashboard-right { flex: 1 1 100%; }
+}
+
+
+.shift-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 260px;   /* <--- Set max height for scroll */
+  overflow-y: auto;
+  border-top: 1px solid #dee2e6;
+  margin-top: 0.5rem;
+  padding-right: 6px;  /* Prevents content from hiding behind the scrollbar */
+}
+
+/* You can keep your existing .shift-card styles */
+.shift-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1.1rem 1.3rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.07);
+}
+
+.shift-date { font-size: 1.1rem; font-weight: 600; color: var(--accent-color); }
+.shift-time { color: #555; font-size: 1.02rem; }

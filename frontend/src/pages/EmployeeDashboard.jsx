@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { logout } from '../utils/logout';
 import SpinningLogo from '../components/SpinningLogo';
-import '../styles/pages/employee.css';
+import '../styles/pages/employeeDashboard.css';
 
 export default function EmployeeDashboard() {
   const [shifts, setShifts] = useState([]);
@@ -11,24 +11,32 @@ export default function EmployeeDashboard() {
   const [loadingShifts, setLoadingShifts] = useState(true);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [error, setError] = useState('');
+  const [profile, setProfile] = useState({});
   const navigate = useNavigate();
-  const userId = localStorage.getItem('userId'); // Use userId instead of employerId
+
+  // Derived stats for overview and analytics
+  const upcomingShifts = shifts.filter(s => s.status === 'scheduled').length;
+  const totalHours = history.reduce((sum, r) => sum + (r.hoursWorked || 0), 0);
+  const attendanceCount = history.length;
+  const onTimeCount = history.filter(r => r.status === 'On Time').length;
+  const lateCount = history.filter(r => r.status === 'Late').length;
+  const absentCount = history.filter(r => r.status === 'Absent').length;
+  const attendancePercent = attendanceCount ? Math.round((onTimeCount / attendanceCount) * 100) : 0;
 
   useEffect(() => {
     fetchShifts();
     fetchHistory();
+    fetchProfile();
     // eslint-disable-next-line
   }, []);
 
   async function fetchShifts() {
     setLoadingShifts(true);
     try {
-      // Remove the query parameter - let the backend use the JWT token
       const res = await api.get('/shifts/my');
       setShifts(res.data);
     } catch (err) {
       setError('Failed to load shifts');
-      console.error('Shift fetch error:', err);
     }
     setLoadingShifts(false);
   }
@@ -36,79 +44,31 @@ export default function EmployeeDashboard() {
   async function fetchHistory() {
     setLoadingHistory(true);
     try {
-      // Remove the query parameter - let the backend use the JWT token
       const res = await api.get('/attendance/my-history');
       setHistory(res.data);
     } catch (err) {
       setError('Failed to load attendance history');
-      console.error('History fetch error:', err);
     }
     setLoadingHistory(false);
+  }
 
-// import React, { useEffect, useState } from 'react'
-// import { useNavigate } from 'react-router-dom'
-// import api from '../api/axiosConfig'
-// import { logout } from '../utils/logout'
-// import SpinningLogo from '../components/SpinningLogo';
-// import '../styles/pages/employer.css'
-
-// export default function EmployeeDashboard() {
-//   const [shifts, setShifts] = useState([])
-//   const [history, setHistory] = useState([])
-//   const [loadingShifts, setLoadingShifts] = useState(true)
-//   const [loadingHistory, setLoadingHistory] = useState(true)
-//   const [error, setError] = useState('')
-//   const [ip, setIp] = useState('');
-//   const navigate = useNavigate()
-
-//   useEffect(() => {
-//     fetch('https://api.ipify.org?format=json')
-//       .then(res => res.json())
-//       .then(data => setIp(data.ip));
-//   }, []);
-
-//   useEffect(() => {
-//     fetchShifts()
-//     fetchHistory()
-//   }, [])
-
-//   async function fetchShifts() {
-//     setLoadingShifts(true)
-//     try {
-//       const res = await api.get('/shifts/my')
-//       setShifts(res.data)
-//     } catch (err) {
-//       setError(err.response?.data?.message || 'Failed to load shifts')
-//     }
-//     setLoadingShifts(false)
-//   }
-
-//   async function fetchHistory() {
-//     setLoadingHistory(true)
-//     try {
-//       const res = await api.get('/attendance/my-history')
-//       setHistory(res.data)
-//     } catch (err) {
-//       setError(err.response?.data?.message || 'Failed to load attendance history')
-//     }
-//     setLoadingHistory(false)
+  async function fetchProfile() {
+    try {
+      const res = await api.get('/auth/me');
+      setProfile(res.data);
+    } catch (err) {
+      // ignore
+    }
   }
 
   async function handleClockIn(shiftId) {
     setError('');
     try {
-      const ipRes = await fetch('https://api.ipify.org?format=json' );
+      const ipRes = await fetch('https://api.ipify.org?format=json');
       const { ip } = await ipRes.json();
-      // Remove employerId from the request body
-      const res = await api.post('/attendance/clock-in', { shiftId, ip });
-      alert(res.data.message);
-      
-      // // Send shiftId and ip to backend
-      // const res = await api.post('/attendance/clock-in', { shiftId, ip });
-      // console.log('Backend response:', res.data); // Add this for debugging
-      // alert(res.data.message); // This should show "Yahoo" or "very sad"
-
+      await api.post('/attendance/clock-in', { shiftId, ip });
       fetchHistory();
+      fetchShifts();
     } catch (err) {
       setError(err.response?.data?.message || 'Clock-in failed');
     }
@@ -117,73 +77,92 @@ export default function EmployeeDashboard() {
   async function handleClockOut(recordId) {
     setError('');
     try {
-      // Remove employerId from the request body
       await api.post('/attendance/clock-out', { attendanceId: recordId });
       fetchHistory();
+      fetchShifts();
     } catch (err) {
       setError(err.response?.data?.message || 'Clock-out failed');
     }
   }
 
-  // Rest of the component remains the same
+  function downloadCSV() {
+    // Implement CSV download logic here
+  }
+
+  function exportPDF() {
+    // Implement PDF export logic here
+  }
+
   return (
     <>
-      <div className="employee-dashboard-bg">
-        <div className="employee-dashboard-container">
-          <header className="dashboard-header">
-            <div className="dashboard-logo-title">
-              <SpinningLogo />
-              <h1>Employee Dashboard</h1>
-            </div>
-            <button className="logout-btn" onClick={() => logout(navigate)}>
-              Logout
-            </button>
-          </header>
+      {/* ===== Header ===== */}
+      <header className="header">
+        <div className="header-logo-title">
+          <img src="/logo.png" alt="CesiumClock Logo" className="header-logo" />
+          <span className="header-title">Employee Dashboard</span>
+        </div>
+        <button className="btn btn-logout" onClick={() => logout(navigate)}>
+          Logout
+        </button>
+      </header>
 
-          {error && <div className="error-message">{error}</div>}
+      <main className="main-content">
+        {/* ===== Overview Cards ===== */}
+        <section className="overview">
+          <div className="card">
+            <h3>Upcoming Shifts</h3>
+            <p className="stat-number">{upcomingShifts}</p>
+          </div>
+          <div className="card">
+            <h3>Total Hours This Month</h3>
+            <p className="stat-number">{totalHours.toFixed(2)}</p>
+          </div>
+          <div className="card">
+            <h3>Attendance %</h3>
+            <p className="stat-number">{attendancePercent}%</p>
+          </div>
+        </section>
 
-          <section className="shifts-section">
-            <h2>Your Shifts</h2>
-            {loadingShifts ? (
-              <p>Loading shifts…</p>
-            ) : shifts.length === 0 ? (
-              <p>No shifts scheduled.</p>
-            ) : (
+        <div className="dashboard-body">
+          {/* LEFT: Shifts and Attendance */}
+          <div className="dashboard-left">
+            {/* Your Shifts */}
+            <section className="section-block">
+              <h2>Your Shifts</h2>
               <div className="shift-cards">
-                {shifts.map(shift => (
-                  <div key={shift._id} className="shift-card">
-                    <div>
-                      <div className="shift-date">
-                        {new Date(shift.date).toLocaleDateString()}
+                {loadingShifts ? (
+                  <p>Loading shifts…</p>
+                ) : shifts.length === 0 ? (
+                  <p>No shifts scheduled.</p>
+                ) : (
+                  shifts.map(shift => (
+                    <div key={shift._id} className="shift-card">
+                      <div>
+                        <div className="shift-date">{shift.date ? new Date(shift.date).toLocaleDateString() : '—'}</div>
+                        <div className="shift-time">{shift.startTime} – {shift.endTime}</div>
                       </div>
-                      <div className="shift-time">
-                        {shift.startTime} – {shift.endTime}
+                      <div>
+                        {shift.status === 'scheduled' ? (
+                          <button className="btn btn-primary" onClick={() => handleClockIn(shift._id)}>
+                            Clock In
+                          </button>
+                        ) : (
+                          <button className="btn btn-primary" disabled>
+                            {shift.status.charAt(0).toUpperCase() + shift.status.slice(1)}
+                          </button>
+                        )}
                       </div>
                     </div>
-                    <div className="shift-actions">
-                      {shift.status === 'scheduled' ? (
-                        <button onClick={() => handleClockIn(shift._id)}>
-                          Clock In
-                        </button>
-                      ) : (
-                        <span className="shift-status">Status: {shift.status}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
-            )}
-          </section>
+            </section>
 
-          <section className="attendance-section">
-            <h2>Attendance History</h2>
-            <div className="attendance-table-wrapper">
-              {loadingHistory ? (
-                <p>Loading history…</p>
-              ) : history.length === 0 ? (
-                <p>No records found.</p>
-              ) : (
-                <table className="attendance-table">
+            {/* Attendance History */}
+            <section className="section-block">
+              <h2>Attendance History</h2>
+              <div className="table-scrollable">
+                <table className="data-table">
                   <thead>
                     <tr>
                       <th>Date</th>
@@ -195,45 +174,114 @@ export default function EmployeeDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {history.map((r) => (
-                      <tr key={r._id}>
-                        <td>
-                          {r.date && !isNaN(new Date(r.date)) 
-                            ? new Date(r.date).toLocaleDateString() 
-                            : '—'}
-                        </td>
-                        <td>
-                          {r.clockIn && !isNaN(new Date(r.clockIn))
-                            ? new Date(r.clockIn).toLocaleTimeString()
-                            : '—'}
-                        </td>
-                        <td>
-                          {r.clockOut && !isNaN(new Date(r.clockOut))
-                            ? new Date(r.clockOut).toLocaleTimeString()
-                            : '—'}
-                        </td>
-                        <td>
-                          {r.status || '—'}
-                        </td>
-                        <td>
-                          {r.hoursWorked != null ? r.hoursWorked : '—'}
-                        </td>
-                        <td>
-                          {!r.clockOut && (
-                            <button onClick={() => handleClockOut(r._id)}>
-                              Clock Out
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {loadingHistory ? (
+                      <tr><td colSpan={6}>Loading history…</td></tr>
+                    ) : history.length === 0 ? (
+                      <tr><td colSpan={6}>No records found.</td></tr>
+                    ) : (
+                      history.map(r => (
+                        <tr key={r._id}>
+                          <td>
+                            {r.date && !isNaN(new Date(r.date))
+                              ? new Date(r.date).toLocaleDateString()
+                              : '—'}
+                          </td>
+                          <td>
+                            {r.clockIn && !isNaN(new Date(r.clockIn))
+                              ? new Date(r.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                              : '—'}
+                          </td>
+                          <td>
+                            {r.clockOut && !isNaN(new Date(r.clockOut))
+                              ? new Date(r.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                              : '—'}
+                          </td>
+                          <td>{r.status || '—'}</td>
+                          <td>{r.hoursWorked != null ? r.hoursWorked.toFixed(2) : '—'}</td>
+                          <td>
+                            {!r.clockOut && (
+                              <button className="btn btn-sm btn-primary" onClick={() => handleClockOut(r._id)}>
+                                Clock Out
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
-              )}
+              </div>
+              <div className="table-actions">
+                <button className="btn btn-secondary" onClick={downloadCSV}>Download Attendance CSV</button>
+                <button className="btn btn-secondary" onClick={exportPDF}>Export PDF</button>
+              </div>
+            </section>
+          </div>
+
+          {/* RIGHT: Analytics, Profile */}
+          <aside className="dashboard-right">
+            <div className="analytics-card">
+              <h2>Attendance Summary</h2>
+              <ul>
+                <li>On Time: <b>{onTimeCount}</b></li>
+                <li>Late: <b>{lateCount}</b></li>
+                <li>Absent: <b>{absentCount}</b></li>
+              </ul>
             </div>
-          </section>
+            <div className="analytics-card">
+              <h2>Your Profile</h2>
+              <div className="profile-block">
+                <div><b>Name:</b> {profile.firstName} {profile.lastName}</div>
+                <div><b>Email:</b> {profile.email}</div>
+                <div><b>Employee #:</b> {profile.employeeId}</div>
+                <div><b>Contact:</b> {profile.contactNumber}</div>
+              </div>
+            </div>
+          </aside>
         </div>
-      </div>
+      </main>
+
+      {/* ===== Footer ===== */}
+      <footer className="footer">
+        <div className="footer-content">
+          <div className="footer-section">
+            <h3>About Us</h3>
+            <ul>
+              <li><a href="#">Our Story</a></li>
+              <li><a href="#">Team &amp; Careers</a></li>
+              <li><a href="#">Contact Support</a></li>
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="#">API Documentation</a></li>
+              <li><a href="#">Developer Hub</a></li>
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>Policies</h3>
+            <ul>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="#">Cookie Settings</a></li>
+            </ul>
+          </div>
+          <div className="footer-section social-links">
+            <h3>Follow Us</h3>
+            <div className="social-icons">
+              <a href="#" aria-label="Facebook" className="icon-facebook">F</a>
+              <a href="#" aria-label="Twitter" className="icon-twitter">T</a>
+              <a href="#" aria-label="LinkedIn" className="icon-linkedin">L</a>
+              <a href="#" aria-label="Instagram" className="icon-instagram">I</a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>© 2024 CesiumClock. All rights reserved.</p>
+        </div>
+      </footer>
     </>
   );
 }

@@ -1,0 +1,397 @@
+/* ===== Global Resets & Variables ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --danger-color: #dc3545;
+  --bg-color: #f8f9fa;
+  --card-bg: #ffffff;
+  --text-color: #333333;
+  --header-bg: #343a40;
+  --header-text: #ffffff;
+  --notification-bg: #fff3cd;
+  --notification-text: #856404;
+  --border-color: #dee2e6;
+}
+
+/* ===== Base Body & Typography ===== */
+body {
+  font-family: Arial, sans-serif;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn:focus {
+  outline: 2px solid var(--primary-color);
+}
+
+.btn.primary,
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn.secondary,
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: #fff;
+}
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn.danger,
+.btn-danger {
+  background-color: var(--danger-color);
+  color: #fff;
+}
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.btn-export {
+  background-color: #28a745;
+  color: #fff;
+}
+.btn-export:hover {
+  background-color: #218838;
+}
+
+.btn-logout {
+  background-color: var(--danger-color);
+  color: #fff;
+}
+.btn-logout:hover {
+  background-color: #c82333;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* ===== Header ===== */
+.header {
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+.header-title {
+  font-size: 2rem;
+  margin-left: 5rem;
+  
+}
+.header .btn-logout {
+  font-size: 0.9rem;
+}
+
+/* ===== Notifications ===== */
+.notifications {
+  background-color: var(--notification-bg);
+  color: var(--notification-text);
+  padding: 0.75rem 1.5rem;
+  border-left: 4px solid var(--notification-text);
+  font-size: 0.95rem;
+}
+
+/* ===== Main Content Area ===== */
+.main-content {
+  padding: 1.5rem 2rem;
+  max-width: 1200px;
+  
+
+  margin-top: 0; /* Center the content */
+  margin-left: 10%;
+  margin-right: auto; 
+  margin-bottom: 0;
+  
+
+}
+
+/* ===== Overview Cards ===== */
+.overview {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1rem;
+  flex: 1 1 200px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--secondary-color);
+}
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* ===== Forms Section ===== */
+.forms {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  
+  
+  flex-wrap: wrap;
+}
+.form-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  flex: 1 1 300px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.form-card h2 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+}
+.create-form .form-group {
+  margin-bottom: 1rem;
+}
+.create-form label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+.create-form input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.create-form input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+.required {
+  color: var(--danger-color);
+  margin-left: 0.2rem;
+}
+.create-form .btn-primary {
+  margin-top: 0.5rem;
+}
+
+/* ===== Tables Section ===== */
+.tables {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.table-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.table-card h2 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table th,
+.data-table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  text-align: left;
+  font-size: 0.9rem;
+}
+.data-table thead {
+  background-color: var(--bg-color);
+}
+.data-table thead th {
+  font-weight: 600;
+  color: var(--text-color);
+}
+.data-table tbody tr:nth-child(even) {
+  background-color: #f1f1f1;
+}
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 900px) {
+  .overview {
+    flex-direction: column;
+  }
+  .forms {
+    flex-direction: column;
+  }
+}
+/* ============================= */
+/*         Footer Styles         */
+/* ============================= */
+
+/* Base footer container */
+.footer {
+  background-color: #1a1a1a;       /* Very dark background */
+  color: #f1f1f1;                  /* Light text */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Flex container for the main footer links */
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;                 /* Center within viewport */
+  padding: 2rem 1rem;             /* Top/bottom 2rem, left/right 1rem */
+  gap: 2rem;                      /* Space between columns */
+}
+
+/* Each section (About, Resources, Policies, Social) */
+.footer-section {
+  flex: 1 1 200px;                /* Grow/shrink, min width 200px */
+}
+
+.footer-section h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #00c4b4;                 /* Accent color matching dashboard’s teal */
+}
+
+/* Link lists within each section */
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+  color: #f1f1f1;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.footer-section ul li a:hover {
+  color: #00c4b4;                 /* Hover uses accent color */
+}
+
+/* Social icons container */
+.social-links .social-icons {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Placeholder icon styles */
+.social-links .social-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: #2c3436;      /* Slightly lighter dark circle */
+  color: #f1f1f1;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+/* Individual icon hover colors (you can adjust to match brand logos) */
+.social-links .social-icons a:hover {
+  background-color: #00c4b4;      /* Accent hover color */
+}
+
+/* Footer bottom bar */
+.footer-bottom {
+  background-color: #111111;      /* Even darker strip */
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+  border-top: 1px solid #2c3436;
+}
+
+.footer-bottom p {
+  margin: 0;
+  color: #888888;                 /* Slightly muted text */
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+  }
+  .footer-section {
+    flex: 1 1 100%;
+  }
+}
+
+
+/* Make each table box scroll internally */
+.table-scrollable {
+  max-height: 300px;     /* adjust height as needed */
+  overflow-y: auto;      /* vertical scrollbar when content exceeds */
+  margin-top: 0.5rem;    /* small gap from the heading */
+  border-top: 1px solid var(--border-color);
+}
+
+/* Optional: keep the table header fixed while body scrolls */
+.table-scrollable thead {
+  position: sticky;
+  top: 0;
+  background-color: var(--card-bg);
+  z-index: 1;
+}
+
+
+
+
+
+
+

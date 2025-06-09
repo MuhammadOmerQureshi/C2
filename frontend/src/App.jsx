@@ -4,9 +4,9 @@ import viteLogo from '/vite.svg'
 import { useEffect } from 'react';
 
 import { NavLink, Routes, Route, useLocation } from 'react-router-dom';
-import './styles/index.css';
+// import './styles/index.css';
 import Clock from './components/Clock';
-import Footer from './components/Footer';
+// import Footer from './components/Footer';
 import LanguageSelector from './components/LanguageSelector';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
@@ -57,7 +57,7 @@ function App() {
       {!isLoginPage && ( */}
         <>
           <Clock />
-          <Footer />
+          
         </>
       
     </>
