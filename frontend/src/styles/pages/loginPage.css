@@ -227,3 +227,16 @@ body {
     gap: 1.3rem;
   }
 }
+
+
+
+.social-icons a {
+  margin: 0 8px;
+  font-size: 1.25rem;
+  color: #333;
+  text-decoration: none;
+}
+
+.social-icons a:hover {
+  color: #0073b1; /* example hover color */
+}
