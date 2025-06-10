@@ -10,7 +10,13 @@ const userSchema = new Schema({
   address:     { type: String },
   contactNo:   { type: String },
   
-  employerId:  { type: String, unique: true, sparse: true }, // Add this line
+  
+
+
+
+  employeeId:  { type: String }, // Just a string for display/tracking
+  employerId:  { type: Schema.Types.ObjectId, ref: 'User' }, // Reference to employer's _id
+  
 
   role:      { type: String, enum: ['admin', 'employer', 'employee'], required: true }, 
   status:    { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active'},

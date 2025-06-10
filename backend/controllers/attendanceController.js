@@ -33,22 +33,35 @@ function mapAttendance(records) {
 // POST /api/attendance/clock-in
 exports.clockIn = async (req, res) => {
   try {
-    const { shiftId, ip } = req.body;       // IP address of the employee
-    const userId = req.user.id;
+    console.log('Clock-in request body:', req.body);
+    console.log('User from JWT:', req.user);
 
-    // Find the shift for this employee
+    const { shiftId, ip } = req.body;
+    const userId = req.user?.id;
+    if (!userId) {
+      console.error('No userId in req.user');
+      return res.status(401).json({ message: 'Unauthorized: No user' });
+    }
+    if (!shiftId) {
+      console.error('No shiftId provided');
+      return res.status(400).json({ message: 'shiftId is required' });
+    }
+
     const shift = await Shift.findOne({ _id: shiftId, employee: userId });
-    if (!shift) return res.status(404).json({ message: 'Shift not found' });
+    if (!shift) {
+      console.error('Shift not found for user:', userId, 'shiftId:', shiftId);
+      return res.status(404).json({ message: 'Shift not found' });
+    }
 
-    // Prevent double clock-in
     const existing = await Attendance.findOne({ shift: shiftId, employee: userId, clockOut: null });
-    if (existing) return res.status(400).json({ message: 'Already clocked in for this shift' });
+    if (existing) {
+      console.error('Already clocked in:', existing);
+      return res.status(400).json({ message: 'Already clocked in for this shift' });
+    }
 
-    // Compare IP
-    const ipStatus = ALLOWED_IPS.includes(ip) ? 'allowed' : 'denied';
+    const ipStatus = ALLOWED_IPS.includes(ip) ? 'ALLOWED' : 'DENIED';
     const message = ipStatus === 'allowed' ? 'Ip validation successful!' : 'Ip verification failed. Please contact your employer';
 
-    // Save attendance 12
     const attendance = await Attendance.create({
       shift: shiftId,
       employee: userId,
@@ -59,7 +72,8 @@ exports.clockIn = async (req, res) => {
 
     res.status(201).json({ message, attendance });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Clock-in error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 

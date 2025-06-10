@@ -25,11 +25,13 @@ exports.createEmployee = async (req, res) => {
       employer: req.user.id
     });
 
+    const { employeeId, contactNo } = req.body;
+
     await EmployeeProfile.create({
       user: employeeUser._id,
-      employeeId: req.body.employeeId,
-      contact: req.body.contact,
-      employer: req.user.id
+      employeeId,
+      contact: contactNo,
+      employer: req.user.id // <-- comes from JWT, not request body
     });
 
     res.status(201).json({ message: "Employee created successfully" });

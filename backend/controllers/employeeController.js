@@ -5,9 +5,9 @@ const EmployeeProfile = require('../models/EmployeeProfile');
 // Create a new employee (called by both employer and employee routes)
 exports.createEmployee = async (req, res) => {
   try {
-    console.log('Employee creation request body:', req.body); // Log the request body
+    console.log('Employee creation request body:', req.body);
 
-    const { firstName, lastName, username, email, password, employeeId, contact } = req.body;
+    const { firstName, lastName, username, email, password, employeeId, contact, contactNumber } = req.body;
 
     // Add validation
     if (!username) {
@@ -18,14 +18,15 @@ exports.createEmployee = async (req, res) => {
     }
 
     // Check for duplicate email, username, or employeeId
-    const existingUser = await User.findOne({
+    const exists = await User.findOne({
       $or: [
-        { email: email },
-        { username: username }
+        { email },
+        { username },
+        { employeeId }
       ]
     });
-    if (existingUser) {
-      return res.status(409).json({ message: 'Email or username already in use' });
+    if (exists) {
+      return res.status(409).json({ message: 'Email, username, or employee ID already in use' });
     }
     const existingProfile = await EmployeeProfile.findOne({ employeeId });
     if (existingProfile) {
@@ -42,6 +43,8 @@ exports.createEmployee = async (req, res) => {
       username,
       email,
       password: hashedPassword,
+      employeeId,
+      contactNo: contact || contactNumber,
       role: "employee"
     });
 
@@ -49,14 +52,13 @@ exports.createEmployee = async (req, res) => {
     await EmployeeProfile.create({
       user: employeeUser._id,
       employeeId,
-      contact,
+      contact: contact || contactNumber,
       employer: req.user.id // Use the MongoDB _id from JWT/session
     });
 
     // Omit password from response
-    const { password: _p, ...data } = employee.toObject();
+    const { password: _p, ...data } = employeeUser.toObject();
     res.status(201).json({ message: 'Employee created', employee: data });
-    res.status(201).json({ message: "Employee created successfully" });
   } catch (err) {
     console.warn("Add employee error:", err);
     res.status(500).json({ message: "Server error" });
@@ -167,4 +169,3 @@ exports.deleteEmployee = async (req, res) => {
 };
 
 
-  

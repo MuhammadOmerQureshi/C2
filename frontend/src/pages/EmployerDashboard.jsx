@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { logout } from '../utils/logout';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import { Chart, BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend } from 'chart.js';
+Chart.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend);
 
 import '../styles/pages/employerDashboard.css';
 import SpinningLogo from '../components/SpinningLogo';
@@ -144,10 +147,14 @@ export default function EmployerDashboard() {
     startTime: '',
     endTime: '',
     location: '',
+    role: '', // <-- add this line
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chartData, setChartData] = useState(null);
+  const [overallChartData, setOverallChartData] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [editShiftId, setEditShiftId] = useState(null);
   const navigate = useNavigate();
   const employerId = localStorage.getItem('userId'); // Should be MongoDB _id
 
@@ -158,6 +165,7 @@ export default function EmployerDashboard() {
       window.history.scrollRestoration = 'manual';
     }
     fetchAll();
+    fetchOverallAttendanceForChart();
   }, []);
 
   async function fetchAll() {
@@ -174,6 +182,65 @@ export default function EmployerDashboard() {
       setError(err.response?.data?.message || 'Failed to load data');
     }
     setLoading(false);
+  }
+
+  // Fetch and aggregate all employees' attendance for overall charts
+  async function fetchOverallAttendanceForChart() {
+    setError('');
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Session expired. Please log in again.');
+        logout(navigate);
+        return;
+      }
+      // Fetch all attendance records for this employer
+      const res = await api.get(`/attendance?employerId=${employerId}`);
+      const attendance = res.data;
+
+      // Aggregate hours worked per employee
+      const empHours = {};
+      const statusCounts = {};
+      attendance.forEach(record => {
+        const empName = record.employeeName || record.employeeId || 'Unknown';
+        empHours[empName] = (empHours[empName] || 0) + (record.hoursWorked || 0);
+        const status = record.status || 'Unknown';
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
+      });
+
+      setOverallChartData({
+        hours: {
+          labels: Object.keys(empHours),
+          datasets: [{
+            label: 'Total Hours Worked',
+            data: Object.values(empHours),
+            backgroundColor: 'rgba(43, 63, 229, 0.8)',
+            borderColor: 'rgba(43, 63, 229, 0.8)',
+            borderRadius: 5,
+          }],
+        },
+        status: {
+          labels: Object.keys(statusCounts),
+          datasets: [{
+            label: 'Attendance Status',
+            data: Object.values(statusCounts),
+            backgroundColor: [
+              'rgba(43, 63, 229, 0.8)',
+              'rgba(250, 192, 19, 0.8)',
+              'rgba(253, 135, 135, 0.8)',
+            ],
+            borderColor: [
+              'rgba(43, 63, 229, 0.8)',
+              'rgba(250, 192, 19, 0.8)',
+              'rgba(253, 135, 135, 0.8)',
+            ],
+          }],
+        },
+      });
+    } catch (err) {
+      setError('Failed to load overall attendance data');
+      setOverallChartData(null);
+    }
   }
 
   async function fetchAttendanceForChart(empId) {
@@ -259,8 +326,8 @@ export default function EmployerDashboard() {
     }
 
     const employeeData = {
-      ...empForm,
-      employerId // Make sure this is the MongoDB _id
+      ...empForm
+      // Do NOT include employerId
     };
 
     try {
@@ -290,24 +357,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  async function handleAddShift(e) {
-    e.preventDefault();
-    setError('');
-    try {
-      await api.post('/shifts', { ...shiftForm, employerId });
-      setShiftForm({
-        employeeId: '',
-        date: '',
-        startTime: '',
-        endTime: '',
-        location: '',
-      });
-      fetchAll();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add shift');
-    }
-  }
-
   async function handleDeleteShift(id) {
     if (!window.confirm('Delete this shift?')) return;
     setError('');
@@ -316,6 +365,44 @@ export default function EmployerDashboard() {
       fetchAll();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete shift');
+    }
+  }
+
+  // Populate the shift form for editing
+  function handleEditShift(shift) {
+    setEditShiftId(shift._id);
+    setShiftForm({
+      employeeId: shift.employee?._id || '', // Use shift.employee._id
+      date: shift.date ? shift.date.slice(0, 10) : '',
+      startTime: shift.startTime || '',
+      endTime: shift.endTime || '',
+      location: shift.location || '',
+      role: shift.role || '',
+    });
+  }
+
+  // Save or update shift
+  async function handleAddShift(e) {
+    e.preventDefault();
+    setError('');
+    try {
+      if (editShiftId) {
+        await api.put(`/shifts/${editShiftId}`, { ...shiftForm, employerId });
+        setEditShiftId(null);
+      } else {
+        await api.post('/shifts', { ...shiftForm, employerId });
+      }
+      setShiftForm({
+        employeeId: '',
+        date: '',
+        startTime: '',
+        endTime: '',
+        location: '',
+        role: '', // <-- add this line
+      });
+      fetchAll();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to add/update shift');
     }
   }
 
@@ -375,7 +462,7 @@ export default function EmployerDashboard() {
           <strong>📢 Alert:</strong> {shifts.find(s => !s.employeeId) ? "Some shifts need assignment." : "All shifts assigned."}
         </p>
       </div>
-    {/* <div class="dashboard-flex-layout"> */}
+    <div class="dashboard-flex-layout">
       <main className="main-content">
         {/* ===== Overview Cards ===== */}
         <section className="overview">
@@ -408,6 +495,14 @@ export default function EmployerDashboard() {
                 <input value={empForm.lastName} onChange={e => setEmpForm(f => ({ ...f, lastName: e.target.value }))} required />
               </div>
               <div className="form-group">
+                <label>Username<span className="required">*</span></label>
+                <input
+                  value={empForm.username}
+                  onChange={e => setEmpForm(f => ({ ...f, username: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
                 <label>Email<span className="required">*</span></label>
                 <input type="email" value={empForm.email} onChange={e => setEmpForm(f => ({ ...f, email: e.target.value }))} required />
               </div>
@@ -423,31 +518,96 @@ export default function EmployerDashboard() {
                 <label>Password<span className="required">*</span></label>
                 <input type="password" value={empForm.password} onChange={e => setEmpForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
               </div>
+              
               <button type="submit" className="btn btn-primary">Create Employee</button>
             </form>
           </div>
 
           {/* Create/Edit Shift Form */}
           <div className="form-card">
-            <h2>Create / Edit Shift</h2>
+            <h2>{editShiftId ? 'Edit Shift' : 'Create / Edit Shift'}</h2>
             <form className="create-form" onSubmit={handleAddShift}>
               <div className="form-group">
+                <label>Assign To Employee<span className="required">*</span></label>
+                <select
+                  value={shiftForm.employeeId}
+                  onChange={e => setShiftForm(f => ({ ...f, employeeId: e.target.value }))}
+                  required
+                >
+                  <option value="">-- Select Employee --</option>
+                  {employees.map(emp => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.firstName} {emp.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
                 <label>Date<span className="required">*</span></label>
-                <input type="date" value={shiftForm.date} onChange={e => setShiftForm(f => ({ ...f, date: e.target.value }))} required />
+                <input
+                  type="date"
+                  value={shiftForm.date}
+                  onChange={e => setShiftForm(f => ({ ...f, date: e.target.value }))}
+                  required
+                />
               </div>
               <div className="form-group">
                 <label>Start Time<span className="required">*</span></label>
-                <input type="time" value={shiftForm.startTime} onChange={e => setShiftForm(f => ({ ...f, startTime: e.target.value }))} required />
+                <input
+                  type="time"
+                  value={shiftForm.startTime}
+                  onChange={e => setShiftForm(f => ({ ...f, startTime: e.target.value }))}
+                  required
+                />
               </div>
               <div className="form-group">
                 <label>End Time<span className="required">*</span></label>
-                <input type="time" value={shiftForm.endTime} onChange={e => setShiftForm(f => ({ ...f, endTime: e.target.value }))} required />
+                <input
+                  type="time"
+                  value={shiftForm.endTime}
+                  onChange={e => setShiftForm(f => ({ ...f, endTime: e.target.value }))}
+                  required
+                />
               </div>
               <div className="form-group">
                 <label>Role / Position<span className="required">*</span></label>
-                <input value={shiftForm.role || ''} onChange={e => setShiftForm(f => ({ ...f, role: e.target.value }))} required />
+                <input
+                  value={shiftForm.role || ''}
+                  onChange={e => setShiftForm(f => ({ ...f, role: e.target.value }))}
+                  required
+                />
               </div>
-              <button type="submit" className="btn btn-primary">Save Shift</button>
+              <div className="form-group">
+                <label>Location<span className="required">*</span></label>
+                <input
+                  value={shiftForm.location || ''}
+                  onChange={e => setShiftForm(f => ({ ...f, location: e.target.value }))}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary">
+                {editShiftId ? 'Update Shift' : 'Save Shift'}
+              </button>
+              {editShiftId && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ marginLeft: '0.5rem' }}
+                  onClick={() => {
+                    setEditShiftId(null);
+                    setShiftForm({
+                      employeeId: '',
+                      date: '',
+                      startTime: '',
+                      endTime: '',
+                      location: '',
+                      role: '', // <-- add this line
+                    });
+                  }}
+                >
+                  Cancel Edit
+                </button>
+              )}
             </form>
           </div>
         </section>
@@ -479,6 +639,15 @@ export default function EmployerDashboard() {
                         <button className="btn btn-sm btn-secondary">Edit</button>
                         <button className="btn btn-sm btn-danger" onClick={() => handleDeleteEmployee(emp._id)}>Delete</button>
                         <button className="btn btn-sm btn-export" onClick={() => exportAttendancePDF(emp._id)}>Export Attendance</button>
+                        <button
+                          className="btn btn-sm btn-analytics"
+                          onClick={() => {
+                            setSelectedEmployee(emp);
+                            fetchAttendanceForChart(emp._id);
+                          }}
+                        >
+                          Analytics
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -497,30 +666,50 @@ export default function EmployerDashboard() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Shift ID</th>
+                    <th>Employee</th>
                     <th>Date</th>
                     <th>Time</th>
                     <th>Role</th>
                     <th>Status</th>
+                    <th>Location</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {shifts.map(shift => (
-                    <tr key={shift._id}>
-                      <td>{shift._id}</td>
-                      <td>{shift.date ? new Date(shift.date).toLocaleDateString() : ''}</td>
-                      <td>{shift.startTime} – {shift.endTime}</td>
-                      <td>{shift.role}</td>
-                      <td>{shift.status}</td>
-                      <td className="actions">
-                        <button className="btn btn-sm btn-secondary">Edit</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => handleDeleteShift(shift._id)}>Cancel</button>
-                      </td>
-                    </tr>
-                  ))}
+                  {shifts.map(shift => {
+                    // If shift.employee is populated (object), use it directly
+                    const emp = shift.employee;
+                    return (
+                      <tr key={shift._id}>
+                        <td>
+                          {emp && emp.firstName
+                            ? `${emp.firstName} ${emp.lastName}`
+                            : 'Unassigned'}
+                        </td>
+                        <td>{shift.date ? new Date(shift.date).toLocaleDateString() : ''}</td>
+                        <td>{shift.startTime} – {shift.endTime}</td>
+                        <td>{shift.role || '-'}</td>
+                        <td>{shift.status}</td>
+                        <td>{shift.location || '-'}</td>
+                        <td className="actions">
+                          <button
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => handleEditShift(shift)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDeleteShift(shift._id)}
+                          >
+                            Cancel
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {shifts.length === 0 && (
-                    <tr><td colSpan={6}>No shifts found.</td></tr>
+                    <tr><td colSpan={7}>No shifts found.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -528,15 +717,63 @@ export default function EmployerDashboard() {
           </div>
         </section>
       </main>
-    {/* <aside class="charts-area">
+      
+     <aside class="charts-area">
+          <div className="charts-card">
+            <h2>Overall Productivity</h2>
+            {overallChartData ? (
+              <>
+                <Bar
+                  data={overallChartData.hours}
+                  options={{
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } },
+                  }}
+                />
+                <Doughnut
+                  data={overallChartData.status}
+                  options={{
+                    plugins: { legend: { position: 'bottom' } },
+                  }}
+                />
+              </>
+            ) : (
+              <p>No overall data available.</p>
+            )}
+          </div>
+          {chartData && selectedEmployee && (
+            <div className="charts-card">
+              <h2>
+                {selectedEmployee.firstName} {selectedEmployee.lastName} Analytics
+                <button
+                  style={{ float: 'right' }}
+                  className="btn btn-sm btn-close"
+                  onClick={() => {
+                    setChartData(null);
+                    setSelectedEmployee(null);
+                  }}
+                >×</button>
+              </h2>
+              <Bar
+                data={chartData.hours}
+                options={{
+                  responsive: true,
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true } },
+                }}
+              />
+              <Doughnut
+                data={chartData.status}
+                options={{
+                  plugins: { legend: { position: 'bottom' } },
+                }}
+              />
+            </div>
+          )}
+        </aside>
 
-
-        
-
-
-    </aside> */}
-
-    {/* </div> */}
+    </div>
 
     
       {/* ===== Footer ===== */}

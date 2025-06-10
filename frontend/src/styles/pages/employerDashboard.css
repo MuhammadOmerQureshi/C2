@@ -123,11 +123,11 @@ body {
 /* ===== Main Content Area ===== */
 .main-content {
   padding: 1.5rem 2rem;
-  max-width: 1200px;
+  max-width: 900px;
   
 
   margin-top: 0; /* Center the content */
-  margin-left: 10%;
+  margin-left: 40px;
   margin-right: auto; 
   margin-bottom: 0;
   
@@ -202,6 +202,18 @@ body {
   outline: none;
   border-color: var(--primary-color);
 }
+.create-form select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+.create-form select:focus {
+  border-color: #2b3fe5;
+  outline: none;
+}
 .required {
   color: var(--danger-color);
   margin-left: 0.2rem;
@@ -262,6 +274,16 @@ body {
   }
   .forms {
     flex-direction: column;
+  }
+  .dashboard-flex-layout {
+    flex-direction: column;
+  }
+  .main-content, .charts-area {
+    max-width: 100%;
+    margin-left: 0;
+  }
+  .charts-area {
+    margin-top: 2rem;
   }
 }
 /* ============================= */
@@ -392,6 +414,66 @@ body {
 
 
 
+.dashboard-flex-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Adjust main-content to use less space */
+.main-content {
+  flex: 0 0 64%;
+  max-width: 820px;     /* Or 700px or whatever looks best */
+  margin-left: 2%;
+  margin-right: 0;
+}
+
+/* Style for the charts area */
+.charts-area {
+  flex: 1 1 300px;
+  min-width: 260px;
+  max-width: 370px;
+  margin-left: 2.5rem;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1.3rem 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  height: fit-content;
+}
+
+.charts-area canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 260px;
+}
+
+.charts-card {
+  margin-bottom: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  padding: 1rem 0.5rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.charts-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #2b3fe5;
+  text-align: center;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+.btn-close:hover {
+  color: #dc3545;
+}
 
 
 
