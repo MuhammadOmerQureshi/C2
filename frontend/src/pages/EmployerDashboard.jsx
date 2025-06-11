@@ -852,24 +852,25 @@ export default function EmployerDashboard() {
           </div>
           <div className="footer-section social-links">
             <h3>Follow Us</h3>
-            <div className="social-icons">Add commentMore actions
-                <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-                  <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
-                </a>
-                <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-                  <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
-                </a>
-                <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-                  <img src="/li.png" alt="LinkedIn" width="24" />
-                </a>
-                <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-                  <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
-                </a>
-            </div>
-      </div>Add commentMore actions
+<div className="social-icons">
+  <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
+  </a>
+  <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
+  </a>
+  <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+    <img src="/li.png" alt="LinkedIn" width="24" />
+  </a>
+  <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
+  </a>
+</div>
+
+
+          </div>
         </div>
         <div className="footer-bottom">
-          
           <p>©2025 CesiumClock. All rights reserved</p>
         </div>
       </footer>

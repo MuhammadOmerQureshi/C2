@@ -13,8 +13,7 @@ const {
     updateUserProfile, 
     deleteUser,        
     getUserById,
-    bulkUpdateUserStatus,
-    bulkDeleteUsers        
+      
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -63,8 +62,7 @@ router.put('/status', protect, authorize('admin'), updateUserStatus);
 router.get('/users', protect, authorize('admin'), getAllUsers);
 router.get('/users/:id', protect, authorize('admin'), getUserById);
 router.delete('/users/:id', protect, authorize('admin'), deleteUser);
-router.put('/bulk-status', protect, authorize('admin'), bulkUpdateUserStatus);
-router.delete('/bulk-delete', protect, authorize('admin'), bulkDeleteUsers);
+
 
 module.exports = router;
 

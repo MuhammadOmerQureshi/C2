@@ -16,7 +16,7 @@ export default function AdminDashboard() {
   const [showDetails, setShowDetails] = useState(null);
   const [resetId, setResetId] = useState(null);
   const [resetPassword, setResetPassword] = useState('');
-  const [bulkStatus, setBulkStatus] = useState('active');
+
   const navigate = useNavigate();
 
   // For overview cards
@@ -87,38 +87,16 @@ export default function AdminDashboard() {
     }
   };
 
-  // Bulk actions
-  const onSelect = (id) => {
-    setSelected(selected.includes(id) ? selected.filter(i => i !== id) : [...selected, id]);
-  };
+
 
   const onSelectAll = () => {
     if (selected.length === employers.length) setSelected([]);
     else setSelected(employers.map(e => e._id));
   };
 
-  const onBulkStatus = async () => {
-    setError('');
-    try {
-      await api.put('/admin/bulk-status', { userIds: selected, status: bulkStatus });
-      setSelected([]);
-      fetchEmployers();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Bulk status update failed');
-    }
-  };
 
-  const onBulkDelete = async () => {
-    setError('');
-    if (!window.confirm('Delete selected employers?')) return;
-    try {
-      await api.delete('/admin/bulk-delete', { data: { userIds: selected } });
-      setSelected([]);
-      fetchEmployers();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Bulk delete failed');
-    }
-  };
+
+
 
   // Reset password
   const onResetPassword = async (e) => {
@@ -202,23 +180,6 @@ export default function AdminDashboard() {
               </div>
             </section>
 
-            {/* Bulk Actions */}
-            <section className="bulk-actions">
-              <button className="btn btn-secondary" onClick={onSelectAll}>
-                {selected.length === employers.length ? 'Unselect All' : 'Select All'}
-              </button>
-              <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
-              <button className="btn btn-primary" onClick={onBulkStatus} disabled={!selected.length}>
-                Bulk Update Status
-              </button>
-              <button className="btn btn-danger" onClick={onBulkDelete} disabled={!selected.length}>
-                Bulk Delete
-              </button>
-            </section>
 
             {/* Employers Table */}
             <section className="tables">
@@ -372,28 +333,20 @@ export default function AdminDashboard() {
           </div>
           <div className="footer-section social-links">
             <h3>Follow Us</h3>
-            {/* <div className="social-icons">
-              <a href="#" aria-label="Facebook" className="icon-facebook">F</a>
-              <a href="#" aria-label="Twitter" className="icon-twitter">T</a>
-              <a href="#" aria-label="LinkedIn" className="icon-linkedin">L</a>
-              <a href="#" aria-label="Instagram" className="icon-instagram">I</a>
-            </div> */}
-            <div className="social-icons">Add commentMore actions
-              <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-                <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
-              </a>
-              <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-                <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
-              </a>
-              <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-                <img src="/li.png" alt="LinkedIn" width="24" />
-              </a>
-              <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-                <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
-              </a>
-            </div>Add commentMore actions
-
-
+<div className="social-icons">
+  <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
+  </a>
+  <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
+  </a>
+  <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+    <img src="/li.png" alt="LinkedIn" width="24" />
+  </a>
+  <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
+  </a>
+</div>
 
 
           </div>

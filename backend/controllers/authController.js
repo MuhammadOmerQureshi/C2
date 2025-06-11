@@ -338,43 +338,7 @@ exports.updateUserProfile = [
     }
 ];
 
-// Bulk update user status (Admin only)
-exports.bulkUpdateUserStatus = [
-    body('userIds').isArray({ min: 1 }).withMessage('userIds must be a non-empty array'),
-    body('status')
-      .isIn(['active', 'inactive', 'suspended'])
-      .withMessage('Status must be one of: active, inactive, suspended'),
-    async (req, res) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const { userIds, status } = req.body;
-      try {
-        const result = await User.updateMany(
-          { _id: { $in: userIds } },
-          { $set: { status } }
-        );
-  
-        // Log each status change
-        for (const userId of userIds) {
-          await AuditLog.create({
-            action: 'bulkUpdateStatus',
-            performedBy: req.user.id,
-            targetUser: userId,
-            details: { status },
-          });
-        }
-  
-        res.status(200).json({
-          message: `Status updated to '${status}' for ${result.nModified || result.modifiedCount} users.`,
-        });
-      } catch (error) {
-        res.status(500).json({ error: error.message });
-      }
-    }
-  ];
+
   
 exports.deleteUser = async (req, res) => {
     try {
@@ -402,35 +366,5 @@ exports.deleteUser = async (req, res) => {
     }
   };
 
-// Bulk delete users (Admin only)
-exports.bulkDeleteUsers = [
-    body('userIds').isArray({ min: 1 }).withMessage('userIds must be a non-empty array'),
-    async (req, res) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const { userIds } = req.body;
-      try {
-        const result = await User.deleteMany({ _id: { $in: userIds } });
-  
-        // Log each deletion
-        for (const userId of userIds) {
-          await AuditLog.create({
-            action: 'bulkDelete',
-            performedBy: req.user.id,
-            targetUser: userId,
-            details: {},
-          });
-        }
-  
-        res.status(200).json({
-          message: `Deleted ${result.deletedCount} users.`,
-        });
-      } catch (error) {
-        res.status(500).json({ error: error.message });
-      }
-    }
-  ];
+
 
