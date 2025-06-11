@@ -40,6 +40,8 @@ body {
   font-weight: 700;
   letter-spacing: 1.5px;
 }
+
+
 .btn-logout {
   background: var(--danger-color);
   color: #fff;
@@ -234,14 +236,40 @@ body {
   transition: color 0.2s;
 }
 .footer-section ul li a:hover { color: var(--accent-color);}
-.social-links .social-icons { display: flex; gap: 1rem; }
-.social-links .social-icons a {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 2rem; height: 2rem; border-radius: 50%;
-  background: #2c3436; color: #f1f1f1; font-size: 1rem; text-decoration: none;
-  transition: background 0.2s;
+
+/*social area*/
+.social-icons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
 }
-.social-links .social-icons a:hover { background: var(--accent-color);}
+
+.social-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;           /* circular */
+  background-color: #fffafa;    /* dark background */
+  color: #f1f1f1;               /* light icon/text color */
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 6px rgb(223, 218, 218);
+}
+
+.social-icon-box:hover {
+  background-color: var(--accent-color, #1877F2); /* fallback to Facebook blue */
+  cursor: pointer;
+}
+
+.social-icon-box img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
 .footer-bottom {
   background: #111111;
   text-align: center;
@@ -249,6 +277,28 @@ body {
   font-size: 0.87rem;
   border-top: 1px solid #2c3436;
   color: #888;
+}
+.language-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+  justify-content: flex-end; /* align to right */
+}
+
+.language-switcher button {
+  padding: 6px 12px;
+  border: none;
+  background-color: #f0f0f0;
+  color: #333;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.language-switcher button:hover {
+  background-color: #dcdcdc;
 }
 
 /* Responsive */

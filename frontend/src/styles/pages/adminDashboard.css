@@ -165,13 +165,7 @@ body {
   margin-top: 0.5rem;
 }
 
-/* Bulk actions */
-.bulk-actions {
-  display: flex;
-  gap: 0.7rem;
-  margin-bottom: 1.3rem;
-  align-items: center;
-}
+
 
 /* Tables Section */
 .tables {
@@ -305,26 +299,87 @@ body {
 .footer-section ul li a:hover {
   color: var(--accent-color);
 }
-.social-links .social-icons {
+
+/*social area*/
+.social-icons {
   display: flex;
-  gap: 1rem;
+  gap: 12px;
+  margin-top: 8px;
 }
-.social-links .social-icons a {
-  display: inline-flex;
+
+.social-icon-box {
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background-color: #2c3436;
-  color: #f1f1f1;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;           /* circular */
+  background-color: #f7f7f7;    /* dark background */
+  color: #f1f1f1;               /* light icon/text color */
   font-size: 1rem;
   text-decoration: none;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 6px rgb(223, 218, 218);
 }
-.social-links .social-icons a:hover {
-  background-color: var(--accent-color);
+
+.social-icon-box:hover {
+  background-color: var(--accent-color, #1877F2); /* fallback to Facebook blue */
+  cursor: pointer;
 }
+
+.social-icon-box img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+} 
+
+
+
+
+
+.footer-bottom {
+  background: #111111;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.87rem;
+  border-top: 1px solid #2c3436;
+  color: #888;
+}
+.language-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+  justify-content: flex-end; /* align to right */
+}
+
+.language-switcher button {
+  padding: 6px 12px;
+  border: none;
+  background-color: #f0f0f0;
+  color: #333;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.language-switcher button:hover {
+  background-color: #dcdcdc;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 .footer-bottom {
   background-color: #111111;
   text-align: center;

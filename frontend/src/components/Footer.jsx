@@ -49,7 +49,7 @@
 //       <div className="footer-content">
 //         <div className="footer-section">
 //           <h3>Cesium Clock</h3>
-//           <p>&copy; {new Date().getFullYear()} Cesium Clock. All rights reserved.</p>
+//           <p>&copy; {new Date().getFullYear()} . All rights reserved.</p>
 //         </div>
         
 //         <div className="footer-section">

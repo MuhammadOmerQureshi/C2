@@ -6,8 +6,7 @@ const {
   getUserById,
   updateUserStatus,
   deleteUser,
-  bulkUpdateUserStatus,
-  bulkDeleteUsers
+
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -35,7 +34,6 @@ router.get('/users', protect, authorize('admin'), getAllUsers);
 router.get('/users/:id', getUserById);
 router.put('/status', ...updateUserStatus);
 router.delete('/users/:id', deleteUser);
-router.put('/bulk-status', ...bulkUpdateUserStatus);
-router.delete('/bulk-delete', ...bulkDeleteUsers);
+
 
 module.exports = router;
