@@ -822,6 +822,58 @@ export default function EmployerDashboard() {
           
         </aside>
       </div>
+
+       {/* ===== Footer ===== */}More actions
+      <footer className="footer">
+        <div className="footer-content">
+          <div className="footer-section">
+            <h3>About Us</h3>
+            <ul>
+              <li><a href="#">Our Story</a></li>
+              <li><a href="#">Team &amp; Careers</a></li>
+              <li><a href="#">Contact Support</a></li>
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="#">API Documentation</a></li>
+              <li><a href="#">Developer Hub</a></li>
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>Policies</h3>
+            <ul>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="#">Cookie Settings</a></li>
+            </ul>
+          </div>
+          <div className="footer-section social-links">
+            <h3>Follow Us</h3>
+            <div className="social-icons">Add commentMore actions
+                <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                  <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
+                </a>
+                <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                  <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
+                </a>
+                <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                  <img src="/li.png" alt="LinkedIn" width="24" />
+                </a>
+                <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                  <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
+                </a>
+            </div>
+      </div>Add commentMore actions
+        </div>
+        <div className="footer-bottom">
+          
+          <p>©2025 CesiumClock. All rights reserved</p>
+        </div>
+      </footer>
     </>
   );
 }
+ 

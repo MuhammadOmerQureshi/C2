@@ -95,12 +95,28 @@ export default function LoginPage() {
           </div>
           <div className="footer-section social-links">
             <h3>Follow Us</h3>
-            <div className="social-icons">
+            {/* <div className="social-icons">
               <a href="#" aria-label="Facebook" className="icon-facebook">F</a>
               <a href="#" aria-label="Twitter" className="icon-twitter">T</a>
               <a href="#" aria-label="LinkedIn" className="icon-linkedin">L</a>
               <a href="#" aria-label="Instagram" className="icon-instagram">I</a>
+            </div> */}
+            <div className="social-icons">Add commentMore actions
+              <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
+              </a>
+              <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
+              </a>
+              <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="/li.png" alt="LinkedIn" width="24" />
+              </a>
+              <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />Add commentMore actions
+              </a>
             </div>
+
+
           </div>
         </div>
         <div className="footer-bottom">

@@ -33,7 +33,7 @@ function App() {
           {userRole === 'employer' && (
             <>
               <NavLink to="/employer/ip-settings">IP Settings</NavLink>
-              <NavLink to="/employer/failed-attempts">Failed Attempts</NavLink>
+              <NavLink to="/employer/failed_attempts">Failed Attempts</NavLink>
             </>
           )}
           {userRole === 'employee' && (
