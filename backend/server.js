@@ -44,6 +44,7 @@ const attendanceRoutes= require('./routes/attendanceRoutes');
 const adminRoutes       = require('./routes/adminRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const employerSettingsRoutes = require('./routes/employerSettingsRoutes');
 
 // Add i18next middleware
 app.use(i18nextMiddleware.handle(i18next));
@@ -55,8 +56,9 @@ app.use('/api/employees',  employeeRoutes);
 app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/chatbot', chatbotRoutes);cls
 app.use('/api/contact', contactRoutes);
+app.use('/api/employer', employerSettingsRoutes);
 
 // 404 handler for API routes only
 app.use('/api', (req, res) => {

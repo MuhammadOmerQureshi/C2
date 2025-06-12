@@ -9,6 +9,9 @@ Chart.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Lege
 import '../styles/pages/employerDashboard.css';
 import SpinningLogo from '../components/SpinningLogo';
 import Chatbot from '../components/Chatbot';
+import IPRangeManager from '../components/IPRangeManager';
+import FailedAttemptsLog from '../components/FailedAttemptsLog';
+import axios from 'axios';
 
 // -- DEFENSIVE HOOK --
 function useEmployerApiEmployees() {
@@ -17,7 +20,7 @@ function useEmployerApiEmployees() {
     const fetchEmployees = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/employer/employees', {
+        const res = await axios.get('/api/employers/employees', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setApiEmployees(Array.isArray(res.data) ? res.data : []);
@@ -155,6 +158,8 @@ export default function EmployerDashboard() {
   const [overallChartData, setOverallChartData] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [editShiftId, setEditShiftId] = useState(null);
+  const [failedAttempts, setFailedAttempts] = useState([]);
+  const [failedAttemptsError, setFailedAttemptsError] = useState('');
   const navigate = useNavigate();
   const employerId = localStorage.getItem('userId'); // Should be MongoDB _id
 
@@ -166,19 +171,31 @@ export default function EmployerDashboard() {
     }
     fetchAll();
     fetchOverallAttendanceForChart();
+    setFailedAttempts([]); // Reset failed attempts on mount, // <-- If you want to clear, use []
   }, []);
+
+  useEffect(() => {
+    if (!employerId) return; // Do not call API if employerId is not set
+    api.get(`/attendance?employerId=${employerId}`)
+      .then(res => setAttendance(res.data))
+      .catch(err => setError(err.response?.data?.message || 'Failed to load attendance'));
+  }, [employerId]);
 
   async function fetchAll() {
     setLoading(true);
     setError('');
     try {
       const [empRes, shiftRes] = await Promise.all([
-        api.get('/employees'), // Removed ?employerId=...
-        api.get('/shifts'),    // Removed ?employerId=...
+        api.get('/employers/employees'), // Use this endpoint
+        api.get('/shifts'),
       ]);
-      setEmployees(empRes.data);
-      setShifts(shiftRes.data);
+      
+      setEmployees(Array.isArray(empRes.data) ? empRes.data : []);
+      setShifts(Array.isArray(shiftRes.data) ? shiftRes.data : []);
+
     } catch (err) {
+      setEmployees([]); // Defensive: always set to array
+      setShifts([]);
       setError(err.response?.data?.message || 'Failed to load data');
     }
     setLoading(false);
@@ -195,7 +212,8 @@ export default function EmployerDashboard() {
         return;
       }
       // Fetch all attendance records for this employer
-      const res = await api.get(`/attendance?employerId=${employerId}`);
+      const res =  await api.get(`/attendance?employerId=${employerId}`);  //await api.get('/attendance'); 
+      
       const attendance = res.data;
 
       // Aggregate hours worked per employee
@@ -317,7 +335,7 @@ export default function EmployerDashboard() {
   async function handleAddEmployee(e) {
     e.preventDefault();
     setError('');
-    const employerId = localStorage.getItem('userId'); // This should be the MongoDB _id
+    const employerId = localStorage.getItem('userId'); // MongoDB _id
 
     // Username validation
     if (!empForm.username || empForm.username.trim() === '') {
@@ -326,12 +344,21 @@ export default function EmployerDashboard() {
     }
 
     const employeeData = {
-      ...empForm
-      // Do NOT include employerId
+      ...empForm,
+      employer: employerId, // Add employer ID here
     };
 
     try {
-      await api.post('/employees', employeeData);
+      await api.post('/employees', {
+        firstName: empForm.firstName,
+        lastName: empForm.lastName,
+        employer: employerId, // <-- send MongoDB _id
+        username: empForm.username,
+        email: empForm.email,
+        password: empForm.password,
+        employeeId: empForm.employeeId,
+        contactNumber: empForm.contactNumber,
+      });
       setEmpForm({
         firstName: '',
         lastName: '',
@@ -462,17 +489,17 @@ export default function EmployerDashboard() {
           <strong>📢 Alert:</strong> {shifts.find(s => !s.employeeId) ? "Some shifts need assignment." : "All shifts assigned."}
         </p>
       </div>
-    <div class="dashboard-flex-layout">
+    <div className="dashboard-flex-layout">
       <main className="main-content">
         {/* ===== Overview Cards ===== */}
         <section className="overview">
           <div className="card">
             <h3>Total Employees</h3>
-            <p className="stat-number">{employees.length}</p>
+            <p className="stat-number">{Array.isArray(employees) ? employees.length : 0}</p>
           </div>
           <div className="card">
             <h3>Total Shifts Posted</h3>
-            <p className="stat-number">{shifts.length}</p>
+            <p className="stat-number">{Array.isArray(shifts) ? shifts.length : 0}</p>
           </div>
           <div className="card">
             <h3>Pending Clock-Ins</h3>
@@ -535,7 +562,7 @@ export default function EmployerDashboard() {
                   required
                 >
                   <option value="">-- Select Employee --</option>
-                  {employees.map(emp => (
+                  {Array.isArray(employees) && employees.map(emp => (
                     <option key={emp._id} value={emp._id}>
                       {emp.firstName} {emp.lastName}
                     </option>
@@ -612,6 +639,8 @@ export default function EmployerDashboard() {
           </div>
         </section>
 
+        {/* <IPRangeManager /> */}
+
         {/* ===== Tables Section ===== */}
         <section className="tables">
           {/* Employees Table */}
@@ -629,9 +658,10 @@ export default function EmployerDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {employees.map(emp => (
+                  {Array.isArray(employees) && employees.map(emp => (
                     <tr key={emp._id}>
                       <td>{emp.employeeId}</td>
+                      <td>{emp.prettyEmployerId}</td>
                       <td>{emp.firstName} {emp.lastName}</td>
                       <td>{emp.email}</td>
                       <td>{emp.contactNumber}</td>
@@ -651,7 +681,7 @@ export default function EmployerDashboard() {
                       </td>
                     </tr>
                   ))}
-                  {employees.length === 0 && (
+                  {(!Array.isArray(employees) || employees.length === 0) && (
                     <tr><td colSpan={5}>No employees found.</td></tr>
                   )}
                 </tbody>
@@ -676,7 +706,7 @@ export default function EmployerDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {shifts.map(shift => {
+                  {Array.isArray(shifts) && shifts.map(shift => {
                     // If shift.employee is populated (object), use it directly
                     const emp = shift.employee;
                     return (
@@ -717,8 +747,53 @@ export default function EmployerDashboard() {
           </div>
         </section>
       </main>
+
+
+      {/* ===== Failed IP Validation Attempts ===== */}
+    <section className="table-card">
+      <h2>Failed IP Validation Attempts</h2>
+      {failedAttemptsError && <p style={{ color: 'red' }}>{failedAttemptsError}</p>}
+      {failedAttempts.length === 0 ? (
+        <p>No failed attempts.</p>
+      ) : (
+        <div className="table-scrollable">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Time</th>
+                <th>IP Address</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(failedAttempts) && failedAttempts.map(attempt => (
+                <tr key={attempt._id}>
+                  <td>
+                    {attempt.employee?.firstName} {attempt.employee?.lastName} ({attempt.employee?.username})
+                  </td>
+                  <td>{new Date(attempt.attemptTime).toLocaleString()}</td>
+                  <td>{attempt.ipAddress}</td>
+                  <td>{attempt.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+    {/* <FailedAttemptsLog /> */}
+
+<div className="charts-card">
+            <h2>IP Management</h2>
+            <IPRangeManager />
+            <hr style={{ margin: '1rem 0' }} />
+            {/* <h3>Employer IP Settings</h3>
+            <EmployerIPSettings /> */}
+          </div>
       
-     <aside class="charts-area">
+     <aside className="charts-area">
+      
           <div className="charts-card">
             <h2>Overall Productivity</h2>
             {overallChartData ? (
@@ -742,81 +817,11 @@ export default function EmployerDashboard() {
               <p>No overall data available.</p>
             )}
           </div>
-          {chartData && selectedEmployee && (
-            <div className="charts-card">
-              <h2>
-                {selectedEmployee.firstName} {selectedEmployee.lastName} Analytics
-                <button
-                  style={{ float: 'right' }}
-                  className="btn btn-sm btn-close"
-                  onClick={() => {
-                    setChartData(null);
-                    setSelectedEmployee(null);
-                  }}
-                >×</button>
-              </h2>
-              <Bar
-                data={chartData.hours}
-                options={{
-                  responsive: true,
-                  plugins: { legend: { display: false } },
-                  scales: { y: { beginAtZero: true } },
-                }}
-              />
-              <Doughnut
-                data={chartData.status}
-                options={{
-                  plugins: { legend: { position: 'bottom' } },
-                }}
-              />
-            </div>
-          )}
+
+          {/* ===== IP Management & Settings ===== */}
+          
         </aside>
-
-    </div>
-
-    
-      {/* ===== Footer ===== */}
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-section">
-            <h3>About Us</h3>
-            <ul>
-              <li><a href="#">Our Story</a></li>
-              <li><a href="#">Team &amp; Careers</a></li>
-              <li><a href="#">Contact Support</a></li>
-            </ul>
-          </div>
-          <div className="footer-section">
-            <h3>Resources</h3>
-            <ul>
-              <li><a href="#">Help Center</a></li>
-              <li><a href="#">API Documentation</a></li>
-              <li><a href="#">Developer Hub</a></li>
-            </ul>
-          </div>
-          <div className="footer-section">
-            <h3>Policies</h3>
-            <ul>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
-              <li><a href="#">Cookie Settings</a></li>
-            </ul>
-          </div>
-          <div className="footer-section social-links">
-            <h3>Follow Us</h3>
-            <div className="social-icons">
-              <a href="#" aria-label="Facebook" className="icon-facebook">F</a>
-              <a href="#" aria-label="Twitter" className="icon-twitter">T</a>
-              <a href="#" aria-label="LinkedIn" className="icon-linkedin">L</a>
-              <a href="#" aria-label="Instagram" className="icon-instagram">I</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>© 2023 Your Company Name. All rights reserved.</p>
-        </div>
-      </footer>
+      </div>
     </>
   );
 }

@@ -6,7 +6,7 @@ export default function FailedAttemptsLog() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/employer/failed-attempts')
+    api.get('/employer/failed_attempts')
       .then(res => setFailedAttempts(res.data))
       .catch(err => setError(err.response?.data?.message || 'Failed to load failed attempts'));
   }, []);

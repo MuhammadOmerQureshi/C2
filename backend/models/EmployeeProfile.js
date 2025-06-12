@@ -5,7 +5,7 @@ const employeeProfileSchema = new Schema({
   user:        { type: Schema.Types.ObjectId, ref: 'User', required: true },
   employeeId:  { type: String, required: true, unique: true },
   contact:     { type: String },
-  employer:    { type: Schema.Types.ObjectId, ref: 'User', required: true }  // link back to the employer
+  employer: { type: Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('EmployeeProfile', employeeProfileSchema);

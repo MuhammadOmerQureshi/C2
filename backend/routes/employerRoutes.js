@@ -41,6 +41,7 @@ router.post(
   createEmployee
 );
 
+// List all employees for the authenticated employer
 router.get('/employees', protect, authorize('employer'), listEmployees);
 router.get('/employees/:id', protect, authorize('employer'), getEmployeeById);
 

@@ -67,6 +67,7 @@ export default function EmployeeDashboard() {
       const ipRes = await fetch('https://api.ipify.org?format=json');
       const { ip } = await ipRes.json();
       await api.post('/attendance/clock-in', { shiftId, ip });
+      alert(res.data.message);  // Shows "IP validation successful" or error
       fetchHistory();
       fetchShifts();
     } catch (err) {

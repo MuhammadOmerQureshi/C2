@@ -17,6 +17,7 @@ export default function LoginPage() {
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       const me = await api.get('/auth/me');
+      localStorage.setItem('userId', me.data._id); // <-- Save userId for later use
       if (me.data.role === 'admin') navigate('/admin');
       else if (me.data.role === 'employer') navigate('/employer');
       else if (me.data.role === 'employee') navigate('/employee');
@@ -103,7 +104,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2023 CesiumClock. All rights reserved.</p>
+          <p>© 2025 CesiumClock. All rights reserved.</p>
         </div>
       </footer>
     </>

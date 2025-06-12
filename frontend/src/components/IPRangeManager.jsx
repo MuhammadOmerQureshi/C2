@@ -67,7 +67,7 @@ const IPRangeManager = () => {
   
   const toggleVerification = async () => {
     try {
-      await api.put('/employer/toggle-verification', {
+      await api.put('/employer/settings', {
         enforceIPVerification: !settings.enforceIPVerification
       });
       fetchSettings();

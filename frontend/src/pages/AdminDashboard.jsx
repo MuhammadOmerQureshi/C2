@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
-    firstName: '', lastName: '', username: '', email: '', password: '', employerId: ''
+    firstName: '', lastName: '', username: '', email: '', password: ''
   });
   const [selected, setSelected] = useState([]);
   const [showDetails, setShowDetails] = useState(null);
@@ -58,8 +58,8 @@ export default function AdminDashboard() {
     e.preventDefault();
     setError('');
     try {
-      await api.post('/admin/employers', form);
-      setForm({ firstName: '', lastName: '', username: '', email: '', password: '', employerId: '' });
+      await api.post('/admin/employers', form); // Do NOT send employerId
+      setForm({ firstName: '', lastName: '', username: '', email: '', password: '' });
       fetchEmployers();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create employer');
@@ -197,10 +197,6 @@ export default function AdminDashboard() {
                     <label htmlFor="password">Password<span className="required">*</span></label>
                     <input type="password" id="password" name="password" value={form.password} onChange={onChange} required minLength={6} />
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="employerId">Employer ID<span className="required">*</span></label>
-                    <input type="text" id="employerId" name="employerId" value={form.employerId} onChange={onChange} required />
-                  </div>
                   <button type="submit" className="btn btn-primary">Create Employer</button>
                 </form>
               </div>
@@ -255,6 +251,7 @@ export default function AdminDashboard() {
                           <td>{emp.firstName} {emp.lastName}</td>
                           <td>{emp.username}</td>
                           <td>{emp.email}</td>
+                          <td>{emp.prettyEmployerId}</td>
                           <td>
                             <select
                               value={emp.status}

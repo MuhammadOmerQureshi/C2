@@ -27,13 +27,17 @@ exports.registerEmployer = async (req, res) => {
         }
 
         // Prevent duplicates by email, username, or employerId
-        const exists = await User.findOne({ $or: [{ email }, { username }, { employerId }] });
+        const exists = await User.findOne({ $or: [{ email }, { username }] });
         if (exists) {
             return res.status(409).json({ message: "Email or username already in use" });
         }
 
         // Hash password
         const hashed = await bcrypt.hash(password, 10);
+
+        // Generate prettyEmployerId
+        const employerCount = await User.countDocuments({ role: "employer" });
+        const prettyEmployerId = `Employer ${employerCount + 1}`;
 
         // Create employer user
         const employer = await User.create({
@@ -44,8 +48,8 @@ exports.registerEmployer = async (req, res) => {
             password: hashed,
             address,
             contactNo,
-            role: 'employer',
-            employerId // Save employerId
+            role: "employer",
+            prettyEmployerId // <-- add this
         });
 
         // Omit password from response

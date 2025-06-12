@@ -11,7 +11,13 @@ const {
   clockIn,
   clockOut,
   listMyAttendance,
-  exportAttendancePDF
+  getAttendanceHistory,
+  exportAttendanceExcel,
+  exportAttendancePDF,
+  exportAllAttendancePDF,
+  sendShiftReminder,
+  getAttendanceForEmployer,
+  getAttendanceForEmployee
 } = require('../controllers/attendanceController');
 const { verifyEmployeeIP } = require('../middleware/ipVerificationMiddleware');
 const AttendanceLog = require('../models/AttendanceLog');
@@ -36,6 +42,7 @@ router.use(protect);
 router.post(
   '/clock-in',
   authorize('employee'),
+  verifyEmployeeIP,
   [
     body('shiftId').notEmpty().withMessage('Shift ID is required'),
     // optionally validate geo fields if you send them:
@@ -61,8 +68,21 @@ router.get('/my-history', authorize('employee'), attendanceController.listMyAtte
 
 // Routes accessible by employees, employers, and admins
 router.get('/export/pdf', exportAttendancePDF);
+// router.get('/export/excel', exportAttendanceExcel);
 
 // GET /api/attendance?employeeId=xxx (admin, employer, employee)
-router.get('/', attendanceController.getAttendanceForEmployee);
+router.get(
+  '/',
+  authorize('admin', 'employer'),
+  async (req, res, next) => {
+    if (req.query.employerId) {
+      return getAttendanceForEmployer(req, res, next);
+    }
+    if (req.query.employeeId) {
+      return getAttendanceForEmployee(req, res, next);
+    }
+    return res.status(400).json({ message: 'Missing employerId or employeeId in query' });
+  }
+);
 
 module.exports = router;

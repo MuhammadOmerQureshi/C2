@@ -16,7 +16,7 @@ const userSchema = new Schema({
 
   employeeId:  { type: String }, // Just a string for display/tracking
   employerId:  { type: Schema.Types.ObjectId, ref: 'User' }, // Reference to employer's _id
-  
+  prettyEmployerId: { type: String, unique: true }, // e.g., "Employer 1"
 
   role:      { type: String, enum: ['admin', 'employer', 'employee'], required: true }, 
   status:    { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active'},

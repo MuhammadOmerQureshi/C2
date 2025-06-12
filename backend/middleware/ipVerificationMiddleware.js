@@ -9,7 +9,7 @@ const { isIPInRange } = require('../utils/ipUtils');
 const verifyEmployeeIP = async (req, res, next) => {
   try {
     const employeeId = req.user.id;
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.body.ip || req.ip || req.connection?.remoteAddress;
     
     // Get employee profile to find employer
     const employeeProfile = await EmployeeProfile.findOne({ user: employeeId });

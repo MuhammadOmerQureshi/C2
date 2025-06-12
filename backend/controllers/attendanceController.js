@@ -33,47 +33,36 @@ function mapAttendance(records) {
 // POST /api/attendance/clock-in
 exports.clockIn = async (req, res) => {
   try {
-    console.log('Clock-in request body:', req.body);
-    console.log('User from JWT:', req.user);
-
     const { shiftId, ip } = req.body;
-    const userId = req.user?.id;
-    if (!userId) {
-      console.error('No userId in req.user');
-      return res.status(401).json({ message: 'Unauthorized: No user' });
-    }
-    if (!shiftId) {
-      console.error('No shiftId provided');
-      return res.status(400).json({ message: 'shiftId is required' });
-    }
+    const userId = req.user.id;
 
+    // Find the shift for this employee
     const shift = await Shift.findOne({ _id: shiftId, employee: userId });
-    if (!shift) {
-      console.error('Shift not found for user:', userId, 'shiftId:', shiftId);
-      return res.status(404).json({ message: 'Shift not found' });
-    }
+    if (!shift) return res.status(404).json({ message: 'Shift not found' });
 
+    // Prevent double clock-in
     const existing = await Attendance.findOne({ shift: shiftId, employee: userId, clockOut: null });
-    if (existing) {
-      console.error('Already clocked in:', existing);
-      return res.status(400).json({ message: 'Already clocked in for this shift' });
-    }
+    if (existing) return res.status(400).json({ message: 'Already clocked in for this shift' });
 
-    const ipStatus = ALLOWED_IPS.includes(ip) ? 'ALLOWED' : 'DENIED';
-    const message = ipStatus === 'allowed' ? 'Ip validation successful!' : 'Ip verification failed. Please contact your employer';
+    // At this point, IP has already been validated by middleware.
+    // Save attendance
+    const now = new Date();
+    const shiftStartTime = new Date(`${shift.date}T${shift.startTime}`);
+    const status = now > shiftStartTime ? 'late' : 'ontime';
 
     const attendance = await Attendance.create({
       shift: shiftId,
       employee: userId,
-      clockIn: new Date(),
+      clockIn: now,
+      status,
       ip,
-      ipStatus,
+      ipStatus: 'ALLOWED'
     });
 
-    res.status(201).json({ message, attendance });
+    res.status(201).json({ message: 'IP validation successful', attendance });
   } catch (err) {
     console.error('Clock-in error:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -247,6 +236,30 @@ exports.getAttendanceForEmployee = async (req, res) => {
     // Fetch attendance records
     const records = await Attendance.find({ employee: employeeId }).sort({ date: 1 });
     res.json(mapAttendance(records));
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// GET /api/attendance?employerId=xxx
+exports.getAttendanceForEmployer = async (req, res) => {
+  try {
+    const { employerId } = req.query;
+    if (!employerId) return res.status(400).json({ message: 'employerId required' });
+
+    // Find all employee profiles for this employer
+    const employeeProfiles = await EmployeeProfile.find({ employer: employerId });
+    const employeeIds = employeeProfiles.map(profile => profile.user);
+
+    // Find all attendance records for these employees
+    const records = await Attendance.find({ employee: { $in: employeeIds } }).sort({ date: 1 });
+
+    // Optionally, populate employee info for frontend display
+    const populatedRecords = await Attendance.find({ employee: { $in: employeeIds } })
+      .populate('employee', 'firstName lastName email')
+      .sort({ date: 1 });
+
+    res.json(populatedRecords);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
