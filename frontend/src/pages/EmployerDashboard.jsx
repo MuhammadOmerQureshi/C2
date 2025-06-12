@@ -749,82 +749,38 @@ export default function EmployerDashboard() {
         </section>
       </main>
 
-
-      {/* ===== Failed IP Validation Attempts ===== */}
-    <section className="table-card">
-      <h2>Failed IP Validation Attempts</h2>
-      {failedAttemptsError && <p style={{ color: 'red' }}>{failedAttemptsError}</p>}
-      {failedAttempts.length === 0 ? (
-        <p>No failed attempts.</p>
+      <aside className="sidebar">
+    <div className="sidebar-card">
+      <h2>IP Management</h2>
+      <IPRangeManager />
+    </div>
+    <div className="sidebar-card">
+      <h2>Overall Productivity</h2>
+      {overallChartData ? (
+        <>
+          <Bar
+            data={overallChartData.hours}
+            options={{
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true } },
+            }}
+          />
+          <Doughnut
+            data={overallChartData.status}
+            options={{
+              plugins: { legend: { position: 'bottom' } },
+            }}
+          />
+        </>
       ) : (
-        <div className="table-scrollable">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Time</th>
-                <th>IP Address</th>
-                <th>Reason</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(failedAttempts) && failedAttempts.map(attempt => (
-                <tr key={attempt._id}>
-                  <td>
-                    {attempt.employee?.firstName} {attempt.employee?.lastName} ({attempt.employee?.username})
-                  </td>
-                  <td>{new Date(attempt.attemptTime).toLocaleString()}</td>
-                  <td>{attempt.ipAddress}</td>
-                  <td>{attempt.reason}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <p>No overall data available.</p>
       )}
-    </section>
-    {/* <FailedAttemptsLog /> */}
+    </div>
+  </aside>
+    </div>
 
-<div className="charts-card">
-            <h2>IP Management</h2>
-            <IPRangeManager />
-            <hr style={{ margin: '1rem 0' }} />
-            {/* <h3>Employer IP Settings</h3>
-            <EmployerIPSettings /> */}
-          </div>
-      
-     <aside className="charts-area">
-      
-          <div className="charts-card">
-            <h2>Overall Productivity</h2>
-            {overallChartData ? (
-              <>
-                <Bar
-                  data={overallChartData.hours}
-                  options={{
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } },
-                  }}
-                />
-                <Doughnut
-                  data={overallChartData.status}
-                  options={{
-                    plugins: { legend: { position: 'bottom' } },
-                  }}
-                />
-              </>
-            ) : (
-              <p>No overall data available.</p>
-            )}
-          </div>
-
-          {/* ===== IP Management & Settings ===== */}
-          
-        </aside>
-      </div>
-
-       {/* ===== Footer ===== */}More actions
+       {/* ===== Footer ===== */}
       <footer className="footer">
         <div className="footer-content">
           <div className="footer-section">
@@ -853,7 +809,7 @@ export default function EmployerDashboard() {
           </div>
           <div className="footer-section social-links">
             <h3>Follow Us</h3>
-            <div className="social-icons">Add commentMore actions
+            <div className="social-icons">
         <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
           <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
         </a>
@@ -867,7 +823,7 @@ export default function EmployerDashboard() {
           <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
         </a>
 </div>
-</div>Add commentMore actions
+</div>
         </div>
         <div className="footer-bottom">
           
@@ -877,4 +833,3 @@ export default function EmployerDashboard() {
     </>
   );
 }
- 

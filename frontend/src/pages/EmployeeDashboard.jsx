@@ -86,12 +86,74 @@ export default function EmployeeDashboard() {
     }
   }
 
-  function downloadCSV() {
-    // Implement CSV download logic here
-  }
+  
 
-  function exportPDF() {
-    // Implement PDF export logic here
+  // Export attendance PDF for the logged-in employee
+  async function exportPDF() {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Session expired. Please log in again.');
+        return;
+      }
+      // Use the logged-in employee's ID from profile
+      const employeeId = profile._id || profile.id;
+      if (!employeeId) {
+        alert('Could not determine your employee ID.');
+        return;
+      }
+      const url = `/api/attendance/export/pdf?employeeId=${employeeId}&ts=${Date.now()}`;
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Check for HTML response (error)
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        const text = await response.text();
+        alert('Export failed: ' + text);
+        return;
+      }
+
+      if (!response.ok) {
+        let errorMsg = 'Export failed';
+        if (response.status === 401 || response.status === 403) {
+          errorMsg = 'Unauthorized. Please log in again.';
+        } else {
+          try {
+            const errorData = await response.json();
+            errorMsg = errorData.message || errorMsg;
+          } catch {
+            errorMsg = response.statusText || errorMsg;
+          }
+        }
+        throw new Error(errorMsg);
+      }
+
+      const blob = await response.blob();
+      if (blob.size === 0) {
+        alert('Export failed: The file is empty. You may not have permission or there is no data.');
+        return;
+      }
+      let filename = 'attendance.pdf';
+      const disposition = response.headers.get('content-disposition');
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = match[1];
+      }
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      alert(err.message || 'Export failed');
+    }
   }
 
   return (
@@ -213,7 +275,7 @@ export default function EmployeeDashboard() {
                 </table>
               </div>
               <div className="table-actions">
-                <button className="btn btn-secondary" onClick={downloadCSV}>Download Attendance CSV</button>
+                
                 <button className="btn btn-secondary" onClick={exportPDF}>Export PDF</button>
               </div>
             </section>

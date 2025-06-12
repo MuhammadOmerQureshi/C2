@@ -507,3 +507,117 @@ body {
 
 
 
+
+
+
+
+/* for IP and chats */
+
+/* 
+.dashboard-flex-layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: stretch;
+  gap: 2rem;
+  margin: 2rem 0 1rem 0;
+}
+
+.main-content {
+  flex: 2 1 0%;
+  min-width: 0;
+}
+
+.sidebar {
+  flex: 1 1 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-width: 340px;
+}
+
+.sidebar-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+  padding: 2rem 1.5rem;
+  margin-bottom: 0.5rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.sidebar-card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+@media (max-width: 1000px) {
+  .dashboard-flex-layout {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .sidebar {
+    flex-direction: column;
+    min-width: 0;
+    width: 100%;
+  }
+} */
+
+
+
+
+
+
+
+
+
+
+ .sidebar-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+  padding: 1.25rem 1rem;
+  margin-bottom: 1rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 370px;    
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sidebar-card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.12rem;
+  text-align: center;
+}
+
+.iprange-section input, .iprange-section button {
+  font-size: 0.98rem;
+}
+
+.charts-container {
+  width: 100%;
+  max-width: 340px;   
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.charts-container canvas {
+  max-width: 260px !important;
+  max-height: 260px !important;
+  margin: 0 auto;
+  display: block;
+}
+
+@media (max-width: 1000px) {
+  .sidebar {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+  .sidebar-card, .charts-container {
+    max-width: 95vw;
+  }
+} 
+
+
