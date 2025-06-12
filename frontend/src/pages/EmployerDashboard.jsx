@@ -131,8 +131,8 @@ async function sendShiftReminder(shiftId, email) {
 }
 
 export default function EmployerDashboard() {
-  const [employees, setEmployees] = useState([])
-  const [shifts, setShifts] = useState([])
+  const [employees, setEmployees] = useState([]);
+  const [shifts, setShifts] = useState([]);
   const [empForm, setEmpForm] = useState({
     firstName: '',
     lastName: '',
@@ -147,7 +147,7 @@ export default function EmployerDashboard() {
     startTime: '',
     endTime: '',
     location: '',
-    role: '', // <-- add this line
+    role: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -173,8 +173,8 @@ export default function EmployerDashboard() {
     setError('');
     try {
       const [empRes, shiftRes] = await Promise.all([
-        api.get('/employees'), // Removed ?employerId=...
-        api.get('/shifts'),    // Removed ?employerId=...
+        api.get('/employees'),
+        api.get('/shifts'),
       ]);
       setEmployees(empRes.data);
       setShifts(shiftRes.data);
@@ -184,7 +184,6 @@ export default function EmployerDashboard() {
     setLoading(false);
   }
 
-  // Fetch and aggregate all employees' attendance for overall charts
   async function fetchOverallAttendanceForChart() {
     setError('');
     try {
@@ -194,11 +193,9 @@ export default function EmployerDashboard() {
         logout(navigate);
         return;
       }
-      // Fetch all attendance records for this employer
       const res = await api.get(`/attendance?employerId=${employerId}`);
       const attendance = res.data;
 
-      // Aggregate hours worked per employee
       const empHours = {};
       const statusCounts = {};
       attendance.forEach(record => {
@@ -258,10 +255,8 @@ export default function EmployerDashboard() {
         setChartData(null);
         return;
       }
-      // Fetch attendance records for chart
       const res = await api.get(`/attendance?employeeId=${empId}`);
       const attendance = res.data;
-      // Map chart data
       const labels = attendance.map((record) =>
         record.date ? new Date(record.date).toLocaleDateString() : ''
       );
@@ -317,9 +312,8 @@ export default function EmployerDashboard() {
   async function handleAddEmployee(e) {
     e.preventDefault();
     setError('');
-    const employerId = localStorage.getItem('userId'); // This should be the MongoDB _id
+    const employerId = localStorage.getItem('userId');
 
-    // Username validation
     if (!empForm.username || empForm.username.trim() === '') {
       setError('Username is required');
       return;
@@ -327,7 +321,6 @@ export default function EmployerDashboard() {
 
     const employeeData = {
       ...empForm
-      // Do NOT include employerId
     };
 
     try {
@@ -368,11 +361,10 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Populate the shift form for editing
   function handleEditShift(shift) {
     setEditShiftId(shift._id);
     setShiftForm({
-      employeeId: shift.employee?._id || '', // Use shift.employee._id
+      employeeId: shift.employee?._id || '',
       date: shift.date ? shift.date.slice(0, 10) : '',
       startTime: shift.startTime || '',
       endTime: shift.endTime || '',
@@ -381,7 +373,6 @@ export default function EmployerDashboard() {
     });
   }
 
-  // Save or update shift
   async function handleAddShift(e) {
     e.preventDefault();
     setError('');
@@ -398,7 +389,7 @@ export default function EmployerDashboard() {
         startTime: '',
         endTime: '',
         location: '',
-        role: '', // <-- add this line
+        role: '',
       });
       fetchAll();
     } catch (err) {
@@ -438,16 +429,16 @@ export default function EmployerDashboard() {
     });
   }
 
-  // Example: Calculate pending clock-ins (adjust as needed)
   const pendingClockIns = employees.filter(e => !e.clockedIn).length;
 
   return (
     <>
-      <SpinningLogo />
-
       {/* ===== Header ===== */}
       <header className="header">
-        <h1 className="header-title">Employer Dashboard</h1>
+        <div className="header-logo-title">
+          <img src="/logo.png" alt="CesiumClock Logo" className="spinning-logo" />
+          <span className="header-title">Employer Dashboard</span>
+        </div>
         <button className="btn btn-logout" onClick={() => logout(navigate)}>
           Logout
         </button>
@@ -462,263 +453,261 @@ export default function EmployerDashboard() {
           <strong>📢 Alert:</strong> {shifts.find(s => !s.employeeId) ? "Some shifts need assignment." : "All shifts assigned."}
         </p>
       </div>
-    <div class="dashboard-flex-layout">
-      <main className="main-content">
-        {/* ===== Overview Cards ===== */}
-        <section className="overview">
-          <div className="card">
-            <h3>Total Employees</h3>
-            <p className="stat-number">{employees.length}</p>
-          </div>
-          <div className="card">
-            <h3>Total Shifts Posted</h3>
-            <p className="stat-number">{shifts.length}</p>
-          </div>
-          <div className="card">
-            <h3>Pending Clock-Ins</h3>
-            <p className="stat-number">{pendingClockIns}</p>
-          </div>
-        </section>
-
-        {/* ===== Forms Section ===== */}
-        <section className="forms">
-          {/* Create Employee Form */}
-          <div className="form-card">
-            <h2>Create Employee</h2>
-            <form className="create-form" onSubmit={handleAddEmployee}>
-              <div className="form-group">
-                <label>First Name<span className="required">*</span></label>
-                <input value={empForm.firstName} onChange={e => setEmpForm(f => ({ ...f, firstName: e.target.value }))} required />
-              </div>
-              <div className="form-group">
-                <label>Last Name<span className="required">*</span></label>
-                <input value={empForm.lastName} onChange={e => setEmpForm(f => ({ ...f, lastName: e.target.value }))} required />
-              </div>
-              <div className="form-group">
-                <label>Username<span className="required">*</span></label>
-                <input
-                  value={empForm.username}
-                  onChange={e => setEmpForm(f => ({ ...f, username: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Email<span className="required">*</span></label>
-                <input type="email" value={empForm.email} onChange={e => setEmpForm(f => ({ ...f, email: e.target.value }))} required />
-              </div>
-              <div className="form-group">
-                <label>Employee Number<span className="required">*</span></label>
-                <input value={empForm.employeeId} onChange={e => setEmpForm(f => ({ ...f, employeeId: e.target.value }))} required />
-              </div>
-              <div className="form-group">
-                <label>Contact Number<span className="required">*</span></label>
-                <input value={empForm.contactNumber || ''} onChange={e => setEmpForm(f => ({ ...f, contactNumber: e.target.value }))} required />
-              </div>
-              <div className="form-group">
-                <label>Password<span className="required">*</span></label>
-                <input type="password" value={empForm.password} onChange={e => setEmpForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
-              </div>
-              
-              <button type="submit" className="btn btn-primary">Create Employee</button>
-            </form>
-          </div>
-
-          {/* Create/Edit Shift Form */}
-          <div className="form-card">
-            <h2>{editShiftId ? 'Edit Shift' : 'Create / Edit Shift'}</h2>
-            <form className="create-form" onSubmit={handleAddShift}>
-              <div className="form-group">
-                <label>Assign To Employee<span className="required">*</span></label>
-                <select
-                  value={shiftForm.employeeId}
-                  onChange={e => setShiftForm(f => ({ ...f, employeeId: e.target.value }))}
-                  required
-                >
-                  <option value="">-- Select Employee --</option>
-                  {employees.map(emp => (
-                    <option key={emp._id} value={emp._id}>
-                      {emp.firstName} {emp.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Date<span className="required">*</span></label>
-                <input
-                  type="date"
-                  value={shiftForm.date}
-                  onChange={e => setShiftForm(f => ({ ...f, date: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Start Time<span className="required">*</span></label>
-                <input
-                  type="time"
-                  value={shiftForm.startTime}
-                  onChange={e => setShiftForm(f => ({ ...f, startTime: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>End Time<span className="required">*</span></label>
-                <input
-                  type="time"
-                  value={shiftForm.endTime}
-                  onChange={e => setShiftForm(f => ({ ...f, endTime: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Role / Position<span className="required">*</span></label>
-                <input
-                  value={shiftForm.role || ''}
-                  onChange={e => setShiftForm(f => ({ ...f, role: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Location<span className="required">*</span></label>
-                <input
-                  value={shiftForm.location || ''}
-                  onChange={e => setShiftForm(f => ({ ...f, location: e.target.value }))}
-                  required
-                />
-              </div>
-              <button type="submit" className="btn btn-primary">
-                {editShiftId ? 'Update Shift' : 'Save Shift'}
-              </button>
-              {editShiftId && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  style={{ marginLeft: '0.5rem' }}
-                  onClick={() => {
-                    setEditShiftId(null);
-                    setShiftForm({
-                      employeeId: '',
-                      date: '',
-                      startTime: '',
-                      endTime: '',
-                      location: '',
-                      role: '', // <-- add this line
-                    });
-                  }}
-                >
-                  Cancel Edit
-                </button>
-              )}
-            </form>
-          </div>
-        </section>
-
-        {/* ===== Tables Section ===== */}
-        <section className="tables">
-          {/* Employees Table */}
-          <div className="table-card">
-            <h2>Employees</h2>
-            <div className="table-scrollable">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Employee #</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Contact</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map(emp => (
-                    <tr key={emp._id}>
-                      <td>{emp.employeeId}</td>
-                      <td>{emp.firstName} {emp.lastName}</td>
-                      <td>{emp.email}</td>
-                      <td>{emp.contactNumber}</td>
-                      <td className="actions">
-                        <button className="btn btn-sm btn-secondary">Edit</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => handleDeleteEmployee(emp._id)}>Delete</button>
-                        <button className="btn btn-sm btn-export" onClick={() => exportAttendancePDF(emp._id)}>Export Attendance</button>
-                        <button
-                          className="btn btn-sm btn-analytics"
-                          onClick={() => {
-                            setSelectedEmployee(emp);
-                            fetchAttendanceForChart(emp._id);
-                          }}
-                        >
-                          Analytics
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {employees.length === 0 && (
-                    <tr><td colSpan={5}>No employees found.</td></tr>
-                  )}
-                </tbody>
-              </table>
+      <div className="dashboard-flex-layout">
+        <main className="main-content">
+          {/* ===== Overview Cards ===== */}
+          <section className="overview">
+            <div className="card">
+              <h3>Total Employees</h3>
+              <p className="stat-number">{employees.length}</p>
             </div>
-          </div>
+            <div className="card">
+              <h3>Total Shifts Posted</h3>
+              <p className="stat-number">{shifts.length}</p>
+            </div>
+            <div className="card">
+              <h3>Pending Clock-Ins</h3>
+              <p className="stat-number">{pendingClockIns}</p>
+            </div>
+          </section>
 
-          {/* Shifts Table */}
-          <div className="table-card">
-            <h2>Posted Shifts</h2>
-            <div className="table-scrollable">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Employee</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Location</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shifts.map(shift => {
-                    // If shift.employee is populated (object), use it directly
-                    const emp = shift.employee;
-                    return (
-                      <tr key={shift._id}>
-                        <td>
-                          {emp && emp.firstName
-                            ? `${emp.firstName} ${emp.lastName}`
-                            : 'Unassigned'}
-                        </td>
-                        <td>{shift.date ? new Date(shift.date).toLocaleDateString() : ''}</td>
-                        <td>{shift.startTime} – {shift.endTime}</td>
-                        <td>{shift.role || '-'}</td>
-                        <td>{shift.status}</td>
-                        <td>{shift.location || '-'}</td>
+          {/* ===== Forms Section ===== */}
+          <section className="forms">
+            {/* Create Employee Form */}
+            <div className="form-card">
+              <h2>Create Employee</h2>
+              <form className="create-form" onSubmit={handleAddEmployee}>
+                <div className="form-group">
+                  <label>First Name<span className="required">*</span></label>
+                  <input value={empForm.firstName} onChange={e => setEmpForm(f => ({ ...f, firstName: e.target.value }))} required />
+                </div>
+                <div className="form-group">
+                  <label>Last Name<span className="required">*</span></label>
+                  <input value={empForm.lastName} onChange={e => setEmpForm(f => ({ ...f, lastName: e.target.value }))} required />
+                </div>
+                <div className="form-group">
+                  <label>Username<span className="required">*</span></label>
+                  <input
+                    value={empForm.username}
+                    onChange={e => setEmpForm(f => ({ ...f, username: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Email<span className="required">*</span></label>
+                  <input type="email" value={empForm.email} onChange={e => setEmpForm(f => ({ ...f, email: e.target.value }))} required />
+                </div>
+                <div className="form-group">
+                  <label>Employee Number<span className="required">*</span></label>
+                  <input value={empForm.employeeId} onChange={e => setEmpForm(f => ({ ...f, employeeId: e.target.value }))} required />
+                </div>
+                <div className="form-group">
+                  <label>Contact Number<span className="required">*</span></label>
+                  <input value={empForm.contactNumber || ''} onChange={e => setEmpForm(f => ({ ...f, contactNumber: e.target.value }))} required />
+                </div>
+                <div className="form-group">
+                  <label>Password<span className="required">*</span></label>
+                  <input type="password" value={empForm.password} onChange={e => setEmpForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
+                </div>
+                <button type="submit" className="btn btn-primary">Create Employee</button>
+              </form>
+            </div>
+
+            {/* Create/Edit Shift Form */}
+            <div className="form-card">
+              <h2>{editShiftId ? 'Edit Shift' : 'Create / Edit Shift'}</h2>
+              <form className="create-form" onSubmit={handleAddShift}>
+                <div className="form-group">
+                  <label>Assign To Employee<span className="required">*</span></label>
+                  <select
+                    value={shiftForm.employeeId}
+                    onChange={e => setShiftForm(f => ({ ...f, employeeId: e.target.value }))}
+                    required
+                  >
+                    <option value="">-- Select Employee --</option>
+                    {employees.map(emp => (
+                      <option key={emp._id} value={emp._id}>
+                        {emp.firstName} {emp.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Date<span className="required">*</span></label>
+                  <input
+                    type="date"
+                    value={shiftForm.date}
+                    onChange={e => setShiftForm(f => ({ ...f, date: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Start Time<span className="required">*</span></label>
+                  <input
+                    type="time"
+                    value={shiftForm.startTime}
+                    onChange={e => setShiftForm(f => ({ ...f, startTime: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>End Time<span className="required">*</span></label>
+                  <input
+                    type="time"
+                    value={shiftForm.endTime}
+                    onChange={e => setShiftForm(f => ({ ...f, endTime: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Role / Position<span className="required">*</span></label>
+                  <input
+                    value={shiftForm.role || ''}
+                    onChange={e => setShiftForm(f => ({ ...f, role: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Location<span className="required">*</span></label>
+                  <input
+                    value={shiftForm.location || ''}
+                    onChange={e => setShiftForm(f => ({ ...f, location: e.target.value }))}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">
+                  {editShiftId ? 'Update Shift' : 'Save Shift'}
+                </button>
+                {editShiftId && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ marginLeft: '0.5rem' }}
+                    onClick={() => {
+                      setEditShiftId(null);
+                      setShiftForm({
+                        employeeId: '',
+                        date: '',
+                        startTime: '',
+                        endTime: '',
+                        location: '',
+                        role: '',
+                      });
+                    }}
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+              </form>
+            </div>
+          </section>
+
+          {/* ===== Tables Section ===== */}
+          <section className="tables">
+            {/* Employees Table */}
+            <div className="table-card">
+              <h2>Employees</h2>
+              <div className="table-scrollable">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Employee #</th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Contact</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.map(emp => (
+                      <tr key={emp._id}>
+                        <td>{emp.employeeId}</td>
+                        <td>{emp.firstName} {emp.lastName}</td>
+                        <td>{emp.email}</td>
+                        <td>{emp.contactNumber}</td>
                         <td className="actions">
+                          <button className="btn btn-sm btn-secondary">Edit</button>
+                          <button className="btn btn-sm btn-danger" onClick={() => handleDeleteEmployee(emp._id)}>Delete</button>
+                          <button className="btn btn-sm btn-export" onClick={() => exportAttendancePDF(emp._id)}>Export Attendance</button>
                           <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={() => handleEditShift(shift)}
+                            className="btn btn-sm btn-analytics"
+                            onClick={() => {
+                              setSelectedEmployee(emp);
+                              fetchAttendanceForChart(emp._id);
+                            }}
                           >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDeleteShift(shift._id)}
-                          >
-                            Cancel
+                            Analytics
                           </button>
                         </td>
                       </tr>
-                    );
-                  })}
-                  {shifts.length === 0 && (
-                    <tr><td colSpan={7}>No shifts found.</td></tr>
-                  )}
-                </tbody>
-              </table>
+                    ))}
+                    {employees.length === 0 && (
+                      <tr><td colSpan={5}>No employees found.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        </section>
-      </main>
-      
-     <aside class="charts-area">
+
+            {/* Shifts Table */}
+            <div className="table-card">
+              <h2>Posted Shifts</h2>
+              <div className="table-scrollable">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Location</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shifts.map(shift => {
+                      const emp = shift.employee;
+                      return (
+                        <tr key={shift._id}>
+                          <td>
+                            {emp && emp.firstName
+                              ? `${emp.firstName} ${emp.lastName}`
+                              : 'Unassigned'}
+                          </td>
+                          <td>{shift.date ? new Date(shift.date).toLocaleDateString() : ''}</td>
+                          <td>{shift.startTime} – {shift.endTime}</td>
+                          <td>{shift.role || '-'}</td>
+                          <td>{shift.status}</td>
+                          <td>{shift.location || '-'}</td>
+                          <td className="actions">
+                            <button
+                              className="btn btn-sm btn-secondary"
+                              onClick={() => handleEditShift(shift)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => handleDeleteShift(shift._id)}
+                            >
+                              Cancel
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {shifts.length === 0 && (
+                      <tr><td colSpan={7}>No shifts found.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </main>
+        
+        <aside className="charts-area">
           <div className="charts-card">
             <h2>Overall Productivity</h2>
             {overallChartData ? (
@@ -772,10 +761,8 @@ export default function EmployerDashboard() {
             </div>
           )}
         </aside>
+      </div>
 
-    </div>
-
-    
       {/* ===== Footer ===== */}
       <footer className="footer">
         <div className="footer-content">
@@ -783,7 +770,7 @@ export default function EmployerDashboard() {
             <h3>About Us</h3>
             <ul>
               <li><a href="#">Our Story</a></li>
-              <li><a href="#">Team &amp; Careers</a></li>
+              <li><a href="#">Team & Careers</a></li>
               <li><a href="#">Contact Support</a></li>
             </ul>
           </div>
@@ -805,22 +792,20 @@ export default function EmployerDashboard() {
           </div>
           <div className="footer-section social-links">
             <h3>Follow Us</h3>
-<div className="social-icons">
-  <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-    <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
-  </a>
-  <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-    <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
-  </a>
-  <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-    <img src="/li.png" alt="LinkedIn" width="24" />
-  </a>
-  <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-    <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
-  </a>
-</div>
-
-
+            <div className="social-icons">
+              <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
+              </a>
+              <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
+              </a>
+              <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="/li.png" alt="LinkedIn" width="24" />
+              </a>
+              <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
+              </a>
+            </div>
           </div>
         </div>
         <div className="footer-bottom">

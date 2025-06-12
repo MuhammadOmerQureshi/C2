@@ -26,11 +26,8 @@ body {
   align-items: center;
   padding: 1.1rem 2rem;
 }
-.header-logo-title {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-}
+
+
 .header-logo {
   width: 48px;
   height: 48px;

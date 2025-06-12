@@ -107,6 +107,11 @@ body {
   margin-left: 5rem;
   
 }
+.header-logo-title {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
 .header .btn-logout {
   font-size: 0.9rem;
 }
@@ -132,6 +137,16 @@ body {
   margin-bottom: 0;
   
 
+}
+
+.header-logo-title {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.header-logo {
+  width: 48px;
+  height: 48px;
 }
 
 /* ===== Overview Cards ===== */
@@ -439,6 +454,7 @@ body {
   top: 0;
   background-color: var(--card-bg);
   z-index: 1;
+  
 }
 
 

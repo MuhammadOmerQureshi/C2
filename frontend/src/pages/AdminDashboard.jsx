@@ -87,16 +87,10 @@ export default function AdminDashboard() {
     }
   };
 
-
-
   const onSelectAll = () => {
     if (selected.length === employers.length) setSelected([]);
     else setSelected(employers.map(e => e._id));
   };
-
-
-
-
 
   // Reset password
   const onResetPassword = async (e) => {
@@ -114,11 +108,12 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <SpinningLogo />
-
       {/* ===== Header ===== */}
       <header className="header">
-        <h1 className="header-title">Admin Dashboard</h1>
+        <div className="header-logo-title">
+          <img src="/logo.png" alt="CesiumClock Logo" className="spinning-logo" />
+          <span className="header-title">Admin Dashboard</span>
+        </div>
         <button className="btn btn-logout" onClick={() => logout(navigate)}>
           Logout
         </button>
@@ -183,7 +178,6 @@ export default function AdminDashboard() {
                 </form>
               </div>
             </section>
-
 
             {/* Employers Table */}
             <section className="tables">
@@ -314,7 +308,7 @@ export default function AdminDashboard() {
             <h3>About Us</h3>
             <ul>
               <li><a href="#">Our Story</a></li>
-              <li><a href="#">Team &amp; Careers</a></li>
+              <li><a href="#">Team & Careers</a></li>
               <li><a href="#">Contact Support</a></li>
             </ul>
           </div>
@@ -336,22 +330,20 @@ export default function AdminDashboard() {
           </div>
           <div className="footer-section social-links">
             <h3>Follow Us</h3>
-<div className="social-icons">
-  <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-    <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
-  </a>
-  <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-    <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
-  </a>
-  <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-    <img src="/li.png" alt="LinkedIn" width="24" />
-  </a>
-  <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
-    <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
-  </a>
-</div>
-
-
+            <div className="social-icons">
+              <a href="https://www.facebook.com/" aria-label="Facebook" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/facebook/1877F2" alt="Facebook" width="24" />
+              </a>
+              <a href="https://x.com/" aria-label="Twitter" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/x/000000" alt="X" width="24" />
+              </a>
+              <a href="https://se.linkedin.com/" aria-label="LinkedIn" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="/li.png" alt="LinkedIn" width="24" />
+              </a>
+              <a href="https://www.instagram.com/" aria-label="Instagram" className="social-icon-box" target="_blank" rel="noopener noreferrer">
+                <img src="https://cdn.simpleicons.org/instagram/E4405F" alt="Instagram" width="24" />
+              </a>
+            </div>
           </div>
         </div>
         <div className="footer-bottom">
