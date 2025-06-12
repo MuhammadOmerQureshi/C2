@@ -16,6 +16,10 @@ export default function AdminDashboard() {
   const [showDetails, setShowDetails] = useState(null);
   const [resetId, setResetId] = useState(null);
   const [resetPassword, setResetPassword] = useState('');
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [resetError, setResetError] = useState('');
 
   const navigate = useNavigate();
 
@@ -94,30 +98,37 @@ export default function AdminDashboard() {
     else setSelected(employers.map(e => e._id));
   };
 
+  const handleResetPasswordClick = (user) => {
+    setSelectedUser(user);
+    setNewPassword('');
+    setResetError('');
+    setShowResetModal(true);
+  };
 
-
-
-
-  // Reset password
-  const onResetPassword = async (e) => {
-    e.preventDefault();
-    setError('');
+  const submitPasswordReset = async () => {
+    if (!newPassword) {
+      setResetError('Password cannot be empty');
+      return;
+    }
     try {
-      await api.put(`/admin/users/${resetId}/password`, { password: resetPassword });
-      setResetId(null);
-      setResetPassword('');
+      await api.put(`/admin/users/${selectedUser._id}/password`, { password: newPassword });
+      setShowResetModal(false);
+      setSelectedUser(null);
+      setNewPassword('');
+      setResetError('');
       fetchEmployers();
     } catch (err) {
-      setError(err.response?.data?.message || 'Password reset failed');
+      setResetError(err.response?.data?.message || 'Failed to reset password');
     }
   };
 
   return (
     <>
-      <SpinningLogo />
+      {/* <SpinningLogo /> */}
 
       {/* ===== Header ===== */}
       <header className="header">
+        <img src="/logo.png" alt="CesiumClock Logo" className="spinning-logo"/>
         <h1 className="header-title">Admin Dashboard</h1>
         <button className="btn btn-logout" onClick={() => logout(navigate)}>
           Logout
@@ -228,9 +239,12 @@ export default function AdminDashboard() {
                             <button className="btn btn-sm btn-secondary" onClick={() => setShowDetails(emp)}>
                               Details
                             </button>
-                            <button className="btn btn-sm btn-warning" onClick={() => { setResetId(emp._id); setResetPassword(''); }}>
-                              Reset Password
-                            </button>
+                            <button
+  className="btn btn-sm btn-warning"
+  onClick={() => handleResetPasswordClick(emp)}
+>
+  Reset Password
+</button>
                             <button className="btn btn-sm btn-danger" onClick={() => onDelete(emp._id)}>
                               Delete
                             </button>
@@ -284,23 +298,30 @@ export default function AdminDashboard() {
       )}
 
       {/* Reset Password Modal */}
-      {resetId && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <form onSubmit={onResetPassword} className="bg-white p-6 rounded shadow-lg w-full max-w-sm">
-            <h3 className="text-xl mb-2">Reset Password</h3>
+      {showResetModal && (
+        <div className="modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div className="modal" style={{
+            background: '#fff', padding: 24, borderRadius: 8, minWidth: 320, boxShadow: '0 2px 16px rgba(0,0,0,0.2)'
+          }}>
+            <h3 style={{ marginBottom: 12 }}>
+              Reset Password for {selectedUser?.firstName} {selectedUser?.lastName}
+            </h3>
             <input
               type="password"
-              value={resetPassword}
-              onChange={e => setResetPassword(e.target.value)}
               placeholder="New Password"
-              required
-              className="w-full p-2 border rounded mb-4"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              style={{ width: '100%', marginBottom: 12, padding: 8 }}
             />
-            <div className="flex gap-2">
-              <button type="submit" className="btn btn-warning">Set Password</button>
-              <button type="button" onClick={() => setResetId(null)} className="btn btn-secondary">Cancel</button>
+            {resetError && <div style={{ color: 'red', marginBottom: 8 }}>{resetError}</div>}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-warning" onClick={submitPasswordReset}>Set Password</button>
+              <button className="btn btn-secondary" onClick={() => setShowResetModal(false)}>Cancel</button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 

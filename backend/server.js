@@ -56,7 +56,7 @@ app.use('/api/employees',  employeeRoutes);
 app.use('/api/employers',  employerRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/chatbot', chatbotRoutes);cls
+app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/employer', employerSettingsRoutes);
 
