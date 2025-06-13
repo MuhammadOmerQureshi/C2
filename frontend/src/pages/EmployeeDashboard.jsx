@@ -61,19 +61,30 @@ export default function EmployeeDashboard() {
     }
   }
 
-  async function handleClockIn(shiftId) {
-    setError('');
-    try {
-      const ipRes = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await ipRes.json();
-      await api.post('/attendance/clock-in', { shiftId, ip });
-      alert(res.data.message);  // Shows "IP validation successful" or error
-      fetchHistory();
-      fetchShifts();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Clock-in failed');
-    }
+ 
+
+
+async function handleClockIn(shiftId) {
+  setError('');
+  try {
+    const ipRes = await fetch('https://api.ipify.org?format=json');
+    const { ip } = await ipRes.json();
+    // Store result in 'res' so we can use its data safely
+    const res = await api.post('/attendance/clock-in', { shiftId, ip });
+    // You can choose to display a custom message, or remove this alert line
+    // alert(res.data.message); // Only enable if you want user to see backend response
+    fetchHistory();
+    fetchShifts();
+  } catch (err) {
+    setError(err.response?.data?.message || 'Clock-in failed');
   }
+}
+
+
+
+
+
+
 
   async function handleClockOut(recordId) {
     setError('');

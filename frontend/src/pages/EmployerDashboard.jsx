@@ -830,6 +830,45 @@ export default function EmployerDashboard() {
           <p>©2025 CesiumClock. All rights reserved</p>
         </div>
       </footer>
+
+      {/* Analytics Modal for Selected Employee */}
+      {selectedEmployee && chartData && (
+        <div className="analytics-modal" style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 1000,
+          background: "white",
+          padding: "2rem",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+          borderRadius: "1rem",
+          width: "600px",
+          maxWidth: "95vw",
+          maxHeight: "85vh",        // ADDED: limit modal height to 85% of viewport
+          overflowY: "auto",        // ADDED: vertical scroll if content too tall
+          display: "flex",
+          flexDirection: "column"
+        }}>
+          <h2>
+            Analytics for {selectedEmployee.firstName} {selectedEmployee.lastName}
+            <button
+              className="btn btn-close"
+              onClick={() => {
+                setSelectedEmployee(null);
+                setChartData(null);
+              }}
+              style={{ float: 'right', marginLeft: 8 }}
+            >
+              Close
+            </button>
+          </h2>
+          <div style={{ width: "100%", margin: "auto" }}>
+            <Bar data={chartData.hours} options={{ responsive: true, plugins: { legend: { display: false } }}} />
+            <Doughnut data={chartData.status} options={{ plugins: { legend: { position: "bottom" }}}} />
+          </div>
+        </div>
+      )}
     </>
   );
 }
