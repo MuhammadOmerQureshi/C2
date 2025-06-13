@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create and name axios instance "api"
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: 'https://c2-85uf.onrender.com/api',
   withCredentials: true,
 });
 

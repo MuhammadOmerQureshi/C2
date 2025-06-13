@@ -112,7 +112,7 @@ async function exportAttendancePDF(employeeId) {
 async function sendShiftReminder(shiftId, email) {
   try {
     const token = localStorage.getItem('token'); 
-    const response = await fetch('http://localhost:5000/api/attendance/send-shift-reminder', {
+    const response = await fetch('https://c2-85uf.onrender.com/api/attendance/send-shift-reminder', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -425,7 +425,7 @@ export default function EmployerDashboard() {
         startTime: '',
         endTime: '',
         location: '',
-        role: '', // <-- add this line
+        role: '', 
       });
       fetchAll();
     } catch (err) {
@@ -465,7 +465,7 @@ export default function EmployerDashboard() {
     });
   }
 
-  // Example: Calculate pending clock-ins (adjust as needed)
+  // Calculate pending clock-ins (adjust as needed)
   const pendingClockIns = employees.filter(e => !e.clockedIn).length;
 
   return (

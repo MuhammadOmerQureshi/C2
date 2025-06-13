@@ -17,7 +17,7 @@ export default function LoginPage() {
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       const me = await api.get('/auth/me');
-      localStorage.setItem('userId', me.data._id); // <-- Save userId for later use
+      localStorage.setItem('userId', me.data._id); 
       if (me.data.role === 'admin') navigate('/admin');
       else if (me.data.role === 'employer') navigate('/employer');
       else if (me.data.role === 'employee') navigate('/employee');
