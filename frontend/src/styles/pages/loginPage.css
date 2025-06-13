@@ -294,3 +294,117 @@ body {
 .social-icons a:hover {
   color: #0073b1; /* example hover color */
 }
+
+
+
+/* === 1. Super Small Devices (e.g., Galaxy S8+, iPhone SE) === */
+@media (max-width: 375px) {
+  .login-card {
+    min-width: 95vw;
+    max-width: 100vw;
+    padding: 1rem 0.3rem;
+  }
+  .login-logo {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* === 2. Small Phones (up to iPhone 14 Pro Max, Galaxy A51/71, Pixel 7) === */
+@media (max-width: 430px) {
+  .login-card {
+    min-width: 95vw;
+    max-width: 100vw;
+    padding: 1.1rem 0.5rem;
+  }
+  .login-logo {
+    width: 140px;
+    height: 140px;
+  }
+  .login-logo-text {
+    font-size: 1.1rem;
+  }
+  .login-form {
+    gap: 0.75rem;
+  }
+}
+
+/* === 3. Medium Phones & Folded Foldables (Surface Duo, Z Fold 5 folded) === */
+@media (max-width: 600px) {
+  .login-card {
+    padding: 1.3rem 0.8rem;
+    min-width: 90vw;
+    max-width: 99vw;
+  }
+  .footer-content {
+    flex-direction: column;
+    gap: 1.3rem;
+  }
+  .footer-section {
+    min-width: unset;
+  }
+  .login-logo {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+/* === 4. Tablets & Unfolded Foldables (iPad Mini, Surface Pro, Z Fold 5 unfolded) === */
+@media (min-width: 601px) and (max-width: 900px) {
+  .login-main-center {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  .login-card {
+    min-width: 60vw;
+    max-width: 75vw;
+    padding: 2rem 1.5rem;
+  }
+  .footer-content {
+    padding: 1.5rem 0.5rem;
+    flex-direction: row;
+    gap: 1.8rem;
+  }
+  .login-logo {
+    width: 170px;
+    height: 170px;
+  }
+}
+
+/* === 5. Small Laptops, iPad Pro, Nest Hub Max (Landscape tablets) === */
+@media (min-width: 901px) and (max-width: 1200px) {
+  .login-main-center {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  .login-card {
+    min-width: 400px;
+    max-width: 500px;
+    padding: 2.2rem 2.5rem;
+  }
+  .footer-content {
+    max-width: 900px;
+    padding: 2rem 1.2rem;
+  }
+  .login-logo {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+/* === 6. Extra Large Screens (Desktops, Large Laptops) === */
+@media (min-width: 1201px) {
+  .login-main-center {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+  .login-card {
+    min-width: 320px;
+    max-width: 370px;
+    padding: 2.5rem 2.7rem;
+  }
+  .footer-content {
+    max-width: 1200px;
+    padding: 2.5rem 2rem;
+  }
+}
